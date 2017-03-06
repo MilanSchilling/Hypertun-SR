@@ -1,0 +1,8 @@
+\begin{thebibliography}{1}
+
+\bibitem{paper}
+John Doe and Jane Doe.
+\newblock A closely related paper.
+\newblock In {\em an awesome conference}, 2014.
+
+\end{thebibliography}
