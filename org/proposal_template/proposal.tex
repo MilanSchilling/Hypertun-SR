@@ -52,7 +52,13 @@ Detailed descriptions of work packages you planned, their outcomes, the responsi
 
 \section{Outcomes and Demonstration}
 
-Give detailed information on the expected outcome of your project and the experiments you plan to test your implementation. If applicable, describe the online or offline demo you plan to present at the end of the semester.
+The goal of the project is to obtain an algorithm that computes the disparity image for a stereo camera pair at a considerable high frame rate on a single processor. If the dataset provides the ground truth poses, it will also be possible to create a point cloud of the scene from the disparity images.
+In order to value the outcome of this project, we want to compare the performance against other methods, such as SGBM\footnote{H. Hirschmüller, "Accurate and efficient stereo processing by semi-global matching and mutual information", IEEE, 2005} or ELAS\footnote{A. Geiger, J, Ziegler and C. Stiller, "Stereoscan, Dense 3D reconstruction in real-time", IEEE, 2011}. Therefore we will set up an experiment to run our implementation against other methods on the same dataset and on the same machine, to be able to compare the run times.
+
+Other than that, we want to estimate the accuracy of our implementation. Thus, we will compare the disparity images computed by our implementation with the ground truth disparity images of the dataset, if given.  
+
+At the final presentation, we would like to present a life demo (or a recorded video) of our implementation. 
+
 
 
 \vspace{1cm}
