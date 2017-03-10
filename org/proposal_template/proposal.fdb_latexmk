@@ -1,13 +1,13 @@
 # Fdb version 3
-["bibtex proposal"] 1489139667 "proposal.aux" "proposal.bbl" "proposal" 1489149180
+["bibtex proposal"] 1489139667 "proposal.aux" "proposal.bbl" "proposal" 1489151586
   "/usr/local/texlive/2016/texmf-dist/bibtex/bst/base/plain.bst" 1292289607 20613 bd3fbfa9f64872b81ac57a0dd2ed855f ""
-  "proposal.aux" 1489149180 400 d2ee8f1ce1d9aba65f09b5b667b1420c ""
+  "proposal.aux" 1489151586 400 d2ee8f1ce1d9aba65f09b5b667b1420c ""
   "proposal.bcf" 0 -1 0 ""
   "refs.bib" 1489139598 238 bb462407b453bfee1ed2968761cc6eb8 ""
   (generated)
-  "proposal.blg"
   "proposal.bbl"
-["pdflatex"] 1489149179 "proposal.tex" "proposal.pdf" "proposal" 1489149180
+  "proposal.blg"
+["pdflatex"] 1489151586 "proposal.tex" "proposal.pdf" "proposal" 1489151586
   "/usr/local/texlive/2016/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/local/texlive/2016/texmf-dist/fonts/map/fontname/texfonts.map" 1272929888 3287 e6b82fe08f5336d4d5ebc73fb1152e87 ""
   "/usr/local/texlive/2016/texmf-dist/fonts/tfm/adobe/times/ptmb7t.tfm" 1136768653 2172 fd0c924230362ff848a33632ed45dc23 ""
@@ -63,10 +63,10 @@
   "ian.jpg" 1489135689 55514 febb7e65d5fdf17b1b98c610d1e46030 ""
   "johann.jpg" 1489136133 134568 606c09b97254eeade429a9cedc124fae ""
   "milan.jpg" 1489135723 296935 07ce39042e38d5665d591ab443ac504e ""
-  "proposal.aux" 1489149180 400 d2ee8f1ce1d9aba65f09b5b667b1420c ""
+  "proposal.aux" 1489151586 400 d2ee8f1ce1d9aba65f09b5b667b1420c ""
   "proposal.bbl" 1489139667 261 fcaa38af07c53c97f65a995e120df0fa "bibtex proposal"
-  "proposal.tex" 1489149179 4239 4f557c27943cc237dc0939878d2f2a3b ""
+  "proposal.tex" 1489151585 4245 7541c0b81bf6984198241e9d7373aeb9 ""
   (generated)
   "proposal.log"
-  "proposal.pdf"
   "proposal.aux"
+  "proposal.pdf"
