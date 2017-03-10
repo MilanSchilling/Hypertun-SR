@@ -48,11 +48,38 @@ A high level description of the project, mentioning the main goal, the input and
 
 \section{Work packages and timeline}
 
-Detailed descriptions of work packages you planned, their outcomes, the responsible group member and estimated timeline. Specify the challenges that will be tackled and considered solutions with possible alternatives, citing related documents if applicable. Mention the platform (Android, PC etc.) and the language (C++ etc.) you plan to use.
+Since some needed packages request a Linux distribution, we decided to work on personal computers running Linux. Further, the project will be written in C++, using - among others - the OpenCV\footnote{www.opencv.org, accessed 03/10/17.} package.
+
+The workload of this project will be divided in packages as following:
+\begin{itemize}
+\item Literature review
+\item Prototype of the pipeline containing:
+\begin{itemize}
+\item Sparse Stereo Matching
+\item Disparity Interpolation
+\item Cost Evaluation
+\item Disparity Refinement
+\item Support Resampling
+\item Iterative Reconstruction
+\end{itemize}
+\item Testing the pipeline with different datasets
+\item Optimization in terms of runtime
+\item Evaluation by comparing with available methods (runtime) and with ground truth (accuracy)
+\item Presentation and Report
+\end{itemize}
+
+Using git as a collaboration and version control tool, it is possible to distribute the different coding parts among the team members. As soon as the different parts of the pipeline were built, we reserve some time for the assemblage and debugging of the code. 
+
 
 \section{Outcomes and Demonstration}
 
-Give detailed information on the expected outcome of your project and the experiments you plan to test your implementation. If applicable, describe the online or offline demo you plan to present at the end of the semester.
+The goal of the project is to obtain an algorithm that computes the disparity image for a stereo camera pair at a considerable high frame rate on a single processor. If the dataset provides the ground truth poses, it will also be possible to create a point cloud of the scene from the disparity images.
+In order to value the outcome of this project, we want to compare the performance against other methods, such as SGBM\footnote{H. Hirschmüller, "Accurate and efficient stereo processing by semi-global matching and mutual information", IEEE, 2005} or ELAS\footnote{A. Geiger, J, Ziegler and C. Stiller, "Stereoscan, Dense 3D reconstruction in real-time", IEEE, 2011}. Therefore we will set up an experiment to run our implementation against other methods on the same dataset and on the same machine, to be able to compare the run times.
+
+Other than that, we want to estimate the accuracy of our implementation. Thus, we will compare the disparity images computed by our implementation with the ground truth disparity images of the dataset, if given.  
+
+At the final presentation, we would like to present a life demo (or a recorded video) of our implementation. 
+
 
 
 \vspace{1cm}
