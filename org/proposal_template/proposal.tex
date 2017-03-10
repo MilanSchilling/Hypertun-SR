@@ -7,7 +7,7 @@
 
 % Enter the project title and your project supervisor here
 \newcommand{\ProjectTitle}{High-Performance and Tunable Stereo Reconstruction}
-\newcommand{\ProjectSupervisor}{Enter your project supervisor here}
+\newcommand{\ProjectSupervisor}{Peidong Liu}
 \newcommand{\DateOfReport}{March 10, 2017}
 
 % Enter the team members' names and path to their photos. Comment / uncomment related definitions if the number of members are different than 2.
@@ -15,12 +15,13 @@
 % If you wish not to include your photos, please comment out the following line.
 \newcommand{\PutPhotos}{}
 % Please include a clear photo of each member. (use pdf or png files for Latex to embed them in the document well)
+%test
 \newcommand{\memberone}{Ian Staehli}
-\newcommand{\memberonepicture}{pic1.png}
+\newcommand{\memberonepicture}{ian.jpg}
 \newcommand{\membertwo}{Johann Diep}
-\newcommand{\membertwopicture}{pic2.png}
+\newcommand{\membertwopicture}{johann.jpg}
 \newcommand{\memberthree}{Milan Schilling}
-\newcommand{\memberthreepicture}{pic3.png}
+\newcommand{\memberthreepicture}{milan.jpg}
 %\newcommand{\memberfour}{Member Name}
 %\newcommand{\memberfourpicture}{pic4.png}
 
@@ -44,7 +45,7 @@
 
 \section{Description of the project}
 
-A high level description of the project, mentioning the main goal, the input and planned output data. Typically 4-5 sentences, also citing immediately related literature \cite{paper}.
+Conventional stereo algorithms are focused on getting qualitative reconstruction on datasets without considering run time performance, which results in the employment of computationally expensive techniques. Many applications such as mobile robots require fast perception of their surrounding in order to move and perform tasks in real-time. Therefore, this project is concerned with the implementation of a high-performance stereo disparity estimation algorithm described in \cite{paper}. It approximates large-scale disparities with a planar mesh. It is placed with sparsely matched keypoints at the beginning, and gets refined with every iteration. Hence it is possible to adjust the accuracy-versus-speed trade-off to the practical requirements.
 
 \section{Work packages and timeline}
 

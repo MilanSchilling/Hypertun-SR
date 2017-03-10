@@ -1,8 +1,8 @@
 \begin{thebibliography}{1}
 
 \bibitem{paper}
-John Doe and Jane Doe.
-\newblock A closely related paper.
-\newblock In {\em an awesome conference}, 2014.
+Srikumar~Ramalingam Sudeep~Pillai and John~J. Leonard.
+\newblock High-performance and tunable stereo reconstruction.
+\newblock In {\em High-Performance and Tunable Stereo Reconstruction}, 2015.
 
 \end{thebibliography}
