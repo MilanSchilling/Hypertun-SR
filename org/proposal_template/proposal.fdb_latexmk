@@ -1,13 +1,13 @@
 # Fdb version 3
-["bibtex proposal"] 1488817918 "proposal.aux" "proposal.bbl" "proposal" 1488894560
+["bibtex proposal"] 1489139667 "proposal.aux" "proposal.bbl" "proposal" 1489149180
   "/usr/local/texlive/2016/texmf-dist/bibtex/bst/base/plain.bst" 1292289607 20613 bd3fbfa9f64872b81ac57a0dd2ed855f ""
-  "proposal.aux" 1488894559 400 d2ee8f1ce1d9aba65f09b5b667b1420c ""
+  "proposal.aux" 1489149180 400 d2ee8f1ce1d9aba65f09b5b667b1420c ""
   "proposal.bcf" 0 -1 0 ""
-  "refs.bib" 1488894059 151 6b4c15ed3be6299fc4d41d9bc369eb67 ""
+  "refs.bib" 1489139598 238 bb462407b453bfee1ed2968761cc6eb8 ""
   (generated)
   "proposal.blg"
   "proposal.bbl"
-["pdflatex"] 1488894559 "proposal.tex" "proposal.pdf" "proposal" 1488894560
+["pdflatex"] 1489149179 "proposal.tex" "proposal.pdf" "proposal" 1489149180
   "/usr/local/texlive/2016/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/local/texlive/2016/texmf-dist/fonts/map/fontname/texfonts.map" 1272929888 3287 e6b82fe08f5336d4d5ebc73fb1152e87 ""
   "/usr/local/texlive/2016/texmf-dist/fonts/tfm/adobe/times/ptmb7t.tfm" 1136768653 2172 fd0c924230362ff848a33632ed45dc23 ""
@@ -60,12 +60,12 @@
   "/usr/local/texlive/2016/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1488894183 1888048 f2c5faed5981a516f406b2ccc20bff71 ""
   "/usr/local/texlive/2016/texmf-var/web2c/pdftex/pdflatex.fmt" 1488894227 3873396 c68c08942760f95f4be3c72a03cdee41 ""
   "/usr/local/texlive/2016/texmf.cnf" 1463979140 577 2938757e76f31531e65cc647e3507693 ""
-  "pic1.png" 1488894059 36556 58fa6448025beffdca4ff7762aaffeca ""
-  "pic2.png" 1488894059 36556 09afdc181ae8e903d561eb8a70a0f7eb ""
-  "pic3.png" 1488894059 36556 58fa6448025beffdca4ff7762aaffeca ""
-  "proposal.aux" 1488894559 400 d2ee8f1ce1d9aba65f09b5b667b1420c ""
-  "proposal.bbl" 1488894059 173 35a38456962190d1981adeaa55c1362c "bibtex proposal"
-  "proposal.tex" 1488894559 3694 92ff8c8b75e806dc5cca619dee3cfb6a ""
+  "ian.jpg" 1489135689 55514 febb7e65d5fdf17b1b98c610d1e46030 ""
+  "johann.jpg" 1489136133 134568 606c09b97254eeade429a9cedc124fae ""
+  "milan.jpg" 1489135723 296935 07ce39042e38d5665d591ab443ac504e ""
+  "proposal.aux" 1489149180 400 d2ee8f1ce1d9aba65f09b5b667b1420c ""
+  "proposal.bbl" 1489139667 261 fcaa38af07c53c97f65a995e120df0fa "bibtex proposal"
+  "proposal.tex" 1489149179 4239 4f557c27943cc237dc0939878d2f2a3b ""
   (generated)
   "proposal.log"
   "proposal.pdf"
