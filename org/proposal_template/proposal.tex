@@ -21,7 +21,7 @@
 \newcommand{\membertwo}{Milan Schilling} 
 \newcommand{\membertwopicture}{milan.jpg}
 
-\newcommand{\memberthree}{Ian Staehli}
+\newcommand{\memberthree}{Ian St{\"a}hli}
 \newcommand{\memberthreepicture}{ian.jpg}
 %\newcommand{\memberfour}{Member Name}
 %\newcommand{\memberfourpicture}{pic4.png}
@@ -46,7 +46,7 @@
 
 \section{Description of the project}
 
-Conventional stereo algorithms are focused on getting qualitative reconstruction on datasets without considering run time performance, which results in the employment of computationally expensive techniques. Many applications such as mobile robots require fast perception of their surrounding in order to move and perform tasks in real-time. Therefore, this project is concerned with the implementation of a high-performance stereo disparity estimation algorithm\footnote{S. Pillai, S, Ramalingam and J. Leonard, "High-performance and tunable stereo reconstruction", IEEE, 2016}. It approximates large-scale disparities with a planar mesh. It is placed with sparsely matched keypoints at the beginning, and gets refined with every iteration. Hence it is possible to adjust the accuracy-versus-speed trade-off to the practical requirements.
+Conventional stereo algorithms are focused on getting qualitative reconstruction on datasets without considering runtime performance, which results in the employment of computationally expensive techniques. Many applications such as mobile robots require fast perception of their surrounding in order to move and perform tasks in real-time. Therefore, this project is concerned with the implementation of a high-performance stereo disparity estimation algorithm\footnote{S. Pillai, S, Ramalingam and J. Leonard, "High-performance and tunable stereo reconstruction", IEEE, 2016}. It approximates large-scale disparities with a planar mesh. It is placed with sparsely matched keypoints at the beginning, and gets refined with every iteration. Hence it is possible to adjust the accuracy-versus-speed trade-off to the practical requirements.
 
 \section{Work packages and timeline}
 
@@ -77,12 +77,12 @@ The workload of this project will be divided in packages as following:
 	\label{fig}
 \end{figure}
 
-Using git as a collaboration and version control tool, it is possible to distribute the different coding parts among the team members. As soon as the different parts of the pipeline were built, we reserve some time for the assemblage and debugging of the code. 
+Using git as a collaboration and version control tool, it is possible to distribute the different coding parts among the team members. As soon as the different parts of the pipeline are built, we reserve some time for the assemblage and debugging of the code. 
 
 
 \section{Outcomes and Demonstration}
 
 The goal of the project is to obtain an algorithm that computes the disparity image for a stereo camera pair at a considerable high frame rate on a single processor. If the dataset provides the ground truth poses, it will also be possible to create a point cloud of the scene from the disparity images.
-In order to value the outcome of this project, we want to compare the performance against other methods, such as SGBM\footnote{H. Hirschmüller, "Accurate and efficient stereo processing by semi-global matching and mutual information", IEEE, 2005} or ELAS\footnote{A. Geiger, J, Ziegler and C. Stiller, "Stereoscan, Dense 3D reconstruction in real-time", IEEE, 2011}. Therefore we will set up an experiment to run our implementation against other methods on the same dataset and on the same machine, to be able to compare the run times. Other than that, we want to estimate the accuracy of our implementation. Thus, we will compare the disparity images computed by our implementation with the ground truth disparity images of the dataset, if given. At the final presentation, we would like to present a life demo (or a recorded video) of our implementation. 
+In order to value the outcome of this project, we want to compare the performance against other methods, such as SGBM\footnote{H. Hirschmüller, "Accurate and efficient stereo processing by semi-global matching and mutual information", IEEE, 2005} or ELAS\footnote{A. Geiger, J, Ziegler and C. Stiller, "Stereoscan, Dense 3D reconstruction in real-time", IEEE, 2011}. Therefore we will set up an experiment to run our implementation against other methods on the same dataset and on the same machine, to be able to compare the runtimes. Other than that, we want to estimate the accuracy of our implementation. Thus, we will compare the disparity images computed by our implementation with the ground truth disparity images of the dataset, if given. At the final presentation, we would like to present a life demo (or a recorded video) of our implementation. 
 
 \end{document}
