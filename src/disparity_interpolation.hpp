@@ -1,0 +1,6 @@
+#ifndef DISPARITY_INTERPOLATION_HPP
+#define DISPARITY_INTERPOLATION_HPP
+
+void disparity_interpolation();
+
+#endif // DISPARITY_INTERPOLATION_HPP
