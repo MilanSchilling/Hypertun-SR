@@ -56,13 +56,15 @@ void pipeline() {
 	cv::Mat C; // cost associated to D
 	cv::Mat C_g; // cost associated with regions of good matches
 	cv::Mat C_b; // cost associated with regions of bad matches
+	cv::Mat D_it; // Intermediate disparity (interpolated)
+	cv::Mat C_it; // Cost associated to D_it
 
 	sparse_stereo();
 	delaunay_triangulation();
 
 	for (int i = 0; i < param.n_iters; ++i) {
 		disparity_interpolation();
-		cost_evaluation();
+		cost_evaluation(I_l, I_r, D_it);
 		disparity_refinement();
 		if (i != param.n_iters) {
 			support_resampling();
