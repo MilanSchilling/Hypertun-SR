@@ -33,8 +33,8 @@ void pipeline() {
 	param.t_hi = 5; // placeholder, verify optimal value
 
 	// Load images
-	cv::Mat I_l = cv::imread("../data/data_scene_flow/testing/image_2/000000_10.png");
-	cv::Mat I_r = cv::imread("../data/data_scene_flow/testing/image_3/000000_10.png");
+	cv::Mat I_l = cv::imread("../data/data_scene_flow/testing/image_2/000000_10.png", CV_LOAD_IMAGE_GRAYSCALE);
+	cv::Mat I_r = cv::imread("../data/data_scene_flow/testing/image_3/000000_10.png", CV_LOAD_IMAGE_GRAYSCALE);
 	
 	// Display images
 	cv::imshow("Image Left", I_l);
@@ -56,7 +56,7 @@ void pipeline() {
 	cv::Mat C; // cost associated to D
 	cv::Mat C_g; // cost associated with regions of good matches
 	cv::Mat C_b; // cost associated with regions of bad matches
-	cv::Mat D_it; // Intermediate disparity (interpolated)
+	cv::Mat D_it = cv::Mat(H, W, CV_16U, 10); // Intermediate disparity (interpolated)
 	cv::Mat C_it; // Cost associated to D_it
 
 	sparse_stereo();
@@ -64,7 +64,7 @@ void pipeline() {
 
 	for (int i = 0; i < param.n_iters; ++i) {
 		disparity_interpolation();
-		cost_evaluation(I_l, I_r, D_it);
+		C_it = cost_evaluation(I_l, I_r, D_it);
 		disparity_refinement();
 		if (i != param.n_iters) {
 			support_resampling();
