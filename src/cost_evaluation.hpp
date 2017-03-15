@@ -4,8 +4,8 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-cv::Mat cost_evaluation(cv::Mat I_l, cv::Mat I_r, cv::Mat D_it);
+void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r, cv::Mat &D_it, cv::Mat &C_it);
 
-cv::Mat census (cv::Mat paddedImg, int i_pad, int j_pad);
+void census(cv::Mat &paddedImg, int i_pad, int j_pad, short int *census);
 
 #endif // COST_EVALUATION_HPP
