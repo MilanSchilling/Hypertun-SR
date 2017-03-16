@@ -1,6 +1,7 @@
 #include <iostream> 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
 #include "sparse_stereo.hpp"
 #include "delaunay_triangulation.hpp"
@@ -50,7 +51,7 @@ void pipeline() {
 	cv::Mat C_f = cv::Mat(H, W, CV_64F, param.t_hi);
 
 	// Declare other variables
-	cv::Mat S; // set of N support points with valid depths
+	cv::Mat S; // set of N support points with valid depths, 3xN with [u,v,d]
 	cv::Mat G; // graph (3D plane parameters?) from delaunay triangulation
 	cv::Mat D; // dense piece-wise planar disparity
 	cv::Mat C; // cost associated to D
@@ -58,7 +59,11 @@ void pipeline() {
 	cv::Mat C_b; // cost associated with regions of bad matches
 
 	sparse_stereo();
-	delaunay_triangulation();
+	float dummy_S[8][3] = {1, 1, 2, 2, 0, 0, 3, 3, 
+						   1, 2, 1, 2, 0, 3, 0, 3,
+						   5, 5, 5, 5, 5, 5, 5, 5};
+	S = cv::Mat(3, 8, CV_32F, dummy_S);
+	delaunay_triangulation(S, G);
 
 	for (int i = 0; i < param.n_iters; ++i) {
 		disparity_interpolation();
@@ -66,10 +71,26 @@ void pipeline() {
 		disparity_refinement();
 		if (i != param.n_iters) {
 			support_resampling();
-			delaunay_triangulation();
+			//delaunay_triangulation(S, G);
 		}
 	}
 	
+	for (int i = 0; i < S.cols; ++i) {
+		cv::circle(I_l, cv::Point(S.at<float>(0,i)*100,S.at<float>(1,i)*100), 
+			5, cv::Scalar(0,255,255),CV_FILLED, 8,0);
+	}
+	int k = 0;
+	std::cout << G.rows/2 << std::endl;
+	for (int i = 0; i < G.rows/2; ++i) {
+		int i1 = G.at<int>(k++,0);
+		int i2 = G.at<int>(k++,0);
+		cv::Point p1(S.at<float>(0,i1)*100, S.at<float>(1,i1)*100);
+		cv::Point p2(S.at<float>(0,i2)*100, S.at<float>(1,i2)*100);
+		cv::line(I_l, p1, p2, cv::Scalar(0,255,255), 1, 8, 0);
+		std::cout << "drew line" << i1 << ", " << i2 << std::endl;
+	}
+	cv::imshow("Image f", I_l);
+	cv::waitKey(0);
 
 
 }
