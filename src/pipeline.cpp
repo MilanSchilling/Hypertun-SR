@@ -36,11 +36,10 @@ void pipeline() {
 	// Load images
 	cv::Mat I_l = cv::imread("../data/data_scene_flow/testing/image_2/000000_10.png");
 	cv::Mat I_r = cv::imread("../data/data_scene_flow/testing/image_3/000000_10.png");
-	
 	// Display images
-	cv::imshow("Image Left", I_l);
-	cv::imshow("Image Right", I_r);
-	cv::waitKey(0);
+	//cv::imshow("Image Left", I_l);
+	//cv::imshow("Image Right", I_r);
+	//cv::waitKey(0);
 
 	// Get image height and width
 	int H = I_l.rows;
@@ -59,11 +58,11 @@ void pipeline() {
 	cv::Mat C_b; // cost associated with regions of bad matches
 
 	sparse_stereo();
-	float dummy_S[8][3] = {1, 1, 2, 2, 0, 0, 3, 3, 
-						   1, 2, 1, 2, 0, 3, 0, 3,
-						   5, 5, 5, 5, 5, 5, 5, 5};
+	float dummy_S[8][3] = {100, 100, 200, 200, 0, 0, 300, 300, 
+						   100, 200, 100, 200, 0, 300, 0, 300,
+						   500, 500, 500, 500, 200, 200, 200, 200};
 	S = cv::Mat(3, 8, CV_32F, dummy_S);
-	delaunay_triangulation(S, G);
+	delaunay_triangulation(S, G, I_l);
 
 	for (int i = 0; i < param.n_iters; ++i) {
 		disparity_interpolation();
@@ -71,12 +70,12 @@ void pipeline() {
 		disparity_refinement();
 		if (i != param.n_iters) {
 			support_resampling();
-			//delaunay_triangulation(S, G);
+			//delaunay_triangulation(S, G, I_l);
 		}
 	}
 	
 	for (int i = 0; i < S.cols; ++i) {
-		cv::circle(I_l, cv::Point(S.at<float>(0,i)*100,S.at<float>(1,i)*100), 
+		cv::circle(I_l, cv::Point(S.at<float>(0,i),S.at<float>(1,i)), 
 			5, cv::Scalar(0,255,255),CV_FILLED, 8,0);
 	}
 	int k = 0;
@@ -84,10 +83,10 @@ void pipeline() {
 	for (int i = 0; i < G.rows/2; ++i) {
 		int i1 = G.at<int>(k++,0);
 		int i2 = G.at<int>(k++,0);
-		cv::Point p1(S.at<float>(0,i1)*100, S.at<float>(1,i1)*100);
-		cv::Point p2(S.at<float>(0,i2)*100, S.at<float>(1,i2)*100);
+		cv::Point p1(S.at<float>(0,i1), S.at<float>(1,i1));
+		cv::Point p2(S.at<float>(0,i2), S.at<float>(1,i2));
 		cv::line(I_l, p1, p2, cv::Scalar(0,255,255), 1, 8, 0);
-		std::cout << "drew line" << i1 << ", " << i2 << std::endl;
+		//std::cout << "drew line: " << i1 << ", " << i2 << std::endl;
 	}
 	cv::imshow("Image f", I_l);
 	cv::waitKey(0);
