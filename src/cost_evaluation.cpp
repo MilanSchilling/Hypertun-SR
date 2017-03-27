@@ -9,7 +9,11 @@
 // - D_it: Interpolated disparity
 //
 // outputs:
-// - C_it: Cost associated to D_it 
+// - C_it: Normalized cost associated to D_it
+// ############################################
+// This function compares every patch with the correspondent patch, 
+// given the interpolated disparity, using a census comparison.
+// It returns a matirx containing the costs for every pixel. 
 void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r, cv::Mat &D_it, cv::Mat &C_it){
 
 	std::cout << "cost_evaluation.cpp" << std::endl;
@@ -18,7 +22,7 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r, cv::Mat &D_it, cv::Mat &C_it){
 	int H = I_l.rows;
 	int W = I_r.cols;
 
-	// pad the images
+	// pad a frame around the images
 	int border = 2;
 	cv::Mat I_r_p = cv::Mat(I_r.rows + border*2, I_r.cols + border*2, I_r.depth());
 	cv::Mat I_l_p = cv::Mat(I_l.rows + border*2, I_l.cols + border*2, I_l.depth());
@@ -49,8 +53,8 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r, cv::Mat &D_it, cv::Mat &C_it){
 			std::bitset<24> mask(1);
 			std::bitset<24> result(0);
 
-			// count coincing bits
-			result = cens_l & cens_r;
+			// calculating Hemming distance
+			result = cens_l ^ cens_r;
 			for (int it = 0; it < 24; ++it){
 				std::bitset<24> current_bit = (result & (mask<<it))>>it;
 				if (current_bit == mask){
@@ -63,7 +67,6 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r, cv::Mat &D_it, cv::Mat &C_it){
 
 			// write cost to C_it
 			C_it.at<int>(i,j) = n_cost;
-
 		}
 	}
 }
