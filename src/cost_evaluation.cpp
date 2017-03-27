@@ -11,42 +11,8 @@
 // outputs:
 // - C_it: Cost associated to D_it 
 void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r, cv::Mat &D_it, cv::Mat &C_it){
-	// TODO: census container to bool container!
-
-	std::bitset<24> cens(0);
-	std::bitset<24> mask(1);
-	std::bitset<24> bla(1);
-	bla = bla | (mask<<1);
-	bla = bla | (mask<<6);
-
-
-	for (int i = 0; i < 24; ++i){
-		if (i%2 == 0){
-			cens = cens | (mask<<i);
-		}
-	}
- 
-	std::cout << cens << std::endl;
-	std::cout << bla << std::endl;
-
-
-	int c = 0;
-	std::bitset<24> result(0);
-	result = cens & bla;
-	std::cout << result << std::endl;
-	std::cout << "***" << std::endl;
-	for (int i = 0; i < 24; ++i){
-		std::bitset<24> bli;
-		bli = (result & (mask<<i))>>i;
-		std::cout << bli << std::endl;
-		if (bli == mask){
-			c++;
-		}
-	}
-	std::cout << c << std::endl;
 
 	std::cout << "cost_evaluation.cpp" << std::endl;
-
 
 	// Get image height and width
 	int H = I_l.rows;
@@ -69,14 +35,8 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r, cv::Mat &D_it, cv::Mat &C_it){
 			int i_pad = i + border;
 			int j_pad = j + border;
 
-			//cv::Mat census_l = cv::Mat::zeros(1, 24, CV_8U);
-			//cv::Mat census_r = cv::Mat::zeros(1, 24, CV_8U);
 			std::bitset<24> cens_l(0);
 			std::bitset<24> cens_r(0);
-			int census_left = 0;
-			int census_right = 0;
-			//short int census_l [24] = {};
-			//short int census_r [24] = {};
 
 			// get census of left image
 			census(I_l_p, i_pad, j_pad, cens_l);
@@ -86,15 +46,23 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r, cv::Mat &D_it, cv::Mat &C_it){
 
 			// calculate cost
 			ushort cost = 0;
-			std::bitset<24> mask(1); 
+			std::bitset<24> mask(1);
+			std::bitset<24> result(0);
+
+			// count coincing bits
+			result = cens_l & cens_r;
 			for (int it = 0; it < 24; ++it){
-				//if ()
-				//if (*(census_l+it) == *(census_r+it))
-					//cost = cost + 1;
+				std::bitset<24> current_bit = (result & (mask<<it))>>it;
+				if (current_bit == mask){
+					cost++;
+				}
 			}
 
+			// normalize cost
+			double n_cost = cost / 24.0;
+
 			// write cost to C_it
-			C_it.at<int>(i,j) = cost;
+			C_it.at<int>(i,j) = n_cost;
 
 		}
 	}
@@ -123,7 +91,6 @@ void census (cv::Mat &paddedImg, int i_pad, int j_pad, std::bitset<24> &census){
 				// set census to 1 if intenity is less
 				if (px < center){
 					census = census | (mask<<count);
-					//census.at<int>(0,count) = 1;
 					count++;
 				} else{
 					// else leave at zero
@@ -132,5 +99,4 @@ void census (cv::Mat &paddedImg, int i_pad, int j_pad, std::bitset<24> &census){
 			}
 		}
 	}
-	//return census;
 }
