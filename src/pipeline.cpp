@@ -63,7 +63,7 @@ void pipeline() {
 	for (int i = 0; i < param.n_iters; ++i) {
 		disparity_interpolation();
 		cost_evaluation();
-		disparity_refinement();
+		disparity_refinement(D_f, C_f, C_f); // matrices are passed for debug resons
 		if (i != param.n_iters) {
 			support_resampling();
 			delaunay_triangulation();
