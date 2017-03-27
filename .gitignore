@@ -51,3 +51,6 @@ CTestTestfile.cmake
 
 # Data Images
 *.png
+
+# Visual Studio Code:
+.vscode/
