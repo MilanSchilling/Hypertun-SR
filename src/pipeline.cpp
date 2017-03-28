@@ -9,18 +9,8 @@
 #include "cost_evaluation.hpp"
 #include "disparity_refinement.hpp"
 #include "support_resampling.hpp"
+#include "parameters.hpp"
 
-struct parameters {
-	// Occupancy grid size used for re-sampling
-	int sz_occ;
-
-	// Number of iterations the algorithm is allowed to run
-	int n_iters;
-
-	// Lower and upper threshold for validating disparities
-	double t_lo;
-	double t_hi;
-};
 
 void pipeline() {
 
@@ -44,12 +34,12 @@ void pipeline() {
 	//cv::waitKey(0);
 
 	// Get image height and width
-	int H = I_l.rows;
-	int W = I_r.cols;
+	param.H = I_l.rows;
+	param.W = I_r.cols;
 
 	// Initialize final disparity and associated cost
-	cv::Mat D_f = cv::Mat(H, W, CV_64F, 0.0);
-	cv::Mat C_f = cv::Mat(H, W, CV_64F, param.t_hi);
+	cv::Mat D_f = cv::Mat(param.H, param.W, CV_64F, 0.0);
+	cv::Mat C_f = cv::Mat(param.H, param.W, CV_64F, param.t_hi);
 
 	// Declare other variables
 	cv::Mat S; // set of N support points with valid depths, 3xN with [u,v,d]
@@ -60,8 +50,8 @@ void pipeline() {
 	cv::Mat C; // cost associated to D
 	cv::Mat C_g; // cost associated with regions of good matches
 	cv::Mat C_b; // cost associated with regions of bad matches
-	cv::Mat D_it = cv::Mat(H, W, CV_64F, 0.0); // Intermediate disparity (interpolated)
-	cv::Mat C_it = cv::Mat(H, W, CV_64F, param.t_hi);; // Cost associated to D_it
+	cv::Mat D_it = cv::Mat(param.H, param.W, CV_64F, 0.0); // Intermediate disparity (interpolated)
+	cv::Mat C_it = cv::Mat(param.H, param.W, CV_64F, param.t_hi);; // Cost associated to D_it
 
 	// Create dummy variable to show functionality
 	float S_array[8][3] = {100, 100, 200, 200, 0, 0, 300, 300, 
@@ -70,7 +60,7 @@ void pipeline() {
 	S = cv::Mat(3, 8, CV_32F, S_array);
 
 	sparse_stereo();
-	delaunay_triangulation(S, H, W, G, T, E);
+	delaunay_triangulation(S, param.H, param.W, G, T, E);
 
 	for (int i = 0; i < param.n_iters; ++i) {
 		disparity_interpolation();
