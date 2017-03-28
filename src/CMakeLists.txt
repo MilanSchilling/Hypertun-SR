@@ -12,3 +12,4 @@ add_executable( main.out
 				support_resampling.cpp
 				../libs/triangulation/DelaunayTriangulation.cpp)
 target_link_libraries( main.out ${OpenCV_LIBS} )
+
