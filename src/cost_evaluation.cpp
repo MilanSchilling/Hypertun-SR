@@ -55,7 +55,7 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r, cv::Mat &D_it, cv::Mat &C_it){
 			}
 
 			// write cost to C_it
-			C_it.at<int>(i,j) = cost;
+			C_it.at<double>(i,j) = cost;
 
 		}
 	}
