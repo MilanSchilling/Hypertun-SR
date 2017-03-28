@@ -1,9 +1,4 @@
 #include "delaunay_triangulation.hpp"
-/*#include "../libs/triangulation/DelaunayTriangulation.h"
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <iostream>
-#include <cmath>*/
 
 float sign (cv::Point3f p1, cv::Point3f p2, cv::Point3f p3) {
     return (p1.y - p3.y) * (p2.x - p3.x) - (p2.y - p3.y) * (p1.x - p3.x);
@@ -33,7 +28,6 @@ void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv
 
 	int k = 0;
 	for (int i = 0; i < N; ++i) {
-		// std::cout << S.at<float>(0,i) << ", " << S.at<float>(1,i) << std::endl;
 		in.pointlist[k++] = S.at<float>(0,i);
 		in.pointlist[k++] = S.at<float>(1,i);
 	}
