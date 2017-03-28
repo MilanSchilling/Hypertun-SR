@@ -84,7 +84,7 @@ void pipeline() {
 	for (int i = 0; i < param.n_iters; ++i) {
 		disparity_interpolation();
 		cost_evaluation(I_l, I_r, D_it, C_it);
-		disparity_refinement(D_f, C_f, D_f, C_f, C_g, C_b); // first two matrices are actually D_it and C_it
+		disparity_refinement(D_it, C_it, D_f, C_f, C_g, C_b, param);
 
 		if (i != param.n_iters) {
 			support_resampling();

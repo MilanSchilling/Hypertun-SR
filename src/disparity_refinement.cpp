@@ -20,23 +20,17 @@
 //   the associated pixel coordinates
 void disparity_refinement(cv::Mat &D_it, cv::Mat &C_it, 
 							cv::Mat &D_f, cv::Mat &C_f,
-							cv::Mat &C_g, cv::Mat &C_b){
+							cv::Mat &C_g, cv::Mat &C_b,
+							parameters &param){
 	// TODO: pass parameter struct to this function
 	std::cout << "disparity_refinement.cpp" << std::endl;
-	int sz_occ = 32;
-	double t_hi = 0.8;
-	double t_lo = 0.3;
-
-	// get image dimensions
-	const int H = D_it.rows;
-	const int W = D_it.cols;
 
 	// loop over C_it
-	for (int i = 0; i < H; ++i){
-		for (int j = 0; j < W; ++j){
+	for (int i = 0; i < param.H; ++i){
+		for (int j = 0; j < param.W; ++j){
 			// Establish occupancy grid for resampled points
-			int i_bar = int(i / sz_occ);
-			int j_bar = int(j / sz_occ); 
+			int i_bar = int(i / param.sz_occ);
+			int j_bar = int(j / param.sz_occ); 
 
 			// If matching cost is lower than previous best final cost
 			if (C_it.at<double>(i,j) < C_f.at<double>(i,j)){
@@ -46,7 +40,7 @@ void disparity_refinement(cv::Mat &D_it, cv::Mat &C_it,
 			}
 
 			// If matching cost is lower than previous best valid cost
-			if (C_it.at<double>(i,j) < t_lo && C_it.at<double>(i,j) < C_g.at<double>(i_bar,j_bar,3)){
+			if (C_it.at<double>(i,j) < param.t_lo && C_it.at<double>(i,j) < C_g.at<double>(i_bar,j_bar,3)){
 				C_g.at<double>(i_bar,j_bar, 0) = i;
 				C_g.at<double>(i_bar,j_bar, 1) = j;
 				C_g.at<double>(i_bar,j_bar, 2) = D_it.at<double>(i,j);
@@ -54,7 +48,7 @@ void disparity_refinement(cv::Mat &D_it, cv::Mat &C_it,
 			}
 
 			// If matching cost is higher than previous worst invalid cost
-			if (C_it.at<double>(i,j) > t_hi && C_it.at<double>(i,j) > C_b.at<double>(i_bar, j_bar, 2)){
+			if (C_it.at<double>(i,j) > param.t_hi && C_it.at<double>(i,j) > C_b.at<double>(i_bar, j_bar, 2)){
 				C_b.at<double>(i_bar,j_bar, 0) = i;
 				C_b.at<double>(i_bar,j_bar, 1) = j;
 				C_b.at<double>(i_bar,j_bar, 2) = C_it.at<double>(i,j);
