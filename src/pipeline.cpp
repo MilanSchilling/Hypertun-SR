@@ -73,12 +73,12 @@ void pipeline() {
 	delaunay_triangulation(S, H, W, G, T, E);
 
 	for (int i = 0; i < param.n_iters; ++i) {
-		disparity_interpolation();
+		disparity_interpolation(G, T, D_it);
 		cost_evaluation(I_l, I_r, D_it, C_it);
 		disparity_refinement();
 		if (i != param.n_iters) {
 			support_resampling();
-			//delaunay_triangulation(S, H, W, G, T, E);
+			delaunay_triangulation(S, H, W, G, T, E);
 		}
 	}
 	
