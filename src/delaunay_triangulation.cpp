@@ -1,10 +1,8 @@
 #include "delaunay_triangulation.hpp"
 #include "../libs/triangulation/DelaunayTriangulation.h"
-#include <iostream>
-//#include <stdlib.h>
-//#include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <iostream>
 #include <cmath>
 
 using namespace std;

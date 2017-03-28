@@ -57,12 +57,15 @@ void pipeline() {
 	cv::Mat C_g; // cost associated with regions of good matches
 	cv::Mat C_b; // cost associated with regions of bad matches
 
-	sparse_stereo();
-	float dummy_S[8][3] = {100, 100, 200, 200, 0, 0, 300, 300, 
+	// Create dummy variable to show functionality
+	float S_dummy_array[8][3] = {100, 100, 200, 200, 0, 0, 300, 300, 
 						   100, 200, 100, 200, 0, 300, 0, 300,
 						   500, 500, 500, 500, 200, 200, 200, 200};
-	S = cv::Mat(3, 8, CV_32F, dummy_S);
-	delaunay_triangulation(S, G, I_l);
+	cv::Mat S_dummy;
+	S_dummy = cv::Mat(3, 8, CV_32F, S_dummy_array);
+
+	sparse_stereo();
+	delaunay_triangulation(S_dummy, G, I_l);
 
 	for (int i = 0; i < param.n_iters; ++i) {
 		disparity_interpolation();
