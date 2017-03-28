@@ -1,7 +1,7 @@
 #include "disparity_refinement.hpp"
 #include <iostream>
 
-void disparity_refinement(cv::Mat &D_it, cv::Mat &C_it, cv::Mat &C_f){
+void disparity_refinement(cv::Mat &D_it, cv::Mat &C_it, cv::Mat &D_f, cv::Mat &C_f){
 	// TODO: pass parameter struct to this function
 	std::cout << "disparity_refinement.cpp" << std::endl;
 	int sz_occ = 32;
@@ -41,12 +41,14 @@ void disparity_refinement(cv::Mat &D_it, cv::Mat &C_it, cv::Mat &C_f){
 
 			// If matching cost is lower than previous best final cost
 			if (C_it.at<double>(i,j) < C_f.at<double>(i,j)){
-				// D_f(u,v) <-- D_it(u,v)
-				// C_f(u,v) <-- C_it(u,v)
+				// store current disparity and cost to final
+				D_f.at<double>(i,j) = D_it.at<double>(i,j);
+				C_f.at<double>(i,j) = C_it.at<double>(i,j);
 			}
 
 			// If matching cost is lower than previous best valid cost
 			if (C_it.at<double>(i,j) < t_lo && C_it.at<double>(i,j) < C_g.at<double>(i_bar,j_bar,3)){
+				//C_g.at<double>(i_bar,j_bar, 0) = 
 				// C_g(u',v') <-- (u, v, D_it(u,v))
 			}
 
