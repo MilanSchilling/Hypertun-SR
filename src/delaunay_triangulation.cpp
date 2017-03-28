@@ -1,18 +1,15 @@
 #include "delaunay_triangulation.hpp"
-#include "../libs/triangulation/DelaunayTriangulation.h"
+/*#include "../libs/triangulation/DelaunayTriangulation.h"
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
-#include <cmath>
+#include <cmath>*/
 
-using namespace std;
-
-float sign (cv::Point3f p1, cv::Point3f p2, cv::Point3f p3)
-{
+float sign (cv::Point3f p1, cv::Point3f p2, cv::Point3f p3) {
     return (p1.y - p3.y) * (p2.x - p3.x) - (p2.y - p3.y) * (p1.x - p3.x);
 }
-bool PointInTriangle (cv::Point3f pt, cv::Point3f v1, cv::Point3f v2, cv::Point3f v3)
-{
+
+bool PointInTriangle (cv::Point3f pt, cv::Point3f v1, cv::Point3f v2, cv::Point3f v3) {
     bool b1, b2, b3;
 
     b1 = sign(pt, v1, v2) < 0.0f;
@@ -23,13 +20,9 @@ bool PointInTriangle (cv::Point3f pt, cv::Point3f v1, cv::Point3f v2, cv::Point3
 }
 
 
-void delaunay_triangulation(cv::Mat &S, cv::Mat &G, cv::Mat I_l){
+void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv::Mat &E){
 
 	std::cout << "delaunay_triangulation.cpp" << std::endl;
-
-	//cv::Mat surfaceNormal;
-	//cv::Mat containedPixels;
-
 
 	// Store support points into input variable
 	int N = S.cols;
@@ -40,7 +33,7 @@ void delaunay_triangulation(cv::Mat &S, cv::Mat &G, cv::Mat I_l){
 
 	int k = 0;
 	for (int i = 0; i < N; ++i) {
-		cout << S.at<float>(0,i) << ", " << S.at<float>(1,i) << endl;
+		// std::cout << S.at<float>(0,i) << ", " << S.at<float>(1,i) << std::endl;
 		in.pointlist[k++] = S.at<float>(0,i);
 		in.pointlist[k++] = S.at<float>(1,i);
 	}
@@ -68,65 +61,65 @@ void delaunay_triangulation(cv::Mat &S, cv::Mat &G, cv::Mat I_l){
 	char parameters[] = "zQBne";
 	triangulate(parameters, &in, &out, NULL);
 
-	cout << "trianglelist: " << out.numberoftriangles << endl;
-	k = 0;
-	for (int i = 0; i < out.numberoftriangles; ++i) {
-		cout << out.trianglelist[k] << ", ";
-		cout << out.trianglelist[k+1] << ", ";
-		cout << out.trianglelist[k+2] << endl;
-		k += 3;
-	}
-	//cout << "edgelist: " << out.numberofedges << endl;
-	k = 0;
-	for (int i = 0; i < out.numberofedges; ++i) {
-		//cout << out.edgelist[k] << ", ";
-		//cout << out.edgelist[k+1] << endl;
-		G.push_back(out.edgelist[k]);
-		G.push_back(out.edgelist[k+1]);
-		k += 2;
-	}
-
 	// Compute normal vector of each triangle surface
 	cv::Point3f pts[N];
-	//float surface_normal[N][3];
 	int dummy_array[N];
-	cv::Point3f n_plane[N];
 	
-
 	for (int i = 0; i < N; ++i) {
 		pts[i].x = S.at<float>(0,i);
 		pts[i].y = S.at<float>(1,i);
 		pts[i].z = S.at<float>(2,i);
 
 	}
-	cout << "normal vectors" << endl;
+
+	// Compute 4D plane parameters
+	T = cv::Mat(4, out.numberoftriangles, CV_64F, 0.0);
+
 	k = 0;
 	for (int i = 0; i < out.numberoftriangles; ++i) {
-		cv::Point3f a, b;
+		cv::Point3f line_12, line_13;
 
-		a = pts[out.trianglelist[k]] - pts[out.trianglelist[k+1]];
-		b = pts[out.trianglelist[k]] - pts[out.trianglelist[k+2]];
-		n_plane[i] = a.cross(b);
-
-		float norm = sqrt(n_plane[i].x * n_plane[i].x + 
-						  n_plane[i].y * n_plane[i].y +
-						  n_plane[i].z * n_plane[i].z);
-		n_plane[i].x /= norm;
-		n_plane[i].y /= norm;
-		n_plane[i].z /= norm;
-
-		//surface_normal[i][0] = surface_normal[i][0]/norm;
-		//surface_normal[i][1] = surface_normal[i][1]/norm;
-		//surface_normal[i][2] = surface_normal[i][2]/norm;
-		cout << a << ", " << b << "-> " << n_plane[i] << endl;
+		// Take indices of the 3 triangle vertices
+		int p1 = out.trianglelist[k];
+		int p2 = out.trianglelist[k+1];
+		int p3 = out.trianglelist[k+2];
 		k += 3;
+
+		// Construct 2 lines consisting of triangle edges
+		line_12 = pts[p1] - pts[p2];
+		line_13 = pts[p1] - pts[p3];
+
+		// Get vector orthogonal to plane using cross product
+		cv::Point3f n_plane = line_12.cross(line_13);
+		
+		// Compute euclidean norm and normalize vector
+		float norm = sqrt(n_plane.x * n_plane.x + 
+						  n_plane.y * n_plane.y +
+						  n_plane.z * n_plane.z);
+		n_plane.x /= norm;
+		n_plane.y /= norm;
+		n_plane.z /= norm;
+
+		// Compute missing plane parameter
+		T.at<float>(0,i) = n_plane.x;
+		T.at<float>(1,i) = n_plane.y;
+		T.at<float>(2,i) = n_plane.z;
+		T.at<float>(3,i) = n_plane.x * pts[p1].x +
+						   n_plane.y * pts[p1].y + 
+						   n_plane.z * pts[p1].z;
+
+		std::cout << "Plane #" << i << ": " << T.at<float>(0,i) << ", " 
+											<< T.at<float>(1,i) << ", "
+											<< T.at<float>(2,i) << ", "
+											<< T.at<float>(3,i) << std::endl;
+
 	}
 
 	// Assign each pixel to the corresponding triangle
-	cv::Mat triangleLabel = cv::Mat(I_l.rows, I_l.cols, CV_8U, 0.0);
-		
-	for (int y = 0; y < I_l.rows; ++y) {
-		for (int x = 0; x < I_l.cols; ++x) {
+	G = cv::Mat(H, W, CV_8UC1, cv::Scalar(0));
+
+	for (int y = 0; y < H; ++y) {
+		for (int x = 0; x < W; ++x) {
 			k = 0;
 			for (int i = 0; i < out.numberoftriangles; ++i) {
 				cv::Point3f pt;
@@ -136,18 +129,25 @@ void delaunay_triangulation(cv::Mat &S, cv::Mat &G, cv::Mat I_l){
 				cv::Point3f v2 = pts[out.trianglelist[k+1]];
 				cv::Point3f v3 = pts[out.trianglelist[k+2]];
 				if (PointInTriangle(pt, v1, v2, v3)) {
-					I_l.at<int>(x,y,0) = i*20;
+					G.at<int>(x,y,0) = i*20;
 				}
 				k += 3;
 			}
 		}
 	}
-	cout << "rows: " << I_l.rows << endl;
-	cout << "cols: " << I_l.cols << endl;
 
 	
-	cv::imshow("Image label", I_l);
+	cv::imshow("Image label", G);
 	cv::waitKey(0);
+
+	k = 0;
+	for (int i = 0; i < out.numberofedges; ++i)
+	{
+		// For ploting triangle edges
+		E.push_back(out.edgelist[k]);
+		E.push_back(out.edgelist[k+1]);
+		k += 2;
+	}
 
 	free(in.pointlist);
 	free(out.pointlist);
