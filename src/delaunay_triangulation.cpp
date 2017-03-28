@@ -14,6 +14,17 @@ bool PointInTriangle (cv::Point3f pt, cv::Point3f v1, cv::Point3f v2, cv::Point3
     return ((b1 == b2) && (b2 == b3));
 }
 
+// delaunay_triangulation:
+// inputs: 
+// - S: 3xN matrix with N points and [u,v,d] for each one
+// - H: Height of image
+// - W: Width of image
+//
+// outputs:
+// - G: HxW matrix with and index for each pixel to the corresponding triangle
+// - T: 4xnum_triangles matrix with the plane parameters for each triangle
+// - E: 1x(2*num_edges) matrix with 2 points for each edge used to plot
+
 
 void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv::Mat &E){
 
@@ -137,7 +148,7 @@ void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv
 	k = 0;
 	for (int i = 0; i < out.numberofedges; ++i)
 	{
-		// For ploting triangle edges
+		// For plotting triangle edges
 		E.push_back(out.edgelist[k]);
 		E.push_back(out.edgelist[k+1]);
 		k += 2;
