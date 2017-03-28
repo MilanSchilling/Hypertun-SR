@@ -23,6 +23,7 @@ struct parameters {
 
 void pipeline() {
 
+	std::cout << "Using CV version: " << CV_VERSION << std::endl;
 	std::cout << "pipeline.cpp" << std::endl;
 
 	//Load parameters
