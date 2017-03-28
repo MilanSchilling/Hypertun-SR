@@ -67,7 +67,7 @@ void pipeline() {
 		cost_evaluation(I_l, I_r, D_it, C_it);
 		disparity_refinement();
 		if (i != param.n_iters) {
-			support_resampling();
+			support_resampling(C_g, C_b, S, param);
 			//delaunay_triangulation(S, H, W, G, T, E);
 		}
 	}
