@@ -9,5 +9,7 @@ add_executable( main.out
 				disparity_interpolation.cpp
 				cost_evaluation.cpp
 				disparity_refinement.cpp
-				support_resampling.cpp)
+				support_resampling.cpp
+				../libs/triangulation/DelaunayTriangulation.cpp)
 target_link_libraries( main.out ${OpenCV_LIBS} )
+
