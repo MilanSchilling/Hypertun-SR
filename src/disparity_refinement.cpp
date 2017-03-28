@@ -1,7 +1,26 @@
 #include "disparity_refinement.hpp"
 #include <iostream>
 
-void disparity_refinement(cv::Mat &D_it, cv::Mat &C_it, cv::Mat &D_f, cv::Mat &C_f){
+// disparity refinement:
+// inputs:
+// -D_it : Interpolated disparity
+// -C_it : Normalized cost associated to D_it
+//
+// outputs:
+// -updated D_f : final disparity map
+// -updated C_f : final cost map
+// C_g : Cost associated with regions of high confidence matches
+// C_b : Cost associated with regions of invalid disparities
+//######################################################################
+// This function loops through the cost map and:
+// - stores disparities and costs into final matrices if better than the finals
+// - stores the highest cost per occupancy window into C_b, along with 
+// 	 the associated pixel coordinates
+// - stores the lowest cost per occupancy window into C_g, along with 
+//   the associated pixel coordinates
+void disparity_refinement(cv::Mat &D_it, cv::Mat &C_it, 
+							cv::Mat &D_f, cv::Mat &C_f,
+							cv::Mat &C_g, cv::Mat &C_b){
 	// TODO: pass parameter struct to this function
 	std::cout << "disparity_refinement.cpp" << std::endl;
 	int sz_occ = 32;
@@ -11,26 +30,6 @@ void disparity_refinement(cv::Mat &D_it, cv::Mat &C_it, cv::Mat &D_f, cv::Mat &C
 	// get image dimensions
 	const int H = D_it.rows;
 	const int W = D_it.cols;
-
-	// divide image into discrete parts
-	const int H_bar = int(D_it.rows / sz_occ);
-	const int W_bar = int(D_it.cols / sz_occ);
-
-	// creating container for good and bad matches
-	
-	int sz_g[] = {H_bar, W_bar, 4};
-	int sz_b[] = {H_bar, W_bar, 3};
-	cv::Mat C_g (3, sz_g, CV_64F, cv::Scalar::all(0));
-	cv::Mat C_b (3, sz_b, CV_64F, cv::Scalar::all(0));
-
-	// set thresholds
-	// TODO: do this within inizialisation above!
-	for (int i = 0; i < H_bar; ++i){
-		for (int j = 0; j < W_bar; ++j){
-			C_g.at<double>(i,j,3) = t_lo;
-			C_b.at<double>(i,j,2) = t_hi;
-		}
-	}
 
 	// loop over C_it
 	for (int i = 0; i < H; ++i){
@@ -48,13 +47,17 @@ void disparity_refinement(cv::Mat &D_it, cv::Mat &C_it, cv::Mat &D_f, cv::Mat &C
 
 			// If matching cost is lower than previous best valid cost
 			if (C_it.at<double>(i,j) < t_lo && C_it.at<double>(i,j) < C_g.at<double>(i_bar,j_bar,3)){
-				//C_g.at<double>(i_bar,j_bar, 0) = 
-				// C_g(u',v') <-- (u, v, D_it(u,v))
+				C_g.at<double>(i_bar,j_bar, 0) = i;
+				C_g.at<double>(i_bar,j_bar, 1) = j;
+				C_g.at<double>(i_bar,j_bar, 2) = D_it.at<double>(i,j);
+				C_g.at<double>(i_bar,j_bar, 3) = C_it.at<double>(i,j);
 			}
 
 			// If matching cost is higher than previous worst invalid cost
 			if (C_it.at<double>(i,j) > t_hi && C_it.at<double>(i,j) > C_b.at<double>(i_bar, j_bar, 2)){
-				// C_b(u',v') <-- (u, v, C_it(u,v))
+				C_b.at<double>(i_bar,j_bar, 0) = i;
+				C_b.at<double>(i_bar,j_bar, 1) = j;
+				C_b.at<double>(i_bar,j_bar, 2) = C_it.at<double>(i,j);
 			}
 		}
 	}

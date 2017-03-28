@@ -42,8 +42,12 @@ void pipeline() {
 	cv::waitKey(0);
 
 	// Get image height and width
-	int H = I_l.rows;
-	int W = I_r.cols;
+	const int H = I_l.rows;
+	const int W = I_r.cols;
+
+	// divide image into discrete parts
+	const int H_bar = int(H / param.sz_occ);
+	const int W_bar = int(W / param.sz_occ);
 
 	// Initialize final disparity and associated cost
 	cv::Mat D_f = cv::Mat(H, W, CV_64F, 0.0);
@@ -54,8 +58,20 @@ void pipeline() {
 	cv::Mat G; // graph (3D plane parameters?) from delaunay triangulation
 	cv::Mat D; // dense piece-wise planar disparity
 	cv::Mat C; // cost associated to D
-	cv::Mat C_g; // cost associated with regions of good matches
-	cv::Mat C_b; // cost associated with regions of bad matches
+	int sz_g[] = {H_bar, W_bar, 4}; // dimension of C_g
+	int sz_b[] = {H_bar, W_bar, 3}; // dimension of C_b
+	cv::Mat C_g (3, sz_g, CV_64F, cv::Scalar::all(0)); // cost associated with regions of good matches
+	cv::Mat C_b (3, sz_b, CV_64F, cv::Scalar::all(0)); // cost associated with regions of bad matches
+
+	// write thresholds to C_g and C_b
+	// TODO: do this within inizialisation above!
+	for (int i = 0; i < H_bar; ++i){
+		for (int j = 0; j < W_bar; ++j){
+			C_g.at<double>(i,j,3) = param.t_lo;
+			C_b.at<double>(i,j,2) = param.t_hi;
+		}
+	}
+
 
 	sparse_stereo();
 	delaunay_triangulation();
@@ -63,13 +79,10 @@ void pipeline() {
 	for (int i = 0; i < param.n_iters; ++i) {
 		disparity_interpolation();
 		cost_evaluation();
-		disparity_refinement(D_f, C_f, C_f); // matrices are passed for debug resons
+		disparity_refinement(D_f, C_f, D_f, C_f, C_g, C_b); // first two matrices are actually D_it and C_it
 		if (i != param.n_iters) {
 			support_resampling();
 			delaunay_triangulation();
 		}
 	}
-	
-
-
 }
