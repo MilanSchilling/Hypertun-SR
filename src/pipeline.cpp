@@ -37,8 +37,8 @@ void pipeline() {
 	cv::Mat I_r = cv::imread("../data/data_scene_flow/testing/image_3/000000_10.png");
 	
 	// Display images
-	cv::imshow("Image Left", I_l);
-	cv::imshow("Image Right", I_r);
+	//cv::imshow("Image Left", I_l);
+	//cv::imshow("Image Right", I_r);
 	cv::waitKey(0);
 
 	// Get image height and width
@@ -57,7 +57,7 @@ void pipeline() {
 	cv::Mat C_g; // cost associated with regions of good matches
 	cv::Mat C_b; // cost associated with regions of bad matches
 
-	sparse_stereo();
+	sparse_stereo(I_l, I_r);
 	delaunay_triangulation();
 
 	for (int i = 0; i < param.n_iters; ++i) {
