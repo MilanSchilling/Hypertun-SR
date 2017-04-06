@@ -42,7 +42,8 @@ void pipeline() {
 	cv::Mat C_f = cv::Mat(param.H, param.W, CV_64F, param.t_hi);
 
 	// Declare other variables
-	cv::Mat S; // set of N support points with valid depths, 3xN with [u,v,d]
+	int sz_S[] = {1, 3}; 
+	cv::Mat S (2, sz_S, CV_64F, cv::Scalar::all(0)); // set of N support points with valid depths, 3xN with [u,v,d]
 	cv::Mat G; // graph: corresponding triangle of each pixel from delaunay triangulation
 	cv::Mat T; // Triangle 4D plane parameters from delaunay triangulation
 	cv::Mat E; // Triangle edges for plotting
