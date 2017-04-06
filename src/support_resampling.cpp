@@ -1,6 +1,21 @@
 #include "support_resampling.hpp"
 #include <iostream>
 
+// support_resampling :
+// inputs:
+// - C_g   : Cost associated with regions of high confidence matches [H' x W' x (u, v, d, cost)]
+// - C_b   : Cost associated with refions of invalid disparities [H' x W' x (u, v, cost)]
+// - S_it  : Sparse support pixels with valid depths [N x (u, v, d)]
+// - param : Parameter struct
+//
+// outputs:
+// - S_it  : Updated sparse support pixels with valid depths
+// #############################################################################
+// This function loops over C_g and C_b. The pixels and the correspondendt depths
+// in C_g are written as new support points to S_it.
+// The pixels from C_b are collected in X and passed to the epipolar search. This 
+// returns the matching pixels of the right image and the correspondendt depths.
+// Those new found matches are then also added to S_it.
 void support_resampling(cv::Mat &C_g, cv::Mat &C_b, 
                             cv::Mat &S_it, parameters &param){
 
@@ -10,9 +25,6 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 	// define container for re-sampled or detected support pixels with unknown depths
 	int sz_X[] = {1, 2}; 
 	cv::Mat X (2, sz_X, CV_64F, cv::Scalar::all(0));
-
-	// define vector of 2d points
-	std::vector<cv::Point2d> X;
 
 	// get grid size
 	const int H_bar = int(param.H / param.sz_occ);
@@ -42,6 +54,8 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 			}
 		}
 	}
+
+	// TODO : integrate epipolar search for the points of X
 
 	// Re-estimate disparities via epipolar search
 	// S_matched <-- SPARSE_EPIPOLAR_STEREO(I_l , I_r , X)
