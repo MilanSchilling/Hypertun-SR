@@ -33,12 +33,12 @@ void pipeline() {
 	param.t_hi = 5; // placeholder, verify optimal value
 
 	// Load images
-	cv::Mat I_l = cv::imread("../data/data_scene_flow/testing/image_2/000000_10.png");
-	cv::Mat I_r = cv::imread("../data/data_scene_flow/testing/image_3/000000_10.png");
+	cv::Mat I_l = cv::imread("../data/data_scene_flow/testing/image_2/000000_10.png", CV_LOAD_IMAGE_GRAYSCALE);
+	cv::Mat I_r = cv::imread("../data/data_scene_flow/testing/image_3/000000_10.png", CV_LOAD_IMAGE_GRAYSCALE);
 	
 	// Display images
-	//cv::imshow("Image Left", I_l);
-	//cv::imshow("Image Right", I_r);
+	cv::imshow("Image Left", I_l);
+	cv::imshow("Image Right", I_r);
 	cv::waitKey(0);
 
 	// Get image height and width
