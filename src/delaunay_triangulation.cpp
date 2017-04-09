@@ -7,9 +7,9 @@ float sign (cv::Point3f p1, cv::Point3f p2, cv::Point3f p3) {
 bool PointInTriangle (cv::Point3f pt, cv::Point3f v1, cv::Point3f v2, cv::Point3f v3) {
     bool b1, b2, b3;
 
-    b1 = sign(pt, v1, v2) < 0.0f;
-    b2 = sign(pt, v2, v3) < 0.0f;
-    b3 = sign(pt, v3, v1) < 0.0f;
+    b1 = sign(pt, v1, v2) <= 0.0f;
+    b2 = sign(pt, v2, v3) <= 0.0f;
+    b3 = sign(pt, v3, v1) <= 0.0f;
 
     return ((b1 == b2) && (b2 == b3));
 }
@@ -121,7 +121,7 @@ void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv
 	}
 
 	// Assign each pixel to the corresponding triangle
-	G = cv::Mat(H, W, CV_32SC1, -1);
+	G = cv::Mat(H, W, CV_32S, cv::Scalar(-1));
 
 	for (int y = 0; y < H; ++y) {
 		for (int x = 0; x < W; ++x) {
