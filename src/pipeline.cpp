@@ -89,7 +89,7 @@ void pipeline() {
 
 		if (i != param.n_iters) {
 			support_resampling(C_g, C_b, S, param, I_l, I_r);
-			//delaunay_triangulation(S, H, W, G, T, E);
+			delaunay_triangulation(S, param.H, param.W, G, T, E);
 		}
 	}
 	
