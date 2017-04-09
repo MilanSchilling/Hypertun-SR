@@ -33,7 +33,7 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r, cv::Mat &D_it, cv::Mat &C_it){
 	for (int i = 0; i < H; ++i){
 		for (int j = 0; j < W; j++){
 
-			double disp = D_it.at<int>(i,j); // TODO: verify order of i,j!
+			float disp = D_it.at<float>(i,j); // TODO: verify order of i,j!
 
 			//evaluate cost for given disparity
 			int i_pad = i + border;
@@ -63,10 +63,10 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r, cv::Mat &D_it, cv::Mat &C_it){
 			}
 
 			// normalize cost
-			double n_cost = cost / 24.0;
+			float n_cost = cost / 24.0;
 
 			// write cost to C_it
-			C_it.at<double>(i,j) = n_cost;
+			C_it.at<float>(i,j) = n_cost;
 		}
 	}
 }
