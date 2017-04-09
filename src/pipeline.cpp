@@ -72,13 +72,13 @@ void pipeline() {
 	cv::Mat C_it = cv::Mat(param.H, param.W, CV_64F, param.t_hi);; // Cost associated to D_it
 
 	// Create dummy variable to show functionality
-	float S_array[8][3] = {100, 100, 200, 200, 0, 0, 300, 300, 
+	/*float S_array[8][3] = {100, 100, 200, 200, 0, 0, 300, 300, 
 						   100, 200, 100, 200, 0, 300, 0, 300,
-						   500, 500, 500, 500, 200, 200, 200, 200};
-	S = cv::Mat(3, 8, CV_32F, S_array);
+						   500, 500, 500, 500, 200, 200, 200, 200};*/
+	//S = cv::Mat(3, 8, CV_32F, S_array);
 
 
-	sparse_stereo(I_l, I_r);
+	sparse_stereo(I_l, I_r, S);
 	delaunay_triangulation(S, param.H, param.W, G, T, E);
 
 
@@ -96,10 +96,10 @@ void pipeline() {
 	// Draw Triangles and display image
 	cv::Mat I_triangles = I_l;
 	cv::cvtColor(I_triangles, I_triangles, CV_GRAY2RGB);
-	for (int i = 0; i < S.cols; ++i) {
+	/*for (int i = 0; i < S.cols; ++i) {
 		cv::circle(I_triangles, cv::Point(S.at<float>(0,i),S.at<float>(1,i)), 
-			5, cv::Scalar(0,255,255),CV_FILLED, 8,0);
-	}
+			1, cv::Scalar(0,255,255),CV_FILLED, 1,0);
+	}*/
 	int k = 0;
 	for (int i = 0; i < E.rows/2; ++i) {
 		int i1 = E.at<int>(k++,0);
@@ -111,6 +111,7 @@ void pipeline() {
 	}
 	cv::imshow("Image with Triangles", I_triangles);
 	cv::waitKey(0);
+	cv::imwrite( "triangles.png", I_triangles );
 
 }
 

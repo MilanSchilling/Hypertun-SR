@@ -6,7 +6,7 @@ using namespace sparsestereo;
 using namespace boost;
 using namespace boost::posix_time;
 
-void sparse_stereo(cv::Mat I_l, cv::Mat I_r){
+void sparse_stereo(cv::Mat I_l, cv::Mat I_r, cv::Mat &S){
 
 	std::cout << "sparse_stereo.cpp" << std::endl;
 
@@ -125,6 +125,18 @@ void sparse_stereo(cv::Mat I_l, cv::Mat I_r){
 	namedWindow("Stereo");
 	imshow("Stereo", screen);
 	waitKey();
+	cv::imwrite( "exFAST.png", screen );
+
+	// Fill set of support points
+	int num_points = correspondences.size();
+	S = cv::Mat(3, num_points, CV_32F, 0.0);
+	for (int i = 0; i < num_points; ++i)
+	{
+		S.at<float>(0,i) = correspondences_disparity_original[i][0];
+		S.at<float>(1,i) = correspondences_disparity_original[i][1];
+		S.at<float>(2,i) = correspondences_disparity_original[i][2];
+	}
+
 
 	// Clean up
 	delete leftFeatureDetector;

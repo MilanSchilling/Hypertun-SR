@@ -113,15 +113,15 @@ void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv
 						   n_plane.y * pts[p1].y + 
 						   n_plane.z * pts[p1].z;
 
-		std::cout << "Plane #" << i << ": " << T.at<float>(0,i) << ", " 
+		/*std::cout << "Plane #" << i << ": " << T.at<float>(0,i) << ", " 
 											<< T.at<float>(1,i) << ", "
 											<< T.at<float>(2,i) << ", "
-											<< T.at<float>(3,i) << std::endl;
+											<< T.at<float>(3,i) << std::endl;*/
 
 	}
 
 	// Assign each pixel to the corresponding triangle
-	G = cv::Mat(H, W, CV_8UC1, cv::Scalar(0));
+	G = cv::Mat(H, W, CV_32SC1, -1);
 
 	for (int y = 0; y < H; ++y) {
 		for (int x = 0; x < W; ++x) {
@@ -134,16 +134,19 @@ void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv
 				cv::Point3f v2 = pts[out.trianglelist[k+1]];
 				cv::Point3f v3 = pts[out.trianglelist[k+2]];
 				if (PointInTriangle(pt, v1, v2, v3)) {
-					G.at<int>(x,y,0) = i*20;
+					G.at<int>(x,y,0) = i;
 				}
 				k += 3;
 			}
+			/*if (y == 100)
+				std::cout << "x: " << x << ", G: " << G.at<int>(y,x,0) << std::endl;*/
 		}
 	}
 
+
 	
-	cv::imshow("Image label", G);
-	cv::waitKey(0);
+	/*cv::imshow("Image label", G);
+	cv::waitKey(0);*/
 
 	k = 0;
 	for (int i = 0; i < out.numberofedges; ++i)
