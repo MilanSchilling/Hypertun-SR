@@ -2,6 +2,8 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <string>
+#include <sstream>
 
 #include "sparse_stereo.hpp"
 #include "delaunay_triangulation.hpp"
@@ -11,7 +13,7 @@
 #include "support_resampling.hpp"
 #include "parameters.hpp"
 
-void showGrid(cv::Mat &I_l, cv::Mat &S, cv::Mat &E){
+void showGrid(cv::Mat &I_l, cv::Mat &S, cv::Mat &E, std::string str){
 	// Draw Triangles and display image
 	cv::Mat I_triangles = I_l;
 	cv::cvtColor(I_triangles, I_triangles, CV_GRAY2RGB);
@@ -28,7 +30,7 @@ void showGrid(cv::Mat &I_l, cv::Mat &S, cv::Mat &E){
 		cv::line(I_triangles, p1, p2, cv::Scalar(0,255,255), 1, 8, 0);
 		//std::cout << "drew line: " << i1 << ", " << i2 << std::endl;
 	}
-	cv::imshow("Image with Triangles", I_triangles);
+	cv::imshow(str, I_triangles);
 	cv::waitKey(0);
 }
 
@@ -41,7 +43,7 @@ void pipeline() {
 	//Load parameters
 	parameters param;
 	param.sz_occ = 32;
-	param.n_iters = 1;
+	param.n_iters = 3;
 	param.t_lo = 0.05; // placeholder, verify optimal value
 	param.t_hi = 0.7; // placeholder, verify optimal value
 
@@ -101,7 +103,9 @@ void pipeline() {
 
 	sparse_stereo(I_l, I_r, S);
 	delaunay_triangulation(S, param.H, param.W, G, T, E);
-	showGrid(I_l, S, E);
+	std::cout << "Rows of S: " << S.rows << std::endl;
+	std::cout << "Rows of E: " << E.rows << std::endl;
+	showGrid(I_l, S, E, "Delaunay 1");
 
 
 	for (int i = 0; i < param.n_iters; ++i) {
@@ -111,8 +115,15 @@ void pipeline() {
 
 		if (i != param.n_iters) {
 			support_resampling(C_g, C_b, S, param, I_l, I_r);
+			// empty E ?
+			cv::Mat E;
 			delaunay_triangulation(S, param.H, param.W, G, T, E);
-			showGrid(I_l, S, E);
+			std::cout << "Rows of S: " << S.rows << std::endl;
+			std::cout << "Rows of E: " << E.rows << std::endl;
+			std::ostringstream oss;
+			oss << "Delaunay " << i+2;
+			std::string str = oss.str();
+			showGrid(I_l, S, E, str);
 		}
 	}
 	
