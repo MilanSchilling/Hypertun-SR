@@ -16,7 +16,7 @@ bool PointInTriangle (cv::Point3f pt, cv::Point3f v1, cv::Point3f v2, cv::Point3
 
 // delaunay_triangulation:
 // inputs: 
-// - S: 3xN matrix with N points and [u,v,d] for each one
+// - S: Nx3 matrix with N points and [u,v,d] for each one
 // - H: Height of image
 // - W: Width of image
 //
@@ -31,7 +31,7 @@ void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv
 	std::cout << "delaunay_triangulation.cpp" << std::endl;
 
 	// Store support points into input variable
-	int N = S.cols;
+	int N = S.rows;
 
 	struct triangulateio in, out;
 	in.numberofpoints = static_cast<int>(N);
@@ -39,8 +39,8 @@ void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv
 
 	int k = 0;
 	for (int i = 0; i < N; ++i) {
-		in.pointlist[k++] = S.at<float>(0,i);
-		in.pointlist[k++] = S.at<float>(1,i);
+		in.pointlist[k++] = S.at<float>(i,0);
+		in.pointlist[k++] = S.at<float>(i,1);
 	}
 
 	in.numberofpointattributes = 0;
@@ -71,9 +71,9 @@ void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv
 	int dummy_array[N];
 	
 	for (int i = 0; i < N; ++i) {
-		pts[i].x = S.at<float>(0,i);
-		pts[i].y = S.at<float>(1,i);
-		pts[i].z = S.at<float>(2,i);
+		pts[i].x = S.at<float>(i,0);
+		pts[i].y = S.at<float>(i,1);
+		pts[i].z = S.at<float>(i,2);
 
 	}
 

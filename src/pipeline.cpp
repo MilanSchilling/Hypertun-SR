@@ -47,7 +47,7 @@ void pipeline() {
 	cv::Mat C_f = cv::Mat(param.H, param.W, CV_64F, param.t_hi);
 
 	// Declare other variables
-	cv::Mat S; // set of N support points with valid depths, 3xN with [u,v,d]
+	cv::Mat S; // set of N support points with valid depths, Nx3 with [u,v,d]
 	cv::Mat G; // graph: corresponding triangle of each pixel from delaunay triangulation
 	cv::Mat T; // Triangle 4D plane parameters from delaunay triangulation
 	cv::Mat E; // Triangle edges for plotting
@@ -104,14 +104,13 @@ void pipeline() {
 	for (int i = 0; i < E.rows/2; ++i) {
 		int i1 = E.at<int>(k++,0);
 		int i2 = E.at<int>(k++,0);
-		cv::Point p1(S.at<float>(0,i1), S.at<float>(1,i1));
-		cv::Point p2(S.at<float>(0,i2), S.at<float>(1,i2));
+		cv::Point p1(S.at<float>(i1,0), S.at<float>(i1,1));
+		cv::Point p2(S.at<float>(i2,0), S.at<float>(i2,1));
 		cv::line(I_triangles, p1, p2, cv::Scalar(0,255,255), 1, 8, 0);
 		//std::cout << "drew line: " << i1 << ", " << i2 << std::endl;
 	}
 	cv::imshow("Image with Triangles", I_triangles);
 	cv::waitKey(0);
-	cv::imwrite( "triangles.png", I_triangles );
 
 }
 
