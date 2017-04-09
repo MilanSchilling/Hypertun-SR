@@ -37,36 +37,56 @@ void pipeline() {
 	param.H = I_l.rows;
 	param.W = I_r.cols;
 
+	// divide image into discrete parts
+	int H_bar = int(param.H / param.sz_occ);
+	int W_bar = int(param.W / param.sz_occ);
+
+
 	// Initialize final disparity and associated cost
 	cv::Mat D_f = cv::Mat(param.H, param.W, CV_64F, 0.0);
 	cv::Mat C_f = cv::Mat(param.H, param.W, CV_64F, param.t_hi);
 
 	// Declare other variables
-	int sz_S[] = {1, 3}; 
-	cv::Mat S (2, sz_S, CV_64F, cv::Scalar::all(0)); // set of N support points with valid depths, 3xN with [u,v,d]
+	cv::Mat S; // set of N support points with valid depths, Nx3 with [u,v,d]
 	cv::Mat G; // graph: corresponding triangle of each pixel from delaunay triangulation
 	cv::Mat T; // Triangle 4D plane parameters from delaunay triangulation
 	cv::Mat E; // Triangle edges for plotting
 	cv::Mat D; // dense piece-wise planar disparity
 	cv::Mat C; // cost associated to D
-	cv::Mat C_g; // cost associated with regions of good matches
-	cv::Mat C_b; // cost associated with regions of bad matches
+
+	int sz_g[] = {H_bar, W_bar, 4}; // dimension of C_g
+	int sz_b[] = {H_bar, W_bar, 3}; // dimension of C_b
+	cv::Mat C_g (3, sz_g, CV_64F, cv::Scalar::all(0)); // cost associated with regions of good matches
+	cv::Mat C_b (3, sz_b, CV_64F, cv::Scalar::all(0)); // cost associated with regions of bad matches
+
+	// write thresholds to C_g and C_b
+	// TODO: do this within inizialisation above!
+	for (int i = 0; i < H_bar; ++i){
+		for (int j = 0; j < W_bar; ++j){
+			C_g.at<double>(i,j,3) = param.t_lo;
+			C_b.at<double>(i,j,2) = param.t_hi;
+		}
+	}
+
 	cv::Mat D_it = cv::Mat(param.H, param.W, CV_64F, 0.0); // Intermediate disparity (interpolated)
 	cv::Mat C_it = cv::Mat(param.H, param.W, CV_64F, param.t_hi);; // Cost associated to D_it
 
 	// Create dummy variable to show functionality
-	float S_array[8][3] = {100, 100, 200, 200, 0, 0, 300, 300, 
+	/*float S_array[8][3] = {100, 100, 200, 200, 0, 0, 300, 300, 
 						   100, 200, 100, 200, 0, 300, 0, 300,
-						   500, 500, 500, 500, 200, 200, 200, 200};
-	S = cv::Mat(3, 8, CV_32F, S_array);
+						   500, 500, 500, 500, 200, 200, 200, 200};*/
+	//S = cv::Mat(3, 8, CV_32F, S_array);
 
-	sparse_stereo();
+
+	sparse_stereo(I_l, I_r, S);
 	delaunay_triangulation(S, param.H, param.W, G, T, E);
+
 
 	for (int i = 0; i < param.n_iters; ++i) {
 		disparity_interpolation();
 		cost_evaluation(I_l, I_r, D_it, C_it);
-		disparity_refinement();
+		disparity_refinement(D_it, C_it, D_f, C_f, C_g, C_b, param);
+
 		if (i != param.n_iters) {
 			support_resampling(C_g, C_b, S, param);
 			//delaunay_triangulation(S, H, W, G, T, E);
@@ -76,21 +96,21 @@ void pipeline() {
 	// Draw Triangles and display image
 	cv::Mat I_triangles = I_l;
 	cv::cvtColor(I_triangles, I_triangles, CV_GRAY2RGB);
-	for (int i = 0; i < S.cols; ++i) {
+	/*for (int i = 0; i < S.cols; ++i) {
 		cv::circle(I_triangles, cv::Point(S.at<float>(0,i),S.at<float>(1,i)), 
-			5, cv::Scalar(0,255,255),CV_FILLED, 8,0);
-	}
+			1, cv::Scalar(0,255,255),CV_FILLED, 1,0);
+	}*/
 	int k = 0;
 	for (int i = 0; i < E.rows/2; ++i) {
 		int i1 = E.at<int>(k++,0);
 		int i2 = E.at<int>(k++,0);
-		cv::Point p1(S.at<float>(0,i1), S.at<float>(1,i1));
-		cv::Point p2(S.at<float>(0,i2), S.at<float>(1,i2));
+		cv::Point p1(S.at<float>(i1,0), S.at<float>(i1,1));
+		cv::Point p2(S.at<float>(i2,0), S.at<float>(i2,1));
 		cv::line(I_triangles, p1, p2, cv::Scalar(0,255,255), 1, 8, 0);
 		//std::cout << "drew line: " << i1 << ", " << i2 << std::endl;
 	}
 	cv::imshow("Image with Triangles", I_triangles);
 	cv::waitKey(0);
 
-
 }
+
