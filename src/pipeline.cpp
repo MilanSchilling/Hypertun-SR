@@ -88,13 +88,8 @@ void pipeline() {
 		disparity_refinement(D_it, C_it, D_f, C_f, C_g, C_b, param);
 
 		if (i != param.n_iters) {
-<<<<<<< HEAD
 			support_resampling(C_g, C_b, S, param, I_l, I_r);
 			//delaunay_triangulation(S, H, W, G, T, E);
-=======
-			support_resampling();
-			delaunay_triangulation(S, H, W, G, T, E);
->>>>>>> disparity_interpolation
 		}
 	}
 	
