@@ -31,6 +31,9 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 	const int H_bar = int(param.H / param.sz_occ);
 	const int W_bar = int(param.W / param.sz_occ); 
 
+	// counters
+	int count_X = 0, count_S_it = 0, count_epi = 0; 
+
 	for (int i_bar = 0; i_bar < H_bar; ++i_bar){
 		for (int j_bar = 0; j_bar < W_bar; ++j_bar){
 			if (C_b.at<float>(i_bar, j_bar, 2) > param.t_hi){
@@ -41,6 +44,7 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 
 				// add bad point to X
 				X.push_back(Pt);
+				count_X++;
 			}
 
 			if (C_g.at<float>(i_bar, j_bar, 3) < param.t_lo){
@@ -52,6 +56,7 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 
 				// add valid support point to S_it_next
 				S_it.push_back(Pt);
+				count_S_it++;
 			}
 		}
 	}
@@ -80,7 +85,13 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 
 		// add valid support point to S_it_next
 		S_it.push_back(Pt_m);
+		count_epi++;
 	}
+
+	std::cout << count_X << " points stored for epi-search." << std::endl;
+	std::cout << count_S_it << " points stored directly as support points." << std::endl;
+	std::cout << count_epi << " points stored from the epi-search." << std::endl;
+
 }
 
 

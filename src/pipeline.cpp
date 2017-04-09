@@ -21,8 +21,8 @@ void pipeline() {
 	parameters param;
 	param.sz_occ = 32;
 	param.n_iters = 1;
-	param.t_lo = 1; // placeholder, verify optimal value
-	param.t_hi = 5; // placeholder, verify optimal value
+	param.t_lo = 0.05; // placeholder, verify optimal value
+	param.t_hi = 0.85; // placeholder, verify optimal value
 
 	// Load images
 	cv::Mat I_l = cv::imread("../data/data_scene_flow/testing/image_2/000000_10.png", CV_LOAD_IMAGE_GRAYSCALE);
