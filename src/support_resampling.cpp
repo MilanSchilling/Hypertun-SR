@@ -84,7 +84,7 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 }
 
 
-// this routinr takes the padded left and right image, a pixelcoordinate u/v,
+// this sub-routinr takes the padded left and right image, a pixelcoordinate u/v,
 // a container for the disparity d and the parameter struct.
 // It searches along the epipolar line (horizontal) and calculates for every pixel in the
 // right image the census transform and the hemming distance to the census transform of the pixel
