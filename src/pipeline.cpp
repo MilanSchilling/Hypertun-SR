@@ -59,8 +59,10 @@ void pipeline() {
 						   500, 500, 500, 500, 200, 200, 200, 200};
 	S = cv::Mat(3, 8, CV_32F, S_array);
 
-	sparse_stereo();
+
+	sparse_stereo(I_l, I_r);
 	delaunay_triangulation(S, param.H, param.W, G, T, E);
+
 
 	for (int i = 0; i < param.n_iters; ++i) {
 		disparity_interpolation();
