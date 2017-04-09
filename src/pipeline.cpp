@@ -37,6 +37,11 @@ void pipeline() {
 	param.H = I_l.rows;
 	param.W = I_r.cols;
 
+	// divide image into discrete parts
+	int H_bar = int(param.H / param.sz_occ);
+	int W_bar = int(param.W / param.sz_occ);
+
+
 	// Initialize final disparity and associated cost
 	cv::Mat D_f = cv::Mat(param.H, param.W, CV_64F, 0.0);
 	cv::Mat C_f = cv::Mat(param.H, param.W, CV_64F, param.t_hi);
@@ -48,8 +53,21 @@ void pipeline() {
 	cv::Mat E; // Triangle edges for plotting
 	cv::Mat D; // dense piece-wise planar disparity
 	cv::Mat C; // cost associated to D
-	cv::Mat C_g; // cost associated with regions of good matches
-	cv::Mat C_b; // cost associated with regions of bad matches
+
+	int sz_g[] = {H_bar, W_bar, 4}; // dimension of C_g
+	int sz_b[] = {H_bar, W_bar, 3}; // dimension of C_b
+	cv::Mat C_g (3, sz_g, CV_64F, cv::Scalar::all(0)); // cost associated with regions of good matches
+	cv::Mat C_b (3, sz_b, CV_64F, cv::Scalar::all(0)); // cost associated with regions of bad matches
+
+	// write thresholds to C_g and C_b
+	// TODO: do this within inizialisation above!
+	for (int i = 0; i < H_bar; ++i){
+		for (int j = 0; j < W_bar; ++j){
+			C_g.at<double>(i,j,3) = param.t_lo;
+			C_b.at<double>(i,j,2) = param.t_hi;
+		}
+	}
+
 	cv::Mat D_it = cv::Mat(param.H, param.W, CV_64F, 0.0); // Intermediate disparity (interpolated)
 	cv::Mat C_it = cv::Mat(param.H, param.W, CV_64F, param.t_hi);; // Cost associated to D_it
 
@@ -59,13 +77,15 @@ void pipeline() {
 						   500, 500, 500, 500, 200, 200, 200, 200};
 	S = cv::Mat(3, 8, CV_32F, S_array);
 
+
 	sparse_stereo();
 	delaunay_triangulation(S, param.H, param.W, G, T, E);
 
 	for (int i = 0; i < param.n_iters; ++i) {
 		disparity_interpolation();
 		cost_evaluation(I_l, I_r, D_it, C_it);
-		disparity_refinement();
+		disparity_refinement(D_it, C_it, D_f, C_f, C_g, C_b, param);
+
 		if (i != param.n_iters) {
 			support_resampling();
 			//delaunay_triangulation(S, H, W, G, T, E);
@@ -90,6 +110,5 @@ void pipeline() {
 	}
 	cv::imshow("Image with Triangles", I_triangles);
 	cv::waitKey(0);
-
 
 }
