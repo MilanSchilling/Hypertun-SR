@@ -11,6 +11,27 @@
 #include "support_resampling.hpp"
 #include "parameters.hpp"
 
+void showGrid(cv::Mat &I_l, cv::Mat &S, cv::Mat &E){
+	// Draw Triangles and display image
+	cv::Mat I_triangles = I_l;
+	cv::cvtColor(I_triangles, I_triangles, CV_GRAY2RGB);
+	/*for (int i = 0; i < S.cols; ++i) {
+		cv::circle(I_triangles, cv::Point(S.at<float>(0,i),S.at<float>(1,i)), 
+			1, cv::Scalar(0,255,255),CV_FILLED, 1,0);
+	}*/
+	int k = 0;
+	for (int i = 0; i < E.rows/2; ++i) {
+		int i1 = E.at<int>(k++,0);
+		int i2 = E.at<int>(k++,0);
+		cv::Point p1(S.at<float>(i1,0), S.at<float>(i1,1));
+		cv::Point p2(S.at<float>(i2,0), S.at<float>(i2,1));
+		cv::line(I_triangles, p1, p2, cv::Scalar(0,255,255), 1, 8, 0);
+		//std::cout << "drew line: " << i1 << ", " << i2 << std::endl;
+	}
+	cv::imshow("Image with Triangles", I_triangles);
+	cv::waitKey(0);
+}
+
 
 void pipeline() {
 
@@ -22,7 +43,7 @@ void pipeline() {
 	param.sz_occ = 32;
 	param.n_iters = 1;
 	param.t_lo = 0.05; // placeholder, verify optimal value
-	param.t_hi = 0.85; // placeholder, verify optimal value
+	param.t_hi = 0.7; // placeholder, verify optimal value
 
 	// Load images
 	cv::Mat I_l = cv::imread("../data/data_scene_flow/testing/image_2/000000_10.png", CV_LOAD_IMAGE_GRAYSCALE);
@@ -80,6 +101,7 @@ void pipeline() {
 
 	sparse_stereo(I_l, I_r, S);
 	delaunay_triangulation(S, param.H, param.W, G, T, E);
+	showGrid(I_l, S, E);
 
 
 	for (int i = 0; i < param.n_iters; ++i) {
@@ -90,27 +112,11 @@ void pipeline() {
 		if (i != param.n_iters) {
 			support_resampling(C_g, C_b, S, param, I_l, I_r);
 			delaunay_triangulation(S, param.H, param.W, G, T, E);
+			showGrid(I_l, S, E);
 		}
 	}
 	
-	// Draw Triangles and display image
-	cv::Mat I_triangles = I_l;
-	cv::cvtColor(I_triangles, I_triangles, CV_GRAY2RGB);
-	/*for (int i = 0; i < S.cols; ++i) {
-		cv::circle(I_triangles, cv::Point(S.at<float>(0,i),S.at<float>(1,i)), 
-			1, cv::Scalar(0,255,255),CV_FILLED, 1,0);
-	}*/
-	int k = 0;
-	for (int i = 0; i < E.rows/2; ++i) {
-		int i1 = E.at<int>(k++,0);
-		int i2 = E.at<int>(k++,0);
-		cv::Point p1(S.at<float>(i1,0), S.at<float>(i1,1));
-		cv::Point p2(S.at<float>(i2,0), S.at<float>(i2,1));
-		cv::line(I_triangles, p1, p2, cv::Scalar(0,255,255), 1, 8, 0);
-		//std::cout << "drew line: " << i1 << ", " << i2 << std::endl;
-	}
-	cv::imshow("Image with Triangles", I_triangles);
-	cv::waitKey(0);
+	
 
 }
 
