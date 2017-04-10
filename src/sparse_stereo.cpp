@@ -129,7 +129,7 @@ void sparse_stereo(cv::Mat I_l, cv::Mat I_r, cv::Mat &S){
 	// Fill set of support points
 	int num_points = correspondences.size();
 	S = cv::Mat(num_points, 3, CV_32F, 0.0);
-	for (int i = 0; i < num_points; ++i)
+	for (int i = 0; i < 10; ++i) // i < num_points;
 	{
 		S.at<float>(i,0) = correspondences_disparity_original[i][0];
 		S.at<float>(i,1) = correspondences_disparity_original[i][1];

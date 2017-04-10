@@ -73,6 +73,7 @@ void pipeline() {
 
 	// Declare other variables
 	cv::Mat S; // set of N support points with valid depths, Nx3 with [u,v,d]
+	cv::Mat S_d;
 	cv::Mat G; // graph: corresponding triangle of each pixel from delaunay triangulation
 	cv::Mat T; // Triangle 4D plane parameters from delaunay triangulation
 	cv::Mat E; // Triangle edges for plotting
@@ -102,12 +103,30 @@ void pipeline() {
 						   500, 500, 500, 500, 200, 200, 200, 200};*/
 	//S = cv::Mat(3, 8, CV_32F, S_array);
 
+	// create debug points
+	S_d = cv::Mat(4, 3, CV_32F, 0.0);
+	S_d.at<float>(0,0) = 20;
+	S_d.at<float>(0,1) = 20;
+	S_d.at<float>(0,2) = 0;
+
+	S_d.at<float>(1,0) = 20 + 200;
+	S_d.at<float>(1,1) = 20;
+	S_d.at<float>(1,2) = 100;
+
+	S_d.at<float>(2,0) = 20;
+	S_d.at<float>(2,1) = 20 + 200;
+	S_d.at<float>(2,2) = 100;
+
+	S_d.at<float>(3,0) = 20 + 200;
+	S_d.at<float>(3,1) = 20 + 200;
+	S_d.at<float>(3,2) = 0;
+	
 
 	sparse_stereo(I_l, I_r, S);
-	delaunay_triangulation(S, param.H, param.W, G, T, E);
+	delaunay_triangulation(S_d, param.H, param.W, G, T, E);
 	std::cout << "Rows of S: " << S.rows << std::endl;
 	std::cout << "Rows of E: " << E.rows << std::endl;
-	showGrid(I_l, S, E, "Delaunay 1");
+	showGrid(I_l, S_d, E, "Delaunay 1");
 
 
 	for (int i = 0; i < param.n_iters; ++i) {
@@ -116,14 +135,14 @@ void pipeline() {
 		disparity_refinement(D_it, C_it, D_f, C_f, C_g, C_b, param);
 
 		if (i != param.n_iters) {
-			support_resampling(C_g, C_b, S, param, I_l, I_r);
+			support_resampling(C_g, C_b, S_d, param, I_l, I_r);
 			// empty E ?
 			cv::Mat E;
-			delaunay_triangulation(S, param.H, param.W, G, T, E);
+			delaunay_triangulation(S_d, param.H, param.W, G, T, E);
 			std::ostringstream oss;
 			oss << "Delaunay " << i+2;
 			std::string str = oss.str();
-			showGrid(I_l, S, E, str);
+			showGrid(I_l, S_d, E, str);
 		}
 	}
 	
