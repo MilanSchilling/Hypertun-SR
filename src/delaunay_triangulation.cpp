@@ -30,6 +30,8 @@ void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv
 
 	std::cout << "delaunay_triangulation.cpp" << std::endl;
 
+	std::cout << "Rows of S" << S.rows << std::endl;
+
 	// Store support points into input variable
 	int N = S.rows;
 
@@ -148,6 +150,10 @@ void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv
 	/*cv::imshow("Image label", G);
 	cv::waitKey(0);*/
 
+	std::cout << "out.numberofedges = " << out.numberofedges << std::endl;
+	std::cout << "out.numberoftriangles = " << out.numberoftriangles << std::endl;
+	
+
 	k = 0;
 	for (int i = 0; i < out.numberofedges; ++i)
 	{
@@ -156,6 +162,8 @@ void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv
 		E.push_back(out.edgelist[k+1]);
 		k += 2;
 	}
+
+	std::cout << "E.rows = " << E.rows << std::endl;
 
 	free(in.pointlist);
 	free(out.pointlist);

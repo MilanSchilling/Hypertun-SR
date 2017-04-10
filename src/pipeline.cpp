@@ -22,6 +22,8 @@ void showGrid(cv::Mat &I_l, cv::Mat &S, cv::Mat &E, std::string str){
 			1, cv::Scalar(0,255,255),CV_FILLED, 1,0);
 	}*/
 	int k = 0;
+	int E_end = E.rows/2;
+	std::cout << "E.rows/2 = " << E_end << std::endl;
 	for (int i = 0; i < E.rows/2; ++i) {
 		int i1 = E.at<int>(k++,0);
 		int i2 = E.at<int>(k++,0);
@@ -118,8 +120,6 @@ void pipeline() {
 			// empty E ?
 			cv::Mat E;
 			delaunay_triangulation(S, param.H, param.W, G, T, E);
-			std::cout << "Rows of S: " << S.rows << std::endl;
-			std::cout << "Rows of E: " << E.rows << std::endl;
 			std::ostringstream oss;
 			oss << "Delaunay " << i+2;
 			std::string str = oss.str();
