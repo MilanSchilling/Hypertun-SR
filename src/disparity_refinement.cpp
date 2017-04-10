@@ -33,25 +33,30 @@ void disparity_refinement(cv::Mat &D_it, cv::Mat &C_it,
 			int j_bar = int(j / param.sz_occ); 
 
 			// If matching cost is lower than previous best final cost
-			if (C_it.at<double>(i,j) < C_f.at<double>(i,j)){
+			if (C_it.at<float>(i,j) < C_f.at<float>(i,j)){
 				// store current disparity and cost to final
-				D_f.at<double>(i,j) = D_it.at<double>(i,j);
-				C_f.at<double>(i,j) = C_it.at<double>(i,j);
+				D_f.at<float>(i,j) = D_it.at<float>(i,j);
+				C_f.at<float>(i,j) = C_it.at<float>(i,j);
 			}
 
 			// If matching cost is lower than previous best valid cost
-			if (C_it.at<double>(i,j) < param.t_lo && C_it.at<double>(i,j) < C_g.at<double>(i_bar,j_bar,3)){
-				C_g.at<double>(i_bar,j_bar, 0) = i;
-				C_g.at<double>(i_bar,j_bar, 1) = j;
-				C_g.at<double>(i_bar,j_bar, 2) = D_it.at<double>(i,j);
-				C_g.at<double>(i_bar,j_bar, 3) = C_it.at<double>(i,j);
+			if (C_it.at<float>(i,j) < param.t_lo && C_it.at<float>(i,j) < C_g.at<float>(i_bar,j_bar,3)){
+				C_g.at<float>(i_bar,j_bar, 0) = i;
+				C_g.at<float>(i_bar,j_bar, 1) = j;
+				C_g.at<float>(i_bar,j_bar, 2) = D_it.at<float>(i,j);
+				C_g.at<float>(i_bar,j_bar, 3) = C_it.at<float>(i,j);
+				
+				std::cout << "disparity_refinement: added point to C_g." << std::endl;
+				std::cout << "C_it.at<float>(i,j) = " << C_it.at<float>(i,j) << std::endl; 
 			}
 
 			// If matching cost is higher than previous worst invalid cost
-			if (C_it.at<double>(i,j) > param.t_hi && C_it.at<double>(i,j) > C_b.at<double>(i_bar, j_bar, 2)){
-				C_b.at<double>(i_bar,j_bar, 0) = i;
-				C_b.at<double>(i_bar,j_bar, 1) = j;
-				C_b.at<double>(i_bar,j_bar, 2) = C_it.at<double>(i,j);
+			if (C_it.at<float>(i,j) > param.t_hi && C_it.at<float>(i,j) > C_b.at<float>(i_bar, j_bar, 2)){
+				C_b.at<float>(i_bar,j_bar, 0) = i;
+				C_b.at<float>(i_bar,j_bar, 1) = j;
+				C_b.at<float>(i_bar,j_bar, 2) = C_it.at<float>(i,j);
+				std::cout << "disparity_refinement: added point to C_b." << std::endl;
+				std::cout << "C_it.at<float>(i,j) = " << C_it.at<float>(i,j) << std::endl;
 			}
 		}
 	}

@@ -24,46 +24,84 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 
 
 	// define container for re-sampled or detected support pixels with unknown depths
-	int sz_X[] = {1, 2}; 
-	cv::Mat X (2, sz_X, CV_32F, cv::Scalar::all(0));
-
+	//int sz_X[] = {1, 2}; 
+	std::cout << "support_resampling here -1" << std::endl;
+	//cv::Mat X (2, sz_X, CV_32F, cv::Scalar::all(0));
+	
+	
+	std::cout << "support_resampling here 0" << std::endl;
 	// get grid size
 	const int H_bar = int(param.H / param.sz_occ);
 	const int W_bar = int(param.W / param.sz_occ); 
 
+	cv::Mat X;
+	X = cv::Mat(H_bar * W_bar, 2, CV_32F, 0.0);
+	int X_length = 0;
+
+	cv::Mat S_add;
+	S_add = cv::Mat(H_bar * W_bar, 3, CV_32F, 0.0);
+	int S_add_length = 0;
 	// counters
 	int count_X = 0, count_S_it = 0, count_epi = 0; 
-
+	std::cout << "support_resampling here 1" << std::endl;
 	for (int i_bar = 0; i_bar < H_bar; ++i_bar){
 		for (int j_bar = 0; j_bar < W_bar; ++j_bar){
-			if (C_b.at<float>(i_bar, j_bar, 2) > param.t_hi){
-				// store (u,v) for bad point for resampling
-				cv::Mat Pt = cv::Mat::zeros(1, 2, CV_32F);
-				Pt.at<float>(0, 0) = C_b.at<float>(i_bar, j_bar, 0);
-				Pt.at<float>(0, 1) = C_b.at<float>(i_bar, j_bar, 1);
 
+			if (C_b.at<float>(i_bar, j_bar, 0) != 0){
+				// store (u,v) for bad point for resampling
+				std::cout << "support_resampling here // store (u,v) for bad point for resampling" << std::endl;
+				X.at<float>(X_length, 0) = C_b.at<float>(i_bar, j_bar, 0);
+				X.at<float>(X_length, 1) = C_b.at<float>(i_bar, j_bar, 1);
+				X_length++;
+
+				//cv::Mat Pt = cv::Mat::zeros(1, 2, CV_32F);
+				//Pt.at<float>(0, 0) = C_b.at<float>(i_bar, j_bar, 0);
+	 			//Pt.at<float>(0, 1) = C_b.at<float>(i_bar, j_bar, 1);
+ 
 				// add bad point to X
-				X.push_back(Pt);
+				//X.push_back(Pt);
 				count_X++;
 			}
 
-			if (C_g.at<float>(i_bar, j_bar, 3) < param.t_lo){
+			if (C_g.at<float>(i_bar, j_bar, 0) != 0){
 				// store (u,v,d) for valid points
-				cv::Mat Pt = cv::Mat::zeros(1, 3, CV_32F);
-				Pt.at<float>(0, 0) = C_g.at<float>(i_bar, j_bar, 0);
-				Pt.at<float>(0, 1) = C_g.at<float>(i_bar, j_bar, 1);
-				Pt.at<float>(0, 2) = C_g.at<float>(i_bar, j_bar, 2);
+				std::cout << "support_resampling here // store (u,v,d) for valid points" << std::endl;
+				S_add.at<float>(S_add_length, 0) = C_g.at<float>(i_bar, j_bar, 0);
+				S_add.at<float>(S_add_length, 1) = C_g.at<float>(i_bar, j_bar, 1);
+				S_add.at<float>(S_add_length, 2) = C_g.at<float>(i_bar, j_bar, 2);
 
-				// add valid support point to S_it_next
+				S_add_length++;
+
+
+				/*
+				cv::Mat Pt = cv::Mat(1, 3, CV_32F);
+				std::cout << "pushback?" << std::endl;
 				S_it.push_back(Pt);
+
+				std::cout << "mat?" << std::endl;
+				S_it.at<float>(S_it.rows-1, 0) = C_g.at<float>(i_bar, j_bar, 0);
+				S_it.at<float>(S_it.rows-1, 1) = C_g.at<float>(i_bar, j_bar, 1);
+				S_it.at<float>(S_it.rows-1, 2) = C_g.at<float>(i_bar, j_bar, 2);
+				*/
+				
+				// add valid support point to S_it_next
+				//S_it.push_back(Pt);
 				count_S_it++;
 			}
 		}
 	}
 
+	
+
+	std::cout << "support_resampling here 2" << std::endl;
 // ###
 // epipolar search
 // ###
+	cv::Mat S_epi;
+	S_epi = cv::Mat(X_length, 3, CV_32F, 0.0);
+	int S_epi_length = 0;
+
+
 	// pad a frame around the images
 	int border = 2;
 	cv::Mat I_r_p = cv::Mat(I_r.rows + border*2, I_r.cols + border*2, I_r.depth());
@@ -71,22 +109,55 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 	cv::copyMakeBorder(I_r, I_r_p, border, border, border, border, cv::BORDER_REPLICATE);
 	cv::copyMakeBorder(I_l, I_l_p, border, border, border, border, cv::BORDER_REPLICATE);
 
+	std::cout << "support_resampling here 3" << std::endl;
 	// get length of X
 	int nuOpt = X.rows;
 	// loop over X, leave first entry out
-	for (int i=1; i < nuOpt; ++i){
+	for (int i=0; i < X_length; ++i){
 		int d = -1;
 		epipolar_search(I_l_p, I_r_p,
 						int(X.at<float>(i, 0)), int(X.at<float>(i, 1)), d, param);
+
+		S_epi.at<float>(i, 0) = X.at<float>(i, 0);
+		S_epi.at<float>(i, 1) = X.at<float>(i, 1);
+		S_epi.at<float>(i, 2) = float(d);
+
+/*
 		cv::Mat Pt_m = cv::Mat::zeros(1, 3, CV_32F);
 		Pt_m.at<float>(0, 0) = X.at<float>(i, 0);
 		Pt_m.at<float>(0, 1) = X.at<float>(i, 1);
 		Pt_m.at<float>(0, 2) = float(d);
 
 		// add valid support point to S_it_next
-		S_it.push_back(Pt_m);
+		//S_it.push_back(Pt_m);
+		*/
+
+
+
 		count_epi++;
 	}
+
+
+	// combine S_it, S_add and S_epi
+	cv::Mat S_next;
+	S_next = cv::Mat(S_it.rows + S_add_length + X_length, 3, CV_32F);
+	for (int i = 0; i < S_it.rows + S_add_length + X_length; ++i){
+		if (i < S_it.rows){
+			S_next.at<float>(i, 0) = S_it.at<float>(i, 0);
+			S_next.at<float>(i, 1) = S_it.at<float>(i, 1);
+			S_next.at<float>(i, 2) = S_it.at<float>(i, 2);
+		} else if(i < S_it.rows + S_add_length){
+			S_next.at<float>(i, 0) = S_add.at<float>(i - S_it.rows, 0);
+			S_next.at<float>(i, 1) = S_add.at<float>(i - S_it.rows, 1);
+			S_next.at<float>(i, 2) = S_add.at<float>(i - S_it.rows, 2);
+		} else{
+			S_next.at<float>(i, 0) = S_epi.at<float>(i - S_it.rows - X_length, 0);
+			S_next.at<float>(i, 1) = S_epi.at<float>(i - S_it.rows - X_length, 1);
+			S_next.at<float>(i, 2) = S_epi.at<float>(i - S_it.rows - X_length, 2);
+		}
+	}
+	S_it = S_next; 
+
 
 	std::cout << count_X << " points stored for epi-search." << std::endl;
 	std::cout << count_S_it << " points stored directly as support points." << std::endl;

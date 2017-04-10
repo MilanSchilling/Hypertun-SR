@@ -30,7 +30,7 @@ void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv
 
 	std::cout << "delaunay_triangulation.cpp" << std::endl;
 
-	std::cout << "Rows of S" << S.rows << std::endl;
+	std::cout << "Rows of S " << S.rows << std::endl;
 
 	// Store support points into input variable
 	int N = S.rows;

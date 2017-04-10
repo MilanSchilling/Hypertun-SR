@@ -9,8 +9,8 @@ struct parameters {
 	int n_iters;
 
 	// Lower and upper threshold for validating disparities
-	double t_lo;
-	double t_hi;
+	float t_lo;
+	float t_hi;
 
     // image height and width
     int H;
