@@ -27,6 +27,7 @@ void showGrid(cv::Mat &I_l, cv::Mat &S, cv::Mat &E, std::string str){
 	for (int i = 0; i < E.rows/2; ++i) {
 		int i1 = E.at<int>(k++,0);
 		int i2 = E.at<int>(k++,0);
+		std::cout << "i1 and i2 = " << i1 << " and " << i2 << std::endl;
 		cv::Point p1(S.at<float>(i1,0), S.at<float>(i1,1));
 		cv::Point p2(S.at<float>(i2,0), S.at<float>(i2,1));
 		cv::line(I_triangles, p1, p2, cv::Scalar(0,255,255), 1, 8, 0);

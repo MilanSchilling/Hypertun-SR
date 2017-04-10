@@ -155,12 +155,18 @@ void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv
 	
 
 	k = 0;
+	E = cv::Mat(2 * out.numberofedges, 1, CV_16U);
 	for (int i = 0; i < out.numberofedges; ++i)
 	{
 		// For plotting triangle edges
-		E.push_back(out.edgelist[k]);
-		E.push_back(out.edgelist[k+1]);
+		E.at<int>(k, 0) = out.edgelist[k];
+		E.at<int>(k + 1, 0) = out.edgelist[k + 1];
 		k += 2;
+		int bla = 0;
+
+		//E.push_back(out.edgelist[k]);
+		//E.push_back(out.edgelist[k+1]);
+		//k += 2;
 	}
 
 	std::cout << "E.rows = " << E.rows << std::endl;
