@@ -177,7 +177,7 @@ void pipeline() {
 		showG(I_l, G, param, "G");
 
 		cost_evaluation(I_l, I_r, D_it, G, C_it);
-		disparity_refinement(D_it, C_it, D_f, C_f, C_g, C_b, param);
+		disparity_refinement(D_it, C_it, G, D_f, C_f, C_g, C_b, param);
 
 		if (i != param.n_iters) {
 			support_resampling(C_g, C_b, S_d, param, I_l, I_r);
