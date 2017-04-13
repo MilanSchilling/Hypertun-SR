@@ -37,6 +37,41 @@ void showGrid(cv::Mat &I_l, cv::Mat &S, cv::Mat &E, std::string str){
 	cv::waitKey(0);
 }
 
+void showG (cv::Mat &I_l, cv::Mat &G, parameters &param, std::string str){
+
+	std::cout << "showG" << std::endl;
+	std::cout << "image_l size: " << I_l.rows << "/" << I_l.cols << std::endl;
+	std::cout << "Mat G size: " << G.rows << "/" << G.cols << std::endl;
+	cv::Mat G_img = I_l;
+	std::cout << "Mat G_img size: " << G_img.rows << "/" << G_img.cols << std::endl;
+	cv::cvtColor(G_img, G_img, CV_GRAY2RGB);
+
+	
+
+	// loop over all pixels
+	for (int u = 0; u < G.rows; ++u){
+		for (int v = 0; v < G.cols * 3; ++v){
+
+			//check if G(u,v) == -1
+			if (G.at<float>(u, v) == -1){ // G.at<float>(u, v) == -1
+				//uchar & color = G_img.at<uchar>(u,v*3);
+				//color = 0;
+				G_img.at<uchar>(u,v) = 0;
+
+			} else{
+				uchar & color = G_img.at<uchar>(u,v);
+				color = 255;
+				G_img.at<uchar>(u,v) = color;
+
+			}
+		}
+	}
+
+	cv::imshow(str, G_img);
+	cv::waitKey(0);
+
+}
+
 
 void pipeline() {
 
@@ -130,11 +165,17 @@ void pipeline() {
 		std::cout << S_d.at<float>(i,0) << "/" << S_d.at<float>(i,1) << "/" << S_d.at<float>(i,2) << std::endl;
 	}
 	std::cout << "Rows of E: " << E.rows << std::endl;
+
+	std::cout << "param.H / param.W = " << param.H << "/" << param.W << std::endl;
+
 	showGrid(I_l, S_d, E, "Delaunay 1");
 
 
 	for (int i = 0; i < param.n_iters; ++i) {
 		disparity_interpolation(G, T, D_it);
+
+		showG(I_l, G, param, "G");
+
 		cost_evaluation(I_l, I_r, D_it, C_it);
 		disparity_refinement(D_it, C_it, D_f, C_f, C_g, C_b, param);
 
@@ -146,10 +187,10 @@ void pipeline() {
 			// empty E ?
 			//cv::Mat E;
 			delaunay_triangulation(S_d, param.H, param.W, G, T, E);
-			//std::ostringstream oss;
-			//oss << "Delaunay " << i+2;
-			//std::string str = oss.str();
-			//showGrid(I_l, S_d, E, str);
+			std::ostringstream oss;
+			oss << "Delaunay " << i+2;
+			std::string str = oss.str();
+			showGrid(I_l, S_d, E, str);
 		}
 	}
 	

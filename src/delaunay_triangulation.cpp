@@ -155,7 +155,7 @@ void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv
 	
 
 	k = 0;
-	E = cv::Mat(2 * out.numberofedges, 1, CV_16U);
+	E = cv::Mat(2 * out.numberofedges, 1, CV_32S);
 	for (int i = 0; i < out.numberofedges; ++i)
 	{
 		// For plotting triangle edges
