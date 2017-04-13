@@ -50,6 +50,7 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 			if (C_b.at<float>(i_bar, j_bar, 0) != 0){
 				// store (u,v) for bad point for resampling
 				std::cout << "support_resampling here // store (u,v) for bad point for resampling" << std::endl;
+				std::cout << C_b.at<float>(i_bar, j_bar, 0) << "/" << C_b.at<float>(i_bar, j_bar, 1) << std::endl;
 				X.at<float>(X_length, 0) = C_b.at<float>(i_bar, j_bar, 0);
 				X.at<float>(X_length, 1) = C_b.at<float>(i_bar, j_bar, 1);
 				X_length++;
@@ -66,6 +67,7 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 			if (C_g.at<float>(i_bar, j_bar, 0) != 0){
 				// store (u,v,d) for valid points
 				std::cout << "support_resampling here // store (u,v,d) for valid points" << std::endl;
+				std::cout << C_g.at<float>(i_bar, j_bar, 0) << "/" << C_g.at<float>(i_bar, j_bar, 1) << "/" << C_g.at<float>(i_bar, j_bar, 2) << std::endl;
 				S_add.at<float>(S_add_length, 0) = C_g.at<float>(i_bar, j_bar, 0);
 				S_add.at<float>(S_add_length, 1) = C_g.at<float>(i_bar, j_bar, 1);
 				S_add.at<float>(S_add_length, 2) = C_g.at<float>(i_bar, j_bar, 2);

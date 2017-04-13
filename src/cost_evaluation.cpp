@@ -65,10 +65,10 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r, cv::Mat &D_it, cv::Mat &G, cv::
 
 				// normalize cost
 				float n_cost = cost / 24.0;
-
+				//std::cout << "cost: " << cost << std::endl;
 				// write cost to C_it
 				C_it.at<float>(i,j) = n_cost;
-				std::cout << "cost: " << n_cost << std::endl;
+				//std::cout << "n_cost: " << n_cost << std::endl;
 			}
 			
 		}

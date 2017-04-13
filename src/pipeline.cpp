@@ -27,7 +27,7 @@ void showGrid(cv::Mat &I_l, cv::Mat &S, cv::Mat &E, std::string str){
 	for (int i = 0; i < E.rows/2; ++i) {
 		int i1 = E.at<int>(k++,0);
 		int i2 = E.at<int>(k++,0);
-		std::cout << "i1 and i2 = " << i1 << " and " << i2 << std::endl;
+		//std::cout << "i1 and i2 = " << i1 << " and " << i2 << std::endl;
 		cv::Point p1(S.at<float>(i1,0), S.at<float>(i1,1));
 		cv::Point p2(S.at<float>(i2,0), S.at<float>(i2,1));
 		cv::line(I_triangles, p1, p2, cv::Scalar(0,255,255), 1, 8, 0);
@@ -80,10 +80,10 @@ void pipeline() {
 
 	//Load parameters
 	parameters param;
-	param.sz_occ = 32;
-	param.n_iters = 1;
-	param.t_lo = 0.05; // placeholder, verify optimal value
-	param.t_hi = 0.7; // placeholder, verify optimal value
+	param.sz_occ = 64;
+	param.n_iters = 3;
+	param.t_lo = 0.01; // placeholder, verify optimal value
+	param.t_hi = 0.95; // placeholder, verify optimal value
 
 	// Load images
 	cv::Mat I_l = cv::imread("../data/data_scene_flow/testing/image_2/000000_10.png", CV_LOAD_IMAGE_GRAYSCALE);
