@@ -4,7 +4,7 @@
 #include <opencv2/opencv.hpp>
 #include <bitset>
 
-void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r, cv::Mat &D_it, cv::Mat &C_it);
+void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r, cv::Mat &D_it, cv::Mat &G, cv::Mat &C_it);
 
 void census(cv::Mat &paddedImg, int i_pad, int j_pad, std::bitset<24> &census);
 

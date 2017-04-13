@@ -14,7 +14,7 @@
 // This function compares every patch with the correspondent patch, 
 // given the interpolated disparity, using a census comparison.
 // It returns a matirx containing the costs for every pixel. 
-void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r, cv::Mat &D_it, cv::Mat &C_it){
+void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r, cv::Mat &D_it, cv::Mat &G, cv::Mat &C_it){
 
 	std::cout << "cost_evaluation.cpp" << std::endl;
 
@@ -33,41 +33,44 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r, cv::Mat &D_it, cv::Mat &C_it){
 	for (int i = 0; i < H; ++i){
 		for (int j = 0; j < W; j++){
 
-			float disp = D_it.at<float>(i,j); // TODO: verify order of i,j!
+			if (G.at<float>(i,j) != -1){
+				float disp = D_it.at<float>(i,j); // TODO: verify order of i,j!
 
-			//evaluate cost for given disparity
-			int i_pad = i + border;
-			int j_pad = j + border;
+				//evaluate cost for given disparity
+				int i_pad = i + border;
+				int j_pad = j + border;
 
-			std::bitset<24> cens_l(0);
-			std::bitset<24> cens_r(0);
+				std::bitset<24> cens_l(0);
+				std::bitset<24> cens_r(0);
 
-			// get census of left image
-			census(I_l_p, i_pad, j_pad, cens_l);
+				// get census of left image
+				census(I_l_p, i_pad, j_pad, cens_l);
 
-			// get census of right image at the interpolated disparity
-			census(I_r_p, i_pad, j_pad + disp, cens_r);
+				// get census of right image at the interpolated disparity
+				census(I_r_p, i_pad, j_pad + disp, cens_r);
 
-			// calculate cost
-			ushort cost = 0;
-			std::bitset<24> mask(1);
-			std::bitset<24> result(0);
+				// calculate cost
+				ushort cost = 0;
+				std::bitset<24> mask(1);
+				std::bitset<24> result(0);
 
-			// calculating Hemming distance
-			result = cens_l ^ cens_r;
-			for (int it = 0; it < 24; ++it){
-				std::bitset<24> current_bit = (result & (mask<<it))>>it;
-				if (current_bit == mask){
-					cost++;
+				// calculating Hemming distance
+				result = cens_l ^ cens_r;
+				for (int it = 0; it < 24; ++it){
+					std::bitset<24> current_bit = (result & (mask<<it))>>it;
+					if (current_bit == mask){
+						cost++;
+					}
 				}
+
+				// normalize cost
+				float n_cost = cost / 24.0;
+
+				// write cost to C_it
+				C_it.at<float>(i,j) = n_cost;
+				std::cout << "cost: " << n_cost << std::endl;
 			}
-
-			// normalize cost
-			float n_cost = cost / 24.0;
-
-			// write cost to C_it
-			C_it.at<float>(i,j) = n_cost;
-			std::cout << "cost: " << n_cost << std::endl;
+			
 		}
 	}
 }
