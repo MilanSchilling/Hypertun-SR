@@ -43,18 +43,18 @@ void showG (cv::Mat &I_l, cv::Mat &G, parameters &param, std::string str){
 	std::cout << "image_l size: " << I_l.rows << "/" << I_l.cols << std::endl;
 	std::cout << "Mat G size: " << G.rows << "/" << G.cols << std::endl;
 	cv::Mat G_img = I_l;
+	
+	//cv::cvtColor(G_img, G_img, CV_GRAY2RGB);
 	std::cout << "Mat G_img size: " << G_img.rows << "/" << G_img.cols << std::endl;
-	cv::cvtColor(G_img, G_img, CV_GRAY2RGB);
-
 	
 
 	// loop over all pixels
 	for (int u = 0; u < G.rows; ++u){
-		for (int v = 0; v < G.cols * 3; ++v){
+		for (int v = 0; v < G.cols; ++v){
 
 			//check if G(u,v) == -1
 			if (G.at<float>(u, v) == -1){ // G.at<float>(u, v) == -1
-				//uchar & color = G_img.at<uchar>(u,v*3);
+				//uchar & color = G_img.at<uchar>(u,v);
 				//color = 0;
 				G_img.at<uchar>(u,v) = 0;
 
