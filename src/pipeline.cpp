@@ -60,6 +60,30 @@ void showGrid(cv::Mat &I_l, cv::Mat &S, cv::Mat &E, std::string str){
 	cv::waitKey(0);
 }
 
+void showDisparity(cv::Mat I_l, cv::Mat D_it){
+		cv::Mat disparity = I_l;
+		cv::cvtColor(disparity, disparity, CV_GRAY2RGB);
+
+		for (int x = 0; x < I_l.rows; ++x){
+			for (int y = 0; y < I_l.cols; ++y){
+				float scaledDisp = D_it.at<float>(x,y)/64.0;
+				cv::Vec3b color;
+				cv::Point point;
+				point.x = y;
+				point.y = x;
+				if(scaledDisp < 0.5)
+					color = cv::Vec3b(0, scaledDisp*512, 255);
+				else color = cv::Vec3b(0, 255, (1-scaledDisp)*512);
+
+				if (scaledDisp != 0)
+				circle(disparity, point, 1, (cv::Scalar) color, 1);
+			}
+		}
+
+		cv::imshow("Disparity Interpolated", disparity);
+		cv::waitKey(0);
+}
+
 
 void pipeline() {
 
@@ -146,6 +170,8 @@ void pipeline() {
 
 	for (int i = 0; i < param.n_iters; ++i) {
 		disparity_interpolation(G, T, D_it);
+		showDisparity(I_l, D_it);
+
 		cost_evaluation(I_l, I_r, D_it, C_it);
 		disparity_refinement(D_it, C_it, D_f, C_f, C_g, C_b, param);
 
