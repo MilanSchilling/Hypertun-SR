@@ -32,8 +32,8 @@ void disparity_refinement(cv::Mat &D_it, cv::Mat &C_it,
 
 			if (G.at<float>(i,j) != -1){
 				// Establish occupancy grid for resampled points
-				int i_bar = int(i / param.sz_occ);
-				int j_bar = int(j / param.sz_occ); 
+				int i_bar = std::floor(i / param.sz_occ);
+				int j_bar = std::floor(j / param.sz_occ); 
 
 				// If matching cost is lower than previous best final cost
 				if (C_it.at<float>(i,j) < C_f.at<float>(i,j)){
@@ -54,16 +54,14 @@ void disparity_refinement(cv::Mat &D_it, cv::Mat &C_it,
 				}
 
 				// If matching cost is higher than previous worst invalid cost
-				/*if ((C_it.at<float>(i,j) >= param.t_hi) && (C_it.at<float>(i,j) > C_b.at<float>(i_bar, j_bar, 2))){
+				if ((C_it.at<float>(i,j) >= param.t_hi) && (C_it.at<float>(i,j) > C_b.at<float>(i_bar, j_bar, 2))){
 					C_b.at<float>(i_bar,j_bar, 0) = i;
 					C_b.at<float>(i_bar,j_bar, 1) = j;
 					C_b.at<float>(i_bar,j_bar, 2) = C_it.at<float>(i,j);
-					//std::cout << "disparity_refinement: added point to C_b." << std::endl;
-					//std::cout << "C_it.at<float>(i,j) = " << C_it.at<float>(i,j) << std::endl;
-				}*/
+					std::cout << "disparity_refinement: added point to C_b." << std::endl;
+					std::cout << "C_it.at<float>(i,j) = " << C_it.at<float>(i,j) << std::endl;
+				}
 			}
-
-			
 		}
 	}
 }

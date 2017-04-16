@@ -81,7 +81,7 @@ void pipeline() {
 	//Load parameters
 	parameters param;
 	param.sz_occ = 64;
-	param.n_iters = 3;
+	param.n_iters = 1;
 	param.t_lo = 0.01; // placeholder, verify optimal value
 	param.t_hi = 0.95; // placeholder, verify optimal value
 
@@ -125,8 +125,8 @@ void pipeline() {
 	// TODO: do this within inizialisation above!
 	for (int i = 0; i < H_bar; ++i){
 		for (int j = 0; j < W_bar; ++j){
-			C_g.at<double>(i,j,3) = param.t_lo;
-			C_b.at<double>(i,j,2) = param.t_hi;
+			C_g.at<float>(i,j,3) = param.t_lo;
+			C_b.at<float>(i,j,2) = param.t_hi;
 		}
 	}
 
@@ -141,25 +141,41 @@ void pipeline() {
 
 	// create debug points
 	S_d = cv::Mat(4, 3, CV_32F, 0.0);
-	S_d.at<float>(0,0) = 20;
-	S_d.at<float>(0,1) = 20;
+	int offset_u = 40;
+	int offset_v = 40;
+	int height = 150;
+	int width = 200;
+	S_d.at<float>(0,0) = offset_v;
+	S_d.at<float>(0,1) = offset_u;
 	S_d.at<float>(0,2) = 0;
 
-	S_d.at<float>(1,0) = 20 + 200;
-	S_d.at<float>(1,1) = 20;
+	S_d.at<float>(1,0) = offset_v + width;
+	S_d.at<float>(1,1) = offset_u;
 	S_d.at<float>(1,2) = 100;
 
-	S_d.at<float>(2,0) = 20;
-	S_d.at<float>(2,1) = 20 + 200;
+	S_d.at<float>(2,0) = offset_v;
+	S_d.at<float>(2,1) = offset_u + height;
 	S_d.at<float>(2,2) = 100;
 
-	S_d.at<float>(3,0) = 20 + 200;
-	S_d.at<float>(3,1) = 20 + 200;
+	S_d.at<float>(3,0) = offset_v + width;
+	S_d.at<float>(3,1) = offset_u + height;
 	S_d.at<float>(3,2) = 0;
 	
 
 	sparse_stereo(I_l, I_r, S);
+
+	
+
 	delaunay_triangulation(S_d, param.H, param.W, G, T, E);
+	
+	// set all support points in G to -1
+	for (int j=0; j<S_d.rows; ++j){
+		int u = S_d.at<float>(j,0);
+		int v = S_d.at<float>(j,1);
+		G.at<int>(v,u) = -1;
+	}
+	
+	showG(I_l, G, param, "G1");
 	std::cout << "Rows of S: " << S_d.rows << std::endl;
 	for (int i = 0; i < S_d.rows; ++i){
 		std::cout << S_d.at<float>(i,0) << "/" << S_d.at<float>(i,1) << "/" << S_d.at<float>(i,2) << std::endl;
@@ -187,14 +203,18 @@ void pipeline() {
 			// empty E ?
 			//cv::Mat E;
 			delaunay_triangulation(S_d, param.H, param.W, G, T, E);
+			for (int j=0; j<S_d.rows; ++j){
+				int u = S_d.at<float>(j,0);
+				int v = S_d.at<float>(j,1);
+				G.at<int>(v,u) = -1;
+			}
+			showG(I_l, G, param, "G7");
+			param.sz_occ = param.sz_occ / 2;
 			std::ostringstream oss;
 			oss << "Delaunay " << i+2;
 			std::string str = oss.str();
 			showGrid(I_l, S_d, E, str);
 		}
 	}
-	
-	
-
 }
 

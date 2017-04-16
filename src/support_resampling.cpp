@@ -31,8 +31,8 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 	
 	std::cout << "support_resampling here 0" << std::endl;
 	// get grid size
-	const int H_bar = int(param.H / param.sz_occ);
-	const int W_bar = int(param.W / param.sz_occ); 
+	const int H_bar = std::floor(param.H / param.sz_occ);
+	const int W_bar = std::floor(param.W / param.sz_occ); 
 
 	cv::Mat X;
 	X = cv::Mat(H_bar * W_bar, 2, CV_32F, 0.0);
@@ -47,10 +47,10 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 	for (int i_bar = 0; i_bar < H_bar; ++i_bar){
 		for (int j_bar = 0; j_bar < W_bar; ++j_bar){
 
-			if (C_b.at<float>(i_bar, j_bar, 0) != 0){
+			if (C_b.at<float>(i_bar, j_bar, 2) != param.t_hi){
 				// store (u,v) for bad point for resampling
-				std::cout << "support_resampling here // store (u,v) for bad point for resampling" << std::endl;
-				std::cout << C_b.at<float>(i_bar, j_bar, 0) << "/" << C_b.at<float>(i_bar, j_bar, 1) << std::endl;
+				std::cout << "support_resampling here // store (u,v,c) for bad point for resampling" << std::endl;
+				std::cout << C_b.at<float>(i_bar, j_bar, 0) << "/" << C_b.at<float>(i_bar, j_bar, 1) << "/" << C_b.at<float>(i_bar, j_bar, 2) << std::endl;
 				X.at<float>(X_length, 0) = C_b.at<float>(i_bar, j_bar, 0);
 				X.at<float>(X_length, 1) = C_b.at<float>(i_bar, j_bar, 1);
 				X_length++;
@@ -64,10 +64,10 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 				count_X++;
 			}
 
-			if (C_g.at<float>(i_bar, j_bar, 0) != 0){
+			if (C_g.at<float>(i_bar, j_bar, 3) != param.t_lo){
 				// store (u,v,d) for valid points
-				std::cout << "support_resampling here // store (u,v,d) for valid points" << std::endl;
-				std::cout << C_g.at<float>(i_bar, j_bar, 0) << "/" << C_g.at<float>(i_bar, j_bar, 1) << "/" << C_g.at<float>(i_bar, j_bar, 2) << std::endl;
+				std::cout << "support_resampling here // store (u,v,d,c) for valid points" << std::endl;
+				std::cout << C_g.at<float>(i_bar, j_bar, 0) << "/" << C_g.at<float>(i_bar, j_bar, 1) << "/" << C_g.at<float>(i_bar, j_bar, 2) << "/" << C_g.at<float>(i_bar, j_bar, 3) << std::endl;
 				S_add.at<float>(S_add_length, 0) = C_g.at<float>(i_bar, j_bar, 0);
 				S_add.at<float>(S_add_length, 1) = C_g.at<float>(i_bar, j_bar, 1);
 				S_add.at<float>(S_add_length, 2) = C_g.at<float>(i_bar, j_bar, 2);
