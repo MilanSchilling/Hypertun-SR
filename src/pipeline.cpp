@@ -13,6 +13,19 @@
 #include "support_resampling.hpp"
 #include "parameters.hpp"
 
+
+void line2(cv::Mat& img, const cv::Point& start, const cv::Point& end, 
+                     const cv::Scalar& c1,   const cv::Scalar& c2) {
+    cv::LineIterator iter(img, start, end, 8);
+
+    for (int i = 0; i < iter.count; i++, iter++) {
+       double alpha = double(i) / iter.count;
+       // note: using img.at<T>(iter.pos()) is faster, but 
+       // then you have to deal with mat type and channel number yourself
+       img(cv::Rect(iter.pos(), cv::Size(1, 1))) = c1 * (1.0 - alpha) + c2 * alpha;
+    }
+}
+
 void showGrid(cv::Mat &I_l, cv::Mat &S, cv::Mat &E, std::string str){
 	// Draw Triangles and display image
 	cv::Mat I_triangles = I_l;
@@ -27,7 +40,20 @@ void showGrid(cv::Mat &I_l, cv::Mat &S, cv::Mat &E, std::string str){
 		int i2 = E.at<int>(k++,0);
 		cv::Point p1(S.at<float>(i1,0), S.at<float>(i1,1));
 		cv::Point p2(S.at<float>(i2,0), S.at<float>(i2,1));
-		cv::line(I_triangles, p1, p2, cv::Scalar(0,255,255), 1, 8, 0);
+
+		float maxDisp = 64.0; // staehlii: THIS IS ACTUALLY NOT A CONSTANT BUT I DON'T WANT TO SEARCH FOR THE CORRECT VALUE
+		float scaledDisp1 = S.at<float>(i1,2)/maxDisp;
+		float scaledDisp2 = S.at<float>(i2,2)/maxDisp;
+		cv::Vec3b color1;
+		cv::Vec3b color2;
+		if(scaledDisp1 < 0.5)
+			color1 = cv::Vec3b(0, scaledDisp1*512, 255);
+		else color1 = cv::Vec3b(0, 255, (1-scaledDisp1)*512);
+
+		if(scaledDisp2 < 0.5)
+			color2 = cv::Vec3b(0, scaledDisp2*512, 255);
+		else color2 = cv::Vec3b(0, 255, (1-scaledDisp2)*512);
+		line2(I_triangles, p1, p2, (cv::Scalar) color1, (cv::Scalar) color2);
 		//std::cout << "drew line: " << i1 << ", " << i2 << std::endl;
 	}
 	cv::imshow(str, I_triangles);
@@ -95,10 +121,20 @@ void pipeline() {
 	cv::Mat C_it = cv::Mat(param.H, param.W, CV_64F, param.t_hi);; // Cost associated to D_it
 
 	// Create dummy variable to show functionality
-	/*float S_array[8][3] = {100, 100, 200, 200, 0, 0, 300, 300, 
+	/*float S_array[3][8] = {100, 100, 200, 200, 0, 0, 300, 300, 
 						   100, 200, 100, 200, 0, 300, 0, 300,
 						   500, 500, 500, 500, 200, 200, 200, 200};*/
-	//S = cv::Mat(3, 8, CV_32F, S_array);
+
+	float S_array[3][8] = {100, 100, 500,
+						   100, 200, 500,
+						   200, 100, 500,
+						   200, 200, 500,
+						   0, 0, 200,
+						   0, 300, 200,
+						   300, 0, 200,
+						   300, 300, 200};
+
+	cv::Mat S2 = cv::Mat(8, 3, CV_32F, S_array);
 
 
 	sparse_stereo(I_l, I_r, S);

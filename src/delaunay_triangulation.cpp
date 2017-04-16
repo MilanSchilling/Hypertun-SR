@@ -14,6 +14,36 @@ bool PointInTriangle (cv::Point3f pt, cv::Point3f v1, cv::Point3f v2, cv::Point3
     return ((b1 == b2) && (b2 == b3));
 }
 
+cv::Point3f minCoordinate(cv::Point3f a, cv::Point3f b, cv::Point3f c){
+
+	cv::Point3f res;
+
+	if (a.x < b.x) res.x = a.x;
+	else res.x = b.x;
+	if (c.x < res.x) res.x = c.x;
+
+	if (a.y < b.y) res.y = a.y;
+	else res.y = b.y;
+	if (c.y < res.y) res.y = c.y;
+
+	return res;
+}
+
+cv::Point3f maxCoordinate(cv::Point3f a, cv::Point3f b, cv::Point3f c){
+
+	cv::Point3f res;
+
+	if (a.x > b.x) res.x = a.x;
+	else res.x = b.x;
+	if (c.x > res.x) res.x = c.x;
+
+	if (a.y > b.y) res.y = a.y;
+	else res.y = b.y;
+	if (c.y > res.y) res.y = c.y;
+
+	return res;
+}
+
 // delaunay_triangulation:
 // inputs: 
 // - S: Nx3 matrix with N points and [u,v,d] for each one
@@ -65,6 +95,7 @@ void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv
 
 	char parameters[] = "zQBne";
 	triangulate(parameters, &in, &out, NULL);
+
 
 	// Compute normal vector of each triangle surface
 	cv::Point3f pts[N];
@@ -123,7 +154,7 @@ void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv
 	// Assign each pixel to the corresponding triangle
 	G = cv::Mat(H, W, CV_32S, cv::Scalar(-1));
 
-	for (int y = 0; y < H; ++y) {
+	/*for (int y = 0; y < H; ++y) {
 		for (int x = 0; x < W; ++x) {
 			k = 0;
 			for (int i = 0; i < out.numberoftriangles; ++i) {
@@ -134,17 +165,47 @@ void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv
 				cv::Point3f v2 = pts[out.trianglelist[k+1]];
 				cv::Point3f v3 = pts[out.trianglelist[k+2]];
 				if (PointInTriangle(pt, v1, v2, v3)) {
-					G.at<int>(x,y,0) = i;
+					G.at<int>(x,y,0) = i*20;
 				}
 				k += 3;
 			}
-			/*if (y == 100)
-				std::cout << "x: " << x << ", G: " << G.at<int>(y,x,0) << std::endl;*/
+
 		}
+	}*/
+
+	k = 0;
+	for (int i = 0; i < out.numberoftriangles; ++i){
+
+		// Extract 3 vertices from triangle
+		cv::Point3f v1 = pts[out.trianglelist[k]];
+		cv::Point3f v2 = pts[out.trianglelist[k+1]];
+		cv::Point3f v3 = pts[out.trianglelist[k+2]];
+
+		// Extract points of rectangular bounding-box around triangle to reduce search space
+		cv::Point3f min = minCoordinate(v1, v2, v3);
+		cv::Point3f max = maxCoordinate(v1, v2, v3);
+
+		/*std::cout << "1: " << pts[out.trianglelist[k]].x << " " << pts[out.trianglelist[k]].y << std::endl;
+		std::cout << "2: " << pts[out.trianglelist[k+1]].x << " " << pts[out.trianglelist[k+1]].y << std::endl;
+		std::cout << "3: " << pts[out.trianglelist[k+2]].x << " " << pts[out.trianglelist[k+2]].y << std::endl;
+		std::cout << "Min: " << min.x << " " << min.y << std::endl;
+		std::cout << "Max: " << max.x << " " << max.y << std::endl << std::endl;*/
+
+		for(int x = min.x + 1; x < max.x; x++){
+			for( int y = min.y + 1; y < max.y; y++){
+				cv::Point3f pt;
+				pt.x = x;
+				pt.y = y;
+
+				if (PointInTriangle(pt, v1, v2, v3)) {
+					G.at<int>(y,x,0) = i;
+				}
+			}
+		}
+
+		k += 3;
 	}
 
-
-	
 	/*cv::imshow("Image label", G);
 	cv::waitKey(0);*/
 
