@@ -193,8 +193,8 @@ void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv
 		std::cout << "Min: " << min.x << " " << min.y << std::endl;
 		std::cout << "Max: " << max.x << " " << max.y << std::endl << std::endl;*/
 
-		for(int x = min.x + 1; x < max.x; x++){
-			for( int y = min.y + 1; y < max.y; y++){
+		for(int x = min.x; x < max.x; x++){
+			for( int y = min.y; y < max.y; y++){
 				cv::Point3f pt;
 				pt.x = x;
 				pt.y = y;

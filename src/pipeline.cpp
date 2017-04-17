@@ -214,7 +214,7 @@ void pipeline() {
 	S_d.at<float>(4,2) = 50;
 */	
 
-	sparse_stereo(I_l, I_r, S);
+	sparse_stereo(I_l, I_r, S_d);
 	std::cout << "Rows of S: " << S_d.rows << std::endl;
 	for (int i = 0; i < S_d.rows; ++i){
 		std::cout << S_d.at<float>(i,0) << "/" << S_d.at<float>(i,1) << "/" << S_d.at<float>(i,2) << std::endl;
