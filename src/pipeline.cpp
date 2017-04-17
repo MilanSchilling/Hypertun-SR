@@ -13,6 +13,19 @@
 #include "support_resampling.hpp"
 #include "parameters.hpp"
 
+
+void line2(cv::Mat& img, const cv::Point& start, const cv::Point& end, 
+                     const cv::Scalar& c1,   const cv::Scalar& c2) {
+    cv::LineIterator iter(img, start, end, 8);
+
+    for (int i = 0; i < iter.count; i++, iter++) {
+       double alpha = double(i) / iter.count;
+       // note: using img.at<T>(iter.pos()) is faster, but 
+       // then you have to deal with mat type and channel number yourself
+       img(cv::Rect(iter.pos(), cv::Size(1, 1))) = c1 * (1.0 - alpha) + c2 * alpha;
+    }
+}
+
 void showGrid(cv::Mat &I_l, cv::Mat &S, cv::Mat &E, std::string str){
 	// Draw Triangles and display image
 	cv::Mat I_triangles = I_l;
@@ -30,12 +43,26 @@ void showGrid(cv::Mat &I_l, cv::Mat &S, cv::Mat &E, std::string str){
 		//std::cout << "i1 and i2 = " << i1 << " and " << i2 << std::endl;
 		cv::Point p1(S.at<float>(i1,0), S.at<float>(i1,1));
 		cv::Point p2(S.at<float>(i2,0), S.at<float>(i2,1));
-		cv::line(I_triangles, p1, p2, cv::Scalar(0,255,255), 1, 8, 0);
+
+		float maxDisp = 64.0; // staehlii: THIS IS ACTUALLY NOT A CONSTANT BUT I DON'T WANT TO SEARCH FOR THE CORRECT VALUE
+		float scaledDisp1 = S.at<float>(i1,2)/maxDisp;
+		float scaledDisp2 = S.at<float>(i2,2)/maxDisp;
+		cv::Vec3b color1;
+		cv::Vec3b color2;
+		if(scaledDisp1 < 0.5)
+			color1 = cv::Vec3b(0, scaledDisp1*512, 255);
+		else color1 = cv::Vec3b(0, 255, (1-scaledDisp1)*512);
+
+		if(scaledDisp2 < 0.5)
+			color2 = cv::Vec3b(0, scaledDisp2*512, 255);
+		else color2 = cv::Vec3b(0, 255, (1-scaledDisp2)*512);
+		line2(I_triangles, p1, p2, (cv::Scalar) color1, (cv::Scalar) color2);
 		//std::cout << "drew line: " << i1 << ", " << i2 << std::endl;
 	}
 	cv::imshow(str, I_triangles);
 	cv::waitKey(0);
 }
+
 
 void showG (cv::Mat &I_l, cv::Mat &G, parameters &param, std::string str){
 
@@ -67,6 +94,29 @@ void showG (cv::Mat &I_l, cv::Mat &G, parameters &param, std::string str){
 	cv::imshow(str, G_img);
 	cv::waitKey(0);
 
+
+void showDisparity(cv::Mat I_l, cv::Mat D_it){
+		cv::Mat disparity = I_l;
+		cv::cvtColor(disparity, disparity, CV_GRAY2RGB);
+
+		for (int x = 0; x < I_l.rows; ++x){
+			for (int y = 0; y < I_l.cols; ++y){
+				float scaledDisp = D_it.at<float>(x,y)/64.0;
+				cv::Vec3b color;
+				cv::Point point;
+				point.x = y;
+				point.y = x;
+				if(scaledDisp < 0.5)
+					color = cv::Vec3b(0, scaledDisp*512, 255);
+				else color = cv::Vec3b(0, 255, (1-scaledDisp)*512);
+
+				if (scaledDisp != 0)
+				circle(disparity, point, 1, (cv::Scalar) color, 1);
+			}
+		}
+
+		cv::imshow("Disparity Interpolated", disparity);
+		cv::waitKey(0);
 }
 
 
@@ -113,10 +163,10 @@ void pipeline() {
 	cv::Mat D; // dense piece-wise planar disparity
 	cv::Mat C; // cost associated to D
 
-	int sz_g[] = {W_bar, H_bar, 4}; // dimension of C_g
-	int sz_b[] = {W_bar, H_bar, 3}; // dimension of C_b
-	cv::Mat C_g (3, sz_g, CV_32F, cv::Scalar::all(0)); // cost associated with regions of good matches
-	cv::Mat C_b (3, sz_b, CV_32F, cv::Scalar::all(0)); // cost associated with regions of bad matches
+	int sz_g[] = {H_bar, W_bar, 4}; // dimension of C_g
+	int sz_b[] = {H_bar, W_bar, 3}; // dimension of C_b
+	cv::Mat C_g (3, sz_g, CV_64F, cv::Scalar::all(0)); // cost associated with regions of good matches
+	cv::Mat C_b (3, sz_b, CV_64F, cv::Scalar::all(0)); // cost associated with regions of bad matches
 
 	// write thresholds to C_g and C_b
 	// TODO: do this within inizialisation above!
@@ -131,10 +181,9 @@ void pipeline() {
 	cv::Mat C_it = cv::Mat(param.W, param.H, CV_32F, param.t_hi);; // Cost associated to D_it
 
 	// Create dummy variable to show functionality
-	/*float S_array[8][3] = {100, 100, 200, 200, 0, 0, 300, 300, 
+	/*float S_array[3][8] = {100, 100, 200, 200, 0, 0, 300, 300, 
 						   100, 200, 100, 200, 0, 300, 0, 300,
 						   500, 500, 500, 500, 200, 200, 200, 200};*/
-	//S = cv::Mat(3, 8, CV_32F, S_array);
 
 	// create debug points
 	S_d = cv::Mat(4, 3, CV_32F, 0.0);
@@ -189,9 +238,11 @@ void pipeline() {
 		disparity_interpolation(G, T, D_it);
 
 		showG(I_l, G, param, "G");
+		showDisparity(I_l, D_it);
 
 		cost_evaluation(I_l, I_r, D_it, G, C_it);
 		disparity_refinement(D_it, C_it, G, D_f, C_f, C_g, C_b, param);
+
 
 		if (i != param.n_iters) {
 			support_resampling(C_g, C_b, S, param, I_l, I_r);

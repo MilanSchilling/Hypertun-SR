@@ -32,7 +32,10 @@ void disparity_interpolation(cv::Mat &G, cv::Mat &T, cv::Mat &D_it){
 
 				// interpolate disparity
 				D_it.at<float>(i,j) = (d - a*j - b*i) / c;
+
+				//std::cout << D_it.at<float>(i,j) << " ";
 			}
 		}
+		//std::cout << std::endl;
 	}	
 }
