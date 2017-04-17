@@ -46,6 +46,8 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 
 			if (C_b.at<float>(v_bar, u_bar, 2) > param.t_hi){
 				// store (u,v) for bad point for resampling
+				assert(0 <= C_b.at<float>(v_bar, u_bar, 0) && C_b.at<float>(v_bar, u_bar, 0) <= 1242);
+				assert(0 <= C_b.at<float>(v_bar, u_bar, 1) && C_b.at<float>(v_bar, u_bar, 1) <= 375);
 				std::cout << "support_resampling here // store (u,v,c) for bad point for resampling" << std::endl;
 				std::cout << C_b.at<float>(v_bar, u_bar, 0) << "/" << C_b.at<float>(v_bar, u_bar, 1) << "/" << C_b.at<float>(v_bar, u_bar, 2) << std::endl;
 				X.at<float>(X_length, 0) = C_b.at<float>(v_bar, u_bar, 0);
@@ -57,6 +59,8 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 
 			if (C_g.at<float>(v_bar, u_bar, 3) < param.t_lo){
 				// store (u,v,d) for valid points
+				assert(0 <= C_g.at<float>(v_bar, u_bar, 0) && C_g.at<float>(v_bar, u_bar, 0) <= 1242);
+				assert(0 <= C_g.at<float>(v_bar, u_bar, 1) && C_g.at<float>(v_bar, u_bar, 1) <= 375);
 				std::cout << "support_resampling here // store (u,v,d,c) for valid points" << std::endl;
 				std::cout << C_g.at<float>(v_bar, u_bar, 0) << "/" << C_g.at<float>(v_bar, u_bar, 1) << "/" << C_g.at<float>(v_bar, u_bar, 2) << "/" << C_g.at<float>(v_bar, u_bar, 3) << std::endl;
 				S_add.at<float>(S_add_length, 0) = C_g.at<float>(v_bar, u_bar, 0);
@@ -107,8 +111,12 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 	// loop over X, leave first entry out
 	for (int i=0; i < X_length; ++i){
 		int d = -1;
+		assert(0 <= int(X.at<float>(i, 0)) && int(X.at<float>(i, 0)) <= 1242);
+		assert(0 <= int(X.at<float>(i, 1)) && int(X.at<float>(i, 1)) <= 375);
 		epipolar_search(I_l_p, I_r_p,
 						int(X.at<float>(i, 0)), int(X.at<float>(i, 1)), d, param);
+
+		assert(d >= 0);
 
 		S_epi.at<float>(i, 0) = X.at<float>(i, 0);
 		S_epi.at<float>(i, 1) = X.at<float>(i, 1);
@@ -159,13 +167,23 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 // u/v in the left image. The output is the disparity to the pixel with the smallest hemming cost.
 void epipolar_search(cv::Mat &I_l_p, cv::Mat &I_r_p,
                         int u, int v, int & d, parameters &param){
+
+	assert(0 <= u && u <= 1242);
+	assert(0 <= v && v <= 375);
+
 	
 	// get padded indices
 	int u_p = u + 2;
 	int v_p = v + 2;
 
+	assert(0 <= u_p && u_p <= 1242);
+	assert(0 <= v_p && v_p <= 375);
+
 	// get census of keypoint
 	std::bitset<24> cens_l(0);
+	std::cout << "epi1" << std::endl;
+	std::cout << "u_p/v_p = " << u_p << "/" << v_p << std::endl;
+	assert(v_p > 0);
 	census(I_l_p, u_p, v_p, cens_l);
 
 	// set best cost to high and best indices to zero
@@ -173,7 +191,7 @@ void epipolar_search(cv::Mat &I_l_p, cv::Mat &I_r_p,
 	int u_best = 0;
 
 	// loop along the epipolar line
-	for (int u_ = 0; u_ <= u_p; ++u_){
+	for (int u_ = 0; u_ <= u_p - 2; ++u_){
 
 		// get census of current pixel
 		std::bitset<24> cens_c(0);
@@ -203,9 +221,9 @@ void epipolar_search(cv::Mat &I_l_p, cv::Mat &I_r_p,
 		}
 	}
 
-	// unpad v_best
-	u_best = u_best -2;
+	// unpad u_best
+	//u_best = u_best - 2;
 
-	// calculate disparity with v_left - v_right
+	// calculate disparity with u_left - u_right
 	d = u - u_best;
 }

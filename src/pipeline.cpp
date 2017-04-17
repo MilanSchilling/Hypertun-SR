@@ -1,9 +1,12 @@
+
+
 #include <iostream> 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <string>
 #include <sstream>
+#include <cassert>
 
 #include "sparse_stereo.hpp"
 #include "delaunay_triangulation.hpp"
@@ -129,7 +132,7 @@ void pipeline() {
 	//Load parameters
 	parameters param;
 	param.sz_occ = 32;
-	param.n_iters = 1;
+	param.n_iters = 2;
 	param.t_lo = 0.01; // placeholder, verify optimal value
 	param.t_hi = 0.95; // placeholder, verify optimal value
 
