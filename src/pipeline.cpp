@@ -93,6 +93,7 @@ void showG (cv::Mat &I_l, cv::Mat &G, parameters &param, std::string str){
 
 	cv::imshow(str, G_img);
 	cv::waitKey(0);
+}
 
 
 void showDisparity(cv::Mat I_l, cv::Mat D_it){
