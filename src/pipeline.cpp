@@ -28,7 +28,7 @@ void line2(cv::Mat& img, const cv::Point& start, const cv::Point& end,
 
 void showGrid(cv::Mat I_l, cv::Mat S, cv::Mat E, std::string str){
 	// Draw Triangles and display image
-	cv::Mat I_triangles = I_l;
+	cv::Mat I_triangles = I_l.clone();
 	cv::cvtColor(I_triangles, I_triangles, CV_GRAY2RGB);
 	/*for (int i = 0; i < S.cols; ++i) {
 		cv::circle(I_triangles, cv::Point(S.at<float>(0,i),S.at<float>(1,i)), 
@@ -69,7 +69,7 @@ void showG (cv::Mat I_l, cv::Mat G, parameters param, std::string str){
 	std::cout << "showG" << std::endl;
 	std::cout << "image_l size: " << I_l.rows << "/" << I_l.cols << std::endl;
 	std::cout << "Mat G size: " << G.rows << "/" << G.cols << std::endl;
-	cv::Mat G_img = I_l;
+	cv::Mat G_img = I_l.clone();
 	
 
 	// loop over all pixels
@@ -97,7 +97,7 @@ void showG (cv::Mat I_l, cv::Mat G, parameters param, std::string str){
 
 
 void showDisparity(cv::Mat I_l, cv::Mat D_it){
-		cv::Mat disparity = I_l;
+		cv::Mat disparity = I_l.clone();
 		cv::cvtColor(disparity, disparity, CV_GRAY2RGB);
 
 		for (int x = 0; x < I_l.rows; ++x){
