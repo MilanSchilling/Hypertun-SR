@@ -30,7 +30,7 @@ void disparity_refinement(cv::Mat &D_it, cv::Mat &C_it,
 	for (int v = 0; v < param.H; ++v){
 		for (int u = 0; u < param.W; ++u){
 
-			if (G.at<float>(v,u) != -1){
+			if (G.at<int>(v,u) != -1){
 				// Establish occupancy grid for resampled points
 				int u_bar = std::floor(u / param.sz_occ);
 				int v_bar = std::floor(v / param.sz_occ); 

@@ -33,7 +33,7 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r, cv::Mat &D_it, cv::Mat &G, cv::
 	for (int v = 0; v < H; ++v){
 		for (int u = 0; u < W; u++){
 
-			if (G.at<float>(v,u) != -1){
+			if (G.at<int>(v,u) != -1){
 				float disp = D_it.at<float>(v,u); // TODO: verify order of i,j!
 
 				//evaluate cost for given disparity

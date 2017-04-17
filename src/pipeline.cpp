@@ -26,7 +26,7 @@ void line2(cv::Mat& img, const cv::Point& start, const cv::Point& end,
     }
 }
 
-void showGrid(cv::Mat &I_l, cv::Mat &S, cv::Mat &E, std::string str){
+void showGrid(cv::Mat I_l, cv::Mat S, cv::Mat E, std::string str){
 	// Draw Triangles and display image
 	cv::Mat I_triangles = I_l;
 	cv::cvtColor(I_triangles, I_triangles, CV_GRAY2RGB);
@@ -64,7 +64,7 @@ void showGrid(cv::Mat &I_l, cv::Mat &S, cv::Mat &E, std::string str){
 }
 
 
-void showG (cv::Mat &I_l, cv::Mat &G, parameters &param, std::string str){
+void showG (cv::Mat I_l, cv::Mat G, parameters param, std::string str){
 
 	std::cout << "showG" << std::endl;
 	std::cout << "image_l size: " << I_l.rows << "/" << I_l.cols << std::endl;
@@ -166,8 +166,8 @@ void pipeline() {
 
 	int sz_g[] = {H_bar, W_bar, 4}; // dimension of C_g
 	int sz_b[] = {H_bar, W_bar, 3}; // dimension of C_b
-	cv::Mat C_g (3, sz_g, CV_64F, cv::Scalar::all(0)); // cost associated with regions of good matches
-	cv::Mat C_b (3, sz_b, CV_64F, cv::Scalar::all(0)); // cost associated with regions of bad matches
+	cv::Mat C_g (3, sz_g, CV_32F, cv::Scalar::all(0)); // cost associated with regions of good matches
+	cv::Mat C_b (3, sz_b, CV_32F, cv::Scalar::all(0)); // cost associated with regions of bad matches
 
 	// write thresholds to C_g and C_b
 	// TODO: do this within inizialisation above!
@@ -215,6 +215,8 @@ void pipeline() {
 
 	delaunay_triangulation(S, param.H, param.W, G, T, E);
 	showG(I_l, G, param, "G after delaunay");
+	cv::imshow("test img", I_l);
+	cv::waitKey(0);
 	
 	// set all support points in G to -1
 	for (int j=0; j<S.rows; ++j){
