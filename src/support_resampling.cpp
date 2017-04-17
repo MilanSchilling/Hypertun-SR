@@ -173,7 +173,7 @@ void epipolar_search(cv::Mat &I_l_p, cv::Mat &I_r_p,
 	int u_best = 0;
 
 	// loop along the epipolar line
-	for (int u_ = 0; u_<I_r_p.cols; ++u_){
+	for (int u_ = 0; u_ <= u_p; ++u_){
 
 		// get census of current pixel
 		std::bitset<24> cens_c(0);
