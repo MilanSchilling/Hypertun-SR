@@ -44,10 +44,10 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r, cv::Mat &D_it, cv::Mat &G, cv::
 				std::bitset<24> cens_r(0);
 
 				// get census of left image
-				census(I_l_p, v_pad, u_pad, cens_l);
+				census(I_l_p, u_pad, v_pad, cens_l);
 
 				// get census of right image at the interpolated disparity
-				census(I_r_p, v_pad, u_pad + disp, cens_r);
+				census(I_r_p, u_pad, v_pad + disp, cens_r);
 
 				// calculate cost
 				ushort cost = 0;
@@ -67,7 +67,7 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r, cv::Mat &D_it, cv::Mat &G, cv::
 				float n_cost = cost / 24.0;
 				//std::cout << "cost: " << cost << std::endl;
 				// write cost to C_it
-				C_it.at<float>(v,u) = n_cost;
+				C_it.at<float>(u,v) = n_cost;
 				//std::cout << "n_cost: " << n_cost << std::endl;
 			}
 			
@@ -78,7 +78,7 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r, cv::Mat &D_it, cv::Mat &G, cv::
 
 // This helper takes a padded image and a pixel coordinate and the container for the census as argument
 // It creates a binary descriptor for the neighborhood around the pixel, writes 1 if a pixel is smaller than the center.§§
-void census (cv::Mat &paddedImg, int v_pad, int u_pad, std::bitset<24> &census){
+void census (cv::Mat &paddedImg, int u_pad, int v_pad, std::bitset<24> &census){
 	//cv::Mat census = cv::Mat::zeros(1, 24, CV_8U);
 
 	// get intensity of center pixel

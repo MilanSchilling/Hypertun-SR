@@ -178,8 +178,8 @@ void pipeline() {
 		}
 	}
 
-	cv::Mat D_it = cv::Mat(param.W, param.H, CV_32F, 0.0); // Intermediate disparity (interpolated)
-	cv::Mat C_it = cv::Mat(param.W, param.H, CV_32F, param.t_hi);; // Cost associated to D_it
+	cv::Mat D_it = cv::Mat(param.H, param.W, CV_32F, 0.0); // Intermediate disparity (interpolated)
+	cv::Mat C_it = cv::Mat(param.H, param.W, CV_32F, param.t_hi);; // Cost associated to D_it
 
 	// Create dummy variable to show functionality
 	/*float S_array[3][8] = {100, 100, 200, 200, 0, 0, 300, 300, 
@@ -188,7 +188,7 @@ void pipeline() {
 
 	// create debug points
 	S_d = cv::Mat(4, 3, CV_32F, 0.0);
-	int offset_u = 40;
+	int offset_u = 60;
 	int offset_v = 40;
 	int height = 150;
 	int width = 200;
@@ -213,28 +213,28 @@ void pipeline() {
 
 	
 
-	delaunay_triangulation(S, param.H, param.W, G, T, E);
+	delaunay_triangulation(S_d, param.H, param.W, G, T, E);
 	showG(I_l, G, param, "G after delaunay");
 	cv::imshow("test img", I_l);
 	cv::waitKey(0);
 	
 	// set all support points in G to -1
-	for (int j=0; j<S.rows; ++j){
-		int u = S.at<float>(j,0);
-		int v = S.at<float>(j,1);
+	for (int j=0; j<S_d.rows; ++j){
+		int u = S_d.at<float>(j,0);
+		int v = S_d.at<float>(j,1);
 		G.at<int>(v,u) = -1;
 	}
 	
 	//showG(I_l, G, param, "G1");
-	std::cout << "Rows of S: " << S.rows << std::endl;
-	for (int i = 0; i < S.rows; ++i){
-		std::cout << S.at<float>(i,0) << "/" << S.at<float>(i,1) << "/" << S.at<float>(i,2) << std::endl;
+	std::cout << "Rows of S: " << S_d.rows << std::endl;
+	for (int i = 0; i < S_d.rows; ++i){
+		std::cout << S_d.at<float>(i,0) << "/" << S_d.at<float>(i,1) << "/" << S_d.at<float>(i,2) << std::endl;
 	}
 	std::cout << "Rows of E: " << E.rows << std::endl;
 
 	std::cout << "param.H / param.W = " << param.H << "/" << param.W << std::endl;
 
-	showGrid(I_l, S, E, "Delaunay 1");
+	showGrid(I_l, S_d, E, "Delaunay 1");
 
 
 	for (int i = 0; i < param.n_iters; ++i) {
@@ -248,16 +248,16 @@ void pipeline() {
 
 
 		if (i != param.n_iters) {
-			support_resampling(C_g, C_b, S, param, I_l, I_r);
-			for (int i = 0; i < S.rows; ++i){
-				//std::cout << S_d.at<float>(i,0) << "/" << S_d.at<float>(i,1) << "/" << S_d.at<float>(i,2) << std::endl;
+			support_resampling(C_g, C_b, S_d, param, I_l, I_r);
+			for (int i = 0; i < S_d.rows; ++i){
+				std::cout << S_d.at<float>(i,0) << "/" << S_d.at<float>(i,1) << "/" << S_d.at<float>(i,2) << std::endl;
 			}
 			// empty E ?
 			//cv::Mat E;
-			delaunay_triangulation(S, param.H, param.W, G, T, E);
-			for (int j=0; j<S.rows; ++j){
-				int u = S.at<float>(j,0);
-				int v = S.at<float>(j,1);
+			delaunay_triangulation(S_d, param.H, param.W, G, T, E);
+			for (int j=0; j<S_d.rows; ++j){
+				int u = S_d.at<float>(j,0);
+				int v = S_d.at<float>(j,1);
 				G.at<int>(v,u) = -1;
 			}
 			showG(I_l, G, param, "G7");
@@ -265,7 +265,7 @@ void pipeline() {
 			std::ostringstream oss;
 			oss << "Delaunay " << i+2;
 			std::string str = oss.str();
-			showGrid(I_l, S, E, str);
+			showGrid(I_l, S_d, E, str);
 		}
 	}
 }

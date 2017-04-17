@@ -44,19 +44,19 @@ void disparity_refinement(cv::Mat &D_it, cv::Mat &C_it,
 
 				// If matching cost is lower than previous best valid cost
 				if ((C_it.at<float>(v,u) < param.t_lo) && (C_it.at<float>(v,u) < C_g.at<float>(v_bar,u_bar,3))){
-					C_g.at<float>(v_bar,u_bar, 0) = v;
-					C_g.at<float>(v_bar,u_bar, 1) = u;
-					C_g.at<float>(v_bar,u_bar, 2) = D_it.at<float>(u,v);
-					C_g.at<float>(v_bar,u_bar, 3) = C_it.at<float>(u,v);
+					C_g.at<float>(v_bar,u_bar, 0) = u;
+					C_g.at<float>(v_bar,u_bar, 1) = v;
+					C_g.at<float>(v_bar,u_bar, 2) = D_it.at<float>(v,u);
+					C_g.at<float>(v_bar,u_bar, 3) = C_it.at<float>(v,u);
 					
 					std::cout << "disparity_refinement: added point to C_g." << std::endl;
-					std::cout << "C_it.at<float>(i,j) = " << C_it.at<float>(u,v) << std::endl;
+					std::cout << "C_it.at<float>(i,j) = " << C_it.at<float>(v,u) << std::endl;
 				}
 
 				// If matching cost is higher than previous worst invalid cost
 				if ((C_it.at<float>(v,u) >= param.t_hi) && (C_it.at<float>(v,u) > C_b.at<float>(v_bar, u_bar, 2))){
-					C_b.at<float>(v_bar,u_bar, 0) = v;
-					C_b.at<float>(v_bar,u_bar, 1) = u;
+					C_b.at<float>(v_bar,u_bar, 0) = u;
+					C_b.at<float>(v_bar,u_bar, 1) = v;
 					C_b.at<float>(v_bar,u_bar, 2) = C_it.at<float>(v,u);
 					std::cout << "disparity_refinement: added point to C_b." << std::endl;
 					std::cout << "C_it.at<float>(i,j) = " << C_it.at<float>(v,u) << std::endl;
