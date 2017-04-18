@@ -20,22 +20,23 @@ void disparity_interpolation(cv::Mat &G, cv::Mat &T, cv::Mat &D_it){
 	for (int i = 0; i < H; ++i) {
 		for (int j = 0; j < W; ++j) {
 
-			// get index of the corresponding triangle 
-			int idx_trig = G.at<int>(i,j);
+			if (G.at<int>(i,j) != -1){
+				// get index of the corresponding triangle 
+				int idx_trig = G.at<int>(i,j);
 
-			// get plane parameters
-			if (idx_trig >= 0) {
-				float a = T.at<float>(0,idx_trig);
-				float b = T.at<float>(1,idx_trig);
-				float c = T.at<float>(2,idx_trig);
-				float d = T.at<float>(3,idx_trig);
+				// get plane parameters
+				if (idx_trig >= 0) {
+					float a = T.at<float>(0,idx_trig);
+					float b = T.at<float>(1,idx_trig);
+					float c = T.at<float>(2,idx_trig);
+					float d = T.at<float>(3,idx_trig);
 
-				// interpolate disparity
-				D_it.at<float>(i,j) = (d - a*j - b*i) / c;
+					// interpolate disparity
+					D_it.at<float>(i,j) = (d - a*j - b*i) / c;
 
-				//std::cout << D_it.at<float>(i,j) << " ";
+					//std::cout << D_it.at<float>(i,j) << " ";
+				}
 			}
 		}
-		//std::cout << std::endl;
 	}	
 }
