@@ -15,6 +15,10 @@ struct parameters {
     // image height and width
     int H;
     int W;
+
+	// grid height and width
+	int H_bar;
+	int W_bar;
 };
 
 #endif // PARAMETERS_HPP

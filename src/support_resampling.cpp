@@ -22,27 +22,20 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 
 	std::cout << "support_resampling.cpp" << std::endl;
 
-	// define container for re-sampled or detected support pixels with unknown depths
-	//int sz_X[] = {1, 2}; 
-
-	//cv::Mat X (2, sz_X, CV_32F, cv::Scalar::all(0));
-
-	// get grid size
-	const int H_bar = std::floor(param.H / param.sz_occ);
-	const int W_bar = std::floor(param.W / param.sz_occ); 
-
 	cv::Mat X;
-	X = cv::Mat(H_bar * W_bar, 2, CV_32F, 0.0);
+	X = cv::Mat(param.H_bar * param.W_bar, 2, CV_32F, 0.0);
 	int X_length = 0;
 
 	cv::Mat S_add;
-	S_add = cv::Mat(H_bar * W_bar, 3, CV_32F, 0.0);
+	S_add = cv::Mat(param.H_bar * param.W_bar, 3, CV_32F, 0.0);
 	int S_add_length = 0;
 	// counters
-	int count_X = 0, count_S_it = 0, count_epi = 0; 
+	int count_X = 0;
+	int count_S_it = 0;
+	int count_epi = 0; 
 
-	for (int v_bar = 0; v_bar < H_bar; ++v_bar){
-		for (int u_bar = 0; u_bar < W_bar; ++u_bar){
+	for (int v_bar = 0; v_bar < param.H_bar; ++v_bar){
+		for (int u_bar = 0; u_bar < param.W_bar; ++u_bar){
 
 			if (C_b.at<float>(v_bar, u_bar, 2) > param.t_hi){
 				// store (u,v) for bad point for resampling
@@ -181,8 +174,8 @@ void epipolar_search(cv::Mat &I_l_p, cv::Mat &I_r_p,
 
 	// get census of keypoint
 	std::bitset<24> cens_l(0);
-	std::cout << "epi1" << std::endl;
-	std::cout << "u_p/v_p = " << u_p << "/" << v_p << std::endl;
+	//std::cout << "epi1" << std::endl;
+	//std::cout << "u_p/v_p = " << u_p << "/" << v_p << std::endl;
 	assert(v_p > 0);
 	census(I_l_p, u_p, v_p, cens_l);
 

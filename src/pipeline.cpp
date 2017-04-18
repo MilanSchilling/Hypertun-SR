@@ -149,10 +149,9 @@ void pipeline() {
 	param.H = I_l.rows;
 	param.W = I_r.cols;
 
-	// divide image into discrete parts
-	int H_bar = int(param.H / param.sz_occ);
-	int W_bar = int(param.W / param.sz_occ);
-
+	// Get initial grid height and width
+	param.H_bar = param.H / param.sz_occ;
+	param.W_bar = param.W / param.sz_occ;
 
 	// Initialize final disparity and associated cost
 	cv::Mat D_f = cv::Mat(param.W, param.H, CV_32F, 0.0);
@@ -167,22 +166,15 @@ void pipeline() {
 	cv::Mat D; // dense piece-wise planar disparity
 	cv::Mat C; // cost associated to D
 
-	int sz_g[] = {H_bar, W_bar, 4}; // dimension of C_g
-	int sz_b[] = {H_bar, W_bar, 3}; // dimension of C_b
+	int sz_g[] = {param.H_bar, param.W_bar, 4}; // dimension of C_g
+	int sz_b[] = {param.H_bar, param.W_bar, 3}; // dimension of C_b
 	cv::Mat C_g (3, sz_g, CV_32F, cv::Scalar::all(0)); // cost associated with regions of good matches
 	cv::Mat C_b (3, sz_b, CV_32F, cv::Scalar::all(0)); // cost associated with regions of bad matches
 
-	// write thresholds to C_g and C_b
-	// TODO: do this within inizialisation above!
-	for (int i = 0; i < W_bar; ++i){
-		for (int j = 0; j < H_bar; ++j){
-			C_g.at<float>(j,i,3) = param.t_lo;
-			C_b.at<float>(j,i,2) = param.t_hi;
-		}
-	}
+	
 
-	cv::Mat D_it = cv::Mat(param.H, param.W, CV_32F, 0.0); // Intermediate disparity (interpolated)
-	cv::Mat C_it = cv::Mat(param.H, param.W, CV_32F, param.t_hi);; // Cost associated to D_it
+	cv::Mat D_it; // Intermediate disparity (interpolated)
+	cv::Mat C_it; // Cost associated to D_it
 
 	// Create dummy variable to show functionality
 	/*float S_array[3][8] = {100, 100, 200, 200, 0, 0, 300, 300, 
@@ -217,17 +209,17 @@ void pipeline() {
 	S_d.at<float>(4,2) = 50;
 */	
 
-	sparse_stereo(I_l, I_r, S_d);
+	sparse_stereo(I_l, I_r, S);
 	std::cout << "Rows of S: " << S_d.rows << std::endl;
 	for (int i = 0; i < S_d.rows; ++i){
-		std::cout << S_d.at<float>(i,0) << "/" << S_d.at<float>(i,1) << "/" << S_d.at<float>(i,2) << std::endl;
+		//std::cout << S_d.at<float>(i,0) << "/" << S_d.at<float>(i,1) << "/" << S_d.at<float>(i,2) << std::endl;
 	}
 
 	
 
 	delaunay_triangulation(S_d, param.H, param.W, G, T, E);
 	showG(I_l, G, param, "G after delaunay");
-	cv::imshow("test img", I_l);
+	//cv::imshow("test img", I_l);
 	cv::waitKey(0);
 	
 	// set all support points in G to -1
@@ -240,40 +232,72 @@ void pipeline() {
 	//showG(I_l, G, param, "G1");
 	std::cout << "Rows of S: " << S_d.rows << std::endl;
 	for (int i = 0; i < S_d.rows; ++i){
-		std::cout << S_d.at<float>(i,0) << "/" << S_d.at<float>(i,1) << "/" << S_d.at<float>(i,2) << std::endl;
+		//std::cout << S_d.at<float>(i,0) << "/" << S_d.at<float>(i,1) << "/" << S_d.at<float>(i,2) << std::endl;
 	}
 	std::cout << "Rows of E: " << E.rows << std::endl;
 
-	std::cout << "param.H / param.W = " << param.H << "/" << param.W << std::endl;
+	//std::cout << "param.H / param.W = " << param.H << "/" << param.W << std::endl;
 
 	showGrid(I_l, S_d, E, "Delaunay 1");
 
 
 	for (int i = 0; i < param.n_iters; ++i) {
+		std::cout << "################################################" << std::endl;
+		std::cout << "ITERATION :: " << i << std::endl;
+		std::cout << "################################################" << std::endl;
+		D_it = cv::Mat(param.H, param.W, CV_32F, 0.0);
+		C_it = cv::Mat(param.H, param.W, CV_32F, param.t_hi);
+
 		disparity_interpolation(G, T, D_it);
 
 		showG(I_l, G, param, "G");
 		showDisparity(I_l, D_it);
 
-		cost_evaluation(I_l, I_r, D_it, G, C_it);
+		
+
+		cost_evaluation(I_l, I_r, D_it, C_it, G, param);
+
+		// write thresholds to C_g and C_b
+		for (int k = 0; k < param.W_bar; ++k){
+			for (int l = 0; l < param.H_bar; ++l){
+				C_g.at<float>(l,k,0) = 0.0;
+				C_g.at<float>(l,k,1) = 0.0;
+				C_g.at<float>(l,k,2) = 0.0;
+				C_g.at<float>(l,k,3) = param.t_lo;
+
+				C_b.at<float>(l,k,0) = 0.0;
+				C_b.at<float>(l,k,1) = 0.0;
+				C_b.at<float>(l,k,2) = param.t_hi;
+			}
+		}
+
+
 		disparity_refinement(D_it, C_it, G, D_f, C_f, C_g, C_b, param);
 
 
 		if (i != param.n_iters) {
 			support_resampling(C_g, C_b, S_d, param, I_l, I_r);
 			for (int i = 0; i < S_d.rows; ++i){
-				std::cout << S_d.at<float>(i,0) << "/" << S_d.at<float>(i,1) << "/" << S_d.at<float>(i,2) << std::endl;
+				//std::cout << S_d.at<float>(i,0) << "/" << S_d.at<float>(i,1) << "/" << S_d.at<float>(i,2) << std::endl;
 			}
 			// empty E ?
 			//cv::Mat E;
 			delaunay_triangulation(S_d, param.H, param.W, G, T, E);
+			// TODO: set G = -1 for all supportpoints within delaunay!
 			for (int j=0; j<S_d.rows; ++j){
 				int u = S_d.at<float>(j,0);
 				int v = S_d.at<float>(j,1);
 				G.at<int>(v,u) = -1;
 			}
 			showG(I_l, G, param, "G7");
+
+			// refine gridsize
 			param.sz_occ = param.sz_occ / 2;
+
+			// update grid height and width
+			param.H_bar = param.H / param.sz_occ;
+			param.W_bar = param.W / param.sz_occ;
+
 			std::ostringstream oss;
 			oss << "Delaunay " << i+2;
 			std::string str = oss.str();

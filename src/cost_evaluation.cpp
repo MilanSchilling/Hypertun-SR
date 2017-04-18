@@ -14,24 +14,22 @@
 // This function compares every patch with the correspondent patch, 
 // given the interpolated disparity, using a census comparison.
 // It returns a matirx containing the costs for every pixel. 
-void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r, cv::Mat &D_it, cv::Mat &G, cv::Mat &C_it){
+void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r, 
+						cv::Mat &D_it, cv::Mat &C_it, 
+						cv::Mat &G, parameters &param){
 
 	std::cout << "cost_evaluation.cpp" << std::endl;
 
-	// Get image height and width
-	int H = I_l.rows;
-	int W = I_r.cols;
-
 	// pad a frame around the images
 	int border = 2;
-	cv::Mat I_r_p = cv::Mat(I_r.rows + border*2, I_r.cols + border*2, I_r.depth());
-	cv::Mat I_l_p = cv::Mat(I_l.rows + border*2, I_l.cols + border*2, I_l.depth());
+	cv::Mat I_r_p = cv::Mat(param.H + border*2, param.W + border*2, I_r.depth());
+	cv::Mat I_l_p = cv::Mat(param.H + border*2, param.W + border*2, I_l.depth());
 	cv::copyMakeBorder(I_r, I_r_p, border, border, border, border, cv::BORDER_REPLICATE);
 	cv::copyMakeBorder(I_l, I_l_p, border, border, border, border, cv::BORDER_REPLICATE);
 
 	// loop over interpolated disparities
-	for (int v = 0; v < H; ++v){
-		for (int u = 0; u < W; u++){
+	for (int v = 0; v < param.H; ++v){
+		for (int u = 0; u < param.W; u++){
 
 			if (G.at<int>(v,u) != -1){
 				float disp = D_it.at<float>(v,u); // TODO: verify order of i,j!
