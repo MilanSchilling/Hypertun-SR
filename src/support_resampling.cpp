@@ -22,25 +22,67 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 
 	std::cout << "support_resampling.cpp" << std::endl;
 
-	cv::Mat X;
-	X = cv::Mat(param.H_bar * param.W_bar, 2, CV_32F, 0.0);
+
+	// get number of points in C_b and C_g
+	int noBadPts = 0;
+	int noGoodPts = 0;
+
+	for (int it_u=0; it_u<param.W_bar; ++it_u){
+		for (int it_v=0; it_v<param.H_bar; ++it_v){
+			
+			if (C_b.at<float>(it_v, it_u, 2) != param.t_hi){
+				std::cout << "it_u/it_v = " << it_u << "/" << it_v << std::endl;
+				std::cout << "C_b(it_v,it_u) = " << C_b.at<float>(it_v, it_u, 0) << "/" << C_b.at<float>(it_v, it_u, 1) << "/" << C_b.at<float>(it_v, it_u, 2) << std::endl;
+				noBadPts++;
+			}
+				
+			
+			if (C_g.at<float>(it_v, it_u, 3) < param.t_lo){
+				//std::cout << "it_u/it_v = " << it_u << "/" << it_v << std::endl;
+				//std::cout << "C_g(it_v,it_u) = " << C_g.at<float>(it_v, it_u, 0) << "/" << C_g.at<float>(it_v, it_u, 1) << "/" << C_g.at<float>(it_v, it_u, 2) << "/" << C_g.at<float>(it_v, it_u, 3) << std::endl;
+				noGoodPts++;
+			}
+				
+		}
+	}
+	std::cout << "support_resampling here 0" << std::endl;
+
+	std::cout << "noGoodPts = " << noGoodPts << std::endl;
+	std::cout << "noBadPts = " << noBadPts << std::endl;
+
+	int sz_X[] = {noBadPts, 2};
+	cv::Mat X = cv::Mat(2, sz_X, CV_32F, cv::Scalar::all(0));
 	int X_length = 0;
 
-	cv::Mat S_add;
-	S_add = cv::Mat(param.H_bar * param.W_bar, 3, CV_32F, 0.0);
+
+
+	std::cout << "support_resampling here 1" << std::endl;
+
+	int sz_add[] = {noGoodPts, 3};
+	cv::Mat S_add = cv::Mat(2, sz_add, CV_32F,cv::Scalar::all(0));
 	int S_add_length = 0;
 	// counters
 	int count_X = 0;
 	int count_S_it = 0;
 	int count_epi = 0; 
 
+	std::cout << "support_resampling here 1" << std::endl;
+
 	for (int v_bar = 0; v_bar < param.H_bar; ++v_bar){
 		for (int u_bar = 0; u_bar < param.W_bar; ++u_bar){
+
+
 
 			if (C_b.at<float>(v_bar, u_bar, 2) > param.t_hi){
 				// store (u,v) for bad point for resampling
 				assert(0 <= C_b.at<float>(v_bar, u_bar, 0) && C_b.at<float>(v_bar, u_bar, 0) <= 1242);
 				assert(0 <= C_b.at<float>(v_bar, u_bar, 1) && C_b.at<float>(v_bar, u_bar, 1) <= 375);
+
+				// be sure costs are between 0 and 1
+				std::cout << "v_bar / u_bar = " << v_bar << "/" << u_bar << std::endl;
+				assert(0 <= C_b.at<float>(v_bar, u_bar, 2) && C_b.at<float>(v_bar, u_bar, 2) <= 1);
+				assert(0 <= C_g.at<float>(v_bar, u_bar, 3) && C_b.at<float>(v_bar, u_bar, 3) <= 1);
+
 				std::cout << "support_resampling here // store (u,v,c) for bad point for resampling" << std::endl;
 				std::cout << C_b.at<float>(v_bar, u_bar, 0) << "/" << C_b.at<float>(v_bar, u_bar, 1) << "/" << C_b.at<float>(v_bar, u_bar, 2) << std::endl;
 				X.at<float>(X_length, 0) = C_b.at<float>(v_bar, u_bar, 0);
@@ -54,6 +96,12 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 				// store (u,v,d) for valid points
 				assert(0 <= C_g.at<float>(v_bar, u_bar, 0) && C_g.at<float>(v_bar, u_bar, 0) <= 1242);
 				assert(0 <= C_g.at<float>(v_bar, u_bar, 1) && C_g.at<float>(v_bar, u_bar, 1) <= 375);
+
+				// be sure costs are between 0 and 1
+				std::cout << "v_bar / u_bar = " << v_bar << "/" << u_bar << std::endl;
+				assert(0 <= C_b.at<float>(v_bar, u_bar, 2) && C_b.at<float>(v_bar, u_bar, 2) <= 1);
+				assert(0 <= C_g.at<float>(v_bar, u_bar, 3) && C_b.at<float>(v_bar, u_bar, 3) <= 1);
+
 				std::cout << "support_resampling here // store (u,v,d,c) for valid points" << std::endl;
 				std::cout << C_g.at<float>(v_bar, u_bar, 0) << "/" << C_g.at<float>(v_bar, u_bar, 1) << "/" << C_g.at<float>(v_bar, u_bar, 2) << "/" << C_g.at<float>(v_bar, u_bar, 3) << std::endl;
 				S_add.at<float>(S_add_length, 0) = C_g.at<float>(v_bar, u_bar, 0);

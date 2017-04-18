@@ -131,10 +131,10 @@ void pipeline() {
 
 	//Load parameters
 	parameters param;
-	param.sz_occ = 32;
-	param.n_iters = 2;
+	param.sz_occ = 64;
+	param.n_iters = 3;
 	param.t_lo = 0.01; // placeholder, verify optimal value
-	param.t_hi = 0.95; // placeholder, verify optimal value
+	param.t_hi = 0.98; // placeholder, verify optimal value
 
 	// Load images
 	cv::Mat I_l = cv::imread("../data/data_scene_flow/testing/image_2/000000_10.png", CV_LOAD_IMAGE_GRAYSCALE);
@@ -150,8 +150,8 @@ void pipeline() {
 	param.W = I_r.cols;
 
 	// Get initial grid height and width
-	param.H_bar = param.H / param.sz_occ;
-	param.W_bar = param.W / param.sz_occ;
+	param.H_bar = std::floor(param.H / param.sz_occ);
+	param.W_bar = std::floor(param.W / param.sz_occ);
 
 	// Initialize final disparity and associated cost
 	cv::Mat D_f = cv::Mat(param.W, param.H, CV_32F, 0.0);
@@ -166,10 +166,9 @@ void pipeline() {
 	cv::Mat D; // dense piece-wise planar disparity
 	cv::Mat C; // cost associated to D
 
-	int sz_g[] = {param.H_bar, param.W_bar, 4}; // dimension of C_g
-	int sz_b[] = {param.H_bar, param.W_bar, 3}; // dimension of C_b
-	cv::Mat C_g (3, sz_g, CV_32F, cv::Scalar::all(0)); // cost associated with regions of good matches
-	cv::Mat C_b (3, sz_b, CV_32F, cv::Scalar::all(0)); // cost associated with regions of bad matches
+	
+	cv::Mat C_g; // cost associated with regions of good matches
+	cv::Mat C_b; // cost associated with regions of bad matches 
 
 	
 
@@ -184,7 +183,7 @@ void pipeline() {
 	// create debug points
 	S_d = cv::Mat(4, 3, CV_32F, 0.0);
 	int offset_v = 40;
-	int offset_u = 100;
+	int offset_u = 400;
 	int height = 150;
 	int width = 200;
 	S_d.at<float>(0,0) = offset_u;
@@ -209,7 +208,7 @@ void pipeline() {
 	S_d.at<float>(4,2) = 50;
 */	
 
-	sparse_stereo(I_l, I_r, S);
+	sparse_stereo(I_l, I_r, S_d);
 	std::cout << "Rows of S: " << S_d.rows << std::endl;
 	for (int i = 0; i < S_d.rows; ++i){
 		//std::cout << S_d.at<float>(i,0) << "/" << S_d.at<float>(i,1) << "/" << S_d.at<float>(i,2) << std::endl;
@@ -232,7 +231,7 @@ void pipeline() {
 	//showG(I_l, G, param, "G1");
 	std::cout << "Rows of S: " << S_d.rows << std::endl;
 	for (int i = 0; i < S_d.rows; ++i){
-		//std::cout << S_d.at<float>(i,0) << "/" << S_d.at<float>(i,1) << "/" << S_d.at<float>(i,2) << std::endl;
+		std::cout << S_d.at<float>(i,0) << "/" << S_d.at<float>(i,1) << "/" << S_d.at<float>(i,2) << std::endl;
 	}
 	std::cout << "Rows of E: " << E.rows << std::endl;
 
@@ -249,6 +248,7 @@ void pipeline() {
 		C_it = cv::Mat(param.H, param.W, CV_32F, param.t_hi);
 
 		disparity_interpolation(G, T, D_it);
+		
 
 		showG(I_l, G, param, "G");
 		showDisparity(I_l, D_it);
@@ -256,6 +256,12 @@ void pipeline() {
 		
 
 		cost_evaluation(I_l, I_r, D_it, C_it, G, param);
+
+		int sz_g[] = {param.H_bar, param.W_bar, 4}; // dimension of C_g
+		int sz_b[] = {param.H_bar, param.W_bar, 3}; // dimension of C_b
+
+		C_g = cv::Mat(3, sz_g, CV_32F, cv::Scalar::all(0));
+		C_b = cv::Mat(3, sz_b, CV_32F, cv::Scalar::all(0));
 
 		// write thresholds to C_g and C_b
 		for (int k = 0; k < param.W_bar; ++k){
@@ -272,13 +278,46 @@ void pipeline() {
 		}
 
 
+		// debug C_g and C_b
+		std::cout << "entries of C_g before disp_ref..." << std::endl;
+		for (int k = 0; k < param.W_bar; ++k){
+			for (int l = 0; l < param.H_bar; ++l){
+				std::cout << C_g.at<float>(l,k,3) << std::endl;
+			}
+		}
+
+		std::cout << "entries of C_b before disp_ref..." << std::endl;
+		for (int k = 0; k < param.W_bar; ++k){
+			for (int l = 0; l < param.H_bar; ++l){
+				std::cout << C_b.at<float>(l,k,2) << std::endl;
+			}
+		}
+
+
 		disparity_refinement(D_it, C_it, G, D_f, C_f, C_g, C_b, param);
+
+		// debug C_g and C_b
+		std::cout << "entries of C_g after disp_ref..." << std::endl;
+		for (int k = 0; k < param.W_bar; ++k){
+			for (int l = 0; l < param.H_bar; ++l){
+				std::cout << C_g.at<float>(l,k,3) << std::endl;
+			}
+		}
+
+		std::cout << "entries of C_b after disp_ref..." << std::endl;
+		for (int k = 0; k < param.W_bar; ++k){
+			for (int l = 0; l < param.H_bar; ++l){
+				std::cout << C_b.at<float>(l,k,2) << std::endl;
+			}
+		}
+
+		
 
 
 		if (i != param.n_iters) {
 			support_resampling(C_g, C_b, S_d, param, I_l, I_r);
 			for (int i = 0; i < S_d.rows; ++i){
-				//std::cout << S_d.at<float>(i,0) << "/" << S_d.at<float>(i,1) << "/" << S_d.at<float>(i,2) << std::endl;
+				std::cout << S_d.at<float>(i,0) << "/" << S_d.at<float>(i,1) << "/" << S_d.at<float>(i,2) << std::endl;
 			}
 			// empty E ?
 			//cv::Mat E;
@@ -295,8 +334,8 @@ void pipeline() {
 			param.sz_occ = param.sz_occ / 2;
 
 			// update grid height and width
-			param.H_bar = param.H / param.sz_occ;
-			param.W_bar = param.W / param.sz_occ;
+			param.H_bar = int(std::floor(param.H / param.sz_occ));
+			param.W_bar = int(std::floor(param.W / param.sz_occ));
 
 			std::ostringstream oss;
 			oss << "Delaunay " << i+2;

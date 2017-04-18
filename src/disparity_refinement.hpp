@@ -2,6 +2,7 @@
 #define DISPARITY_REFINEMENT_HPP
 
 #include <opencv2/opencv.hpp>
+#include <cassert>
 #include "parameters.hpp"
 
 void disparity_refinement(cv::Mat &D_it, cv::Mat &C_it,
