@@ -60,6 +60,8 @@ void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv
 
 	std::cout << "delaunay_triangulation.cpp" << std::endl;
 
+	std::cout << "Rows of S " << S.rows << std::endl;
+
 	// Store support points into input variable
 	int N = S.rows;
 
@@ -191,8 +193,8 @@ void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv
 		std::cout << "Min: " << min.x << " " << min.y << std::endl;
 		std::cout << "Max: " << max.x << " " << max.y << std::endl << std::endl;*/
 
-		for(int x = min.x + 1; x < max.x; x++){
-			for( int y = min.y + 1; y < max.y; y++){
+		for(int x = min.x; x < max.x; x++){
+			for( int y = min.y; y < max.y; y++){
 				cv::Point3f pt;
 				pt.x = x;
 				pt.y = y;
@@ -209,14 +211,26 @@ void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv
 	/*cv::imshow("Image label", G);
 	cv::waitKey(0);*/
 
+	std::cout << "out.numberofedges = " << out.numberofedges << std::endl;
+	std::cout << "out.numberoftriangles = " << out.numberoftriangles << std::endl;
+	
+
 	k = 0;
+	E = cv::Mat(2 * out.numberofedges, 1, CV_32S);
 	for (int i = 0; i < out.numberofedges; ++i)
 	{
 		// For plotting triangle edges
-		E.push_back(out.edgelist[k]);
-		E.push_back(out.edgelist[k+1]);
+		E.at<int>(k, 0) = out.edgelist[k];
+		E.at<int>(k + 1, 0) = out.edgelist[k + 1];
 		k += 2;
+		int bla = 0;
+
+		//E.push_back(out.edgelist[k]);
+		//E.push_back(out.edgelist[k+1]);
+		//k += 2;
 	}
+
+	std::cout << "E.rows = " << E.rows << std::endl;
 
 	free(in.pointlist);
 	free(out.pointlist);

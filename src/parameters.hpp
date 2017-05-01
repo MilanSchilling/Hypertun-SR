@@ -9,12 +9,16 @@ struct parameters {
 	int n_iters;
 
 	// Lower and upper threshold for validating disparities
-	double t_lo;
-	double t_hi;
+	float t_lo;
+	float t_hi;
 
     // image height and width
     int H;
     int W;
+
+	// grid height and width
+	int H_bar;
+	int W_bar;
 };
 
 #endif // PARAMETERS_HPP

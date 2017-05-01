@@ -3,6 +3,7 @@
 
 #include <opencv2/opencv.hpp>
 #include <bitset>
+#include <cassert>
 #include "parameters.hpp"
 #include "cost_evaluation.hpp"
 

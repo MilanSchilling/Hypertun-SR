@@ -13,7 +13,7 @@ add_executable( main.out
 				../libs/triangulation/DelaunayTriangulation.cpp)
 target_link_libraries( main.out sparsestereo ${OpenCV_LIBS} )
 
-set(CMAKE_CXX_FLAGS "-O3 -DNDEBUG -fopenmp -g -Wall -march=native -msse -msse2 -msse3 -mssse3 -msse4 -ffast-math -mfpmath=sse")
+set(CMAKE_CXX_FLAGS "-O3 -fopenmp -g -Wall -march=native -msse -msse2 -msse3 -mssse3 -msse4 -ffast-math -mfpmath=sse")
 
 add_subdirectory(sparsestereo)
 
