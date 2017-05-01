@@ -16,7 +16,7 @@ void sparse_stereo(cv::Mat I_l, cv::Mat I_r, cv::Mat &S){
 	rightImg=I_r;
 	
 	// Stereo matching parameters
-	double uniqueness = 0.7;
+	double uniqueness = 0.5;
 	int maxDisp = 70;
 	int leftRightStep = 2;
 

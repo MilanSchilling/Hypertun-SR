@@ -31,8 +31,8 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 		for (int it_v=0; it_v<param.H_bar; ++it_v){
 			
 			if (C_b.at<float>(it_v, it_u, 2) != param.t_hi){
-				std::cout << "it_u/it_v = " << it_u << "/" << it_v << std::endl;
-				std::cout << "C_b(it_v,it_u) = " << C_b.at<float>(it_v, it_u, 0) << "/" << C_b.at<float>(it_v, it_u, 1) << "/" << C_b.at<float>(it_v, it_u, 2) << std::endl;
+				//std::cout << "it_u/it_v = " << it_u << "/" << it_v << std::endl;
+				//std::cout << "C_b(it_v,it_u) = " << C_b.at<float>(it_v, it_u, 0) << "/" << C_b.at<float>(it_v, it_u, 1) << "/" << C_b.at<float>(it_v, it_u, 2) << std::endl;
 				noBadPts++;
 			}
 				
@@ -79,12 +79,13 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 				assert(0 <= C_b.at<float>(v_bar, u_bar, 1) && C_b.at<float>(v_bar, u_bar, 1) <= 375);
 
 				// be sure costs are between 0 and 1
-				std::cout << "v_bar / u_bar = " << v_bar << "/" << u_bar << std::endl;
+				//std::cout << "v_bar / u_bar = " << v_bar << "/" << u_bar << std::endl;
+				std::cout << "C_b(v,u,2): " << C_b.at<float>(v_bar, u_bar, 2) << std::endl;
 				assert(0 <= C_b.at<float>(v_bar, u_bar, 2) && C_b.at<float>(v_bar, u_bar, 2) <= 1);
 				assert(0 <= C_g.at<float>(v_bar, u_bar, 3) && C_b.at<float>(v_bar, u_bar, 3) <= 1);
 
-				std::cout << "support_resampling here // store (u,v,c) for bad point for resampling" << std::endl;
-				std::cout << C_b.at<float>(v_bar, u_bar, 0) << "/" << C_b.at<float>(v_bar, u_bar, 1) << "/" << C_b.at<float>(v_bar, u_bar, 2) << std::endl;
+				//std::cout << "support_resampling here // store (u,v,c) for bad point for resampling" << std::endl;
+				//std::cout << C_b.at<float>(v_bar, u_bar, 0) << "/" << C_b.at<float>(v_bar, u_bar, 1) << "/" << C_b.at<float>(v_bar, u_bar, 2) << std::endl;
 				X.at<float>(X_length, 0) = C_b.at<float>(v_bar, u_bar, 0);
 				X.at<float>(X_length, 1) = C_b.at<float>(v_bar, u_bar, 1);
 				X_length++;
@@ -98,12 +99,12 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 				assert(0 <= C_g.at<float>(v_bar, u_bar, 1) && C_g.at<float>(v_bar, u_bar, 1) <= 375);
 
 				// be sure costs are between 0 and 1
-				std::cout << "v_bar / u_bar = " << v_bar << "/" << u_bar << std::endl;
+				//std::cout << "v_bar / u_bar = " << v_bar << "/" << u_bar << std::endl;
 				assert(0 <= C_b.at<float>(v_bar, u_bar, 2) && C_b.at<float>(v_bar, u_bar, 2) <= 1);
 				assert(0 <= C_g.at<float>(v_bar, u_bar, 3) && C_b.at<float>(v_bar, u_bar, 3) <= 1);
 
-				std::cout << "support_resampling here // store (u,v,d,c) for valid points" << std::endl;
-				std::cout << C_g.at<float>(v_bar, u_bar, 0) << "/" << C_g.at<float>(v_bar, u_bar, 1) << "/" << C_g.at<float>(v_bar, u_bar, 2) << "/" << C_g.at<float>(v_bar, u_bar, 3) << std::endl;
+				//std::cout << "support_resampling here // store (u,v,d,c) for valid points" << std::endl;
+				//std::cout << C_g.at<float>(v_bar, u_bar, 0) << "/" << C_g.at<float>(v_bar, u_bar, 1) << "/" << C_g.at<float>(v_bar, u_bar, 2) << "/" << C_g.at<float>(v_bar, u_bar, 3) << std::endl;
 				S_add.at<float>(S_add_length, 0) = C_g.at<float>(v_bar, u_bar, 0);
 				S_add.at<float>(S_add_length, 1) = C_g.at<float>(v_bar, u_bar, 1);
 				S_add.at<float>(S_add_length, 2) = C_g.at<float>(v_bar, u_bar, 2);

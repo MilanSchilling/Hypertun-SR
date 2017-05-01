@@ -208,36 +208,36 @@ void pipeline() {
 	S_d.at<float>(4,2) = 50;
 */	
 
-	sparse_stereo(I_l, I_r, S_d);
-	std::cout << "Rows of S: " << S_d.rows << std::endl;
-	for (int i = 0; i < S_d.rows; ++i){
+	sparse_stereo(I_l, I_r, S);
+	//std::cout << "Rows of S: " << S_d.rows << std::endl;
+	//for (int i = 0; i < S_d.rows; ++i){
 		//std::cout << S_d.at<float>(i,0) << "/" << S_d.at<float>(i,1) << "/" << S_d.at<float>(i,2) << std::endl;
-	}
+	//}
 
 	
 
-	delaunay_triangulation(S_d, param.H, param.W, G, T, E);
+	delaunay_triangulation(S, param.H, param.W, G, T, E);
 	showG(I_l, G, param, "G after delaunay");
 	//cv::imshow("test img", I_l);
 	cv::waitKey(0);
 	
 	// set all support points in G to -1
-	for (int j=0; j<S_d.rows; ++j){
-		int u = S_d.at<float>(j,0);
-		int v = S_d.at<float>(j,1);
+	for (int j=0; j<S.rows; ++j){
+		int u = S.at<float>(j,0);
+		int v = S.at<float>(j,1);
 		G.at<int>(v,u) = -1;
 	}
 	
 	//showG(I_l, G, param, "G1");
-	std::cout << "Rows of S: " << S_d.rows << std::endl;
-	for (int i = 0; i < S_d.rows; ++i){
-		std::cout << S_d.at<float>(i,0) << "/" << S_d.at<float>(i,1) << "/" << S_d.at<float>(i,2) << std::endl;
-	}
+	std::cout << "Rows of S: " << S.rows << std::endl;
+	/*for (int i = 0; i < S.rows; ++i){
+		std::cout << S.at<float>(i,0) << "/" << S.at<float>(i,1) << "/" << S.at<float>(i,2) << std::endl;
+	}*/
 	std::cout << "Rows of E: " << E.rows << std::endl;
 
 	//std::cout << "param.H / param.W = " << param.H << "/" << param.W << std::endl;
 
-	showGrid(I_l, S_d, E, "Delaunay 1");
+	showGrid(I_l, S, E, "Delaunay 1");
 
 
 	for (int i = 0; i < param.n_iters; ++i) {
@@ -261,6 +261,7 @@ void pipeline() {
 		int sz_b[] = {param.H_bar, param.W_bar, 3}; // dimension of C_b
 
 		C_g = cv::Mat(3, sz_g, CV_32F, cv::Scalar::all(0));
+		cv::Mat C_dummy = cv::Mat(3, sz_g, CV_32F, cv::Scalar::all(0));
 		C_b = cv::Mat(3, sz_b, CV_32F, cv::Scalar::all(0));
 
 		// write thresholds to C_g and C_b
@@ -279,12 +280,12 @@ void pipeline() {
 
 
 		// debug C_g and C_b
-		std::cout << "entries of C_g before disp_ref..." << std::endl;
+		/*std::cout << "entries of C_g before disp_ref..." << std::endl;
 		for (int k = 0; k < param.W_bar; ++k){
 			for (int l = 0; l < param.H_bar; ++l){
 				std::cout << C_g.at<float>(l,k,3) << std::endl;
 			}
-		}
+		}*/
 
 		std::cout << "entries of C_b before disp_ref..." << std::endl;
 		for (int k = 0; k < param.W_bar; ++k){
@@ -293,16 +294,16 @@ void pipeline() {
 			}
 		}
 
-
+		cv::Mat C_b_clone = C_b.clone();
 		disparity_refinement(D_it, C_it, G, D_f, C_f, C_g, C_b, param);
 
 		// debug C_g and C_b
-		std::cout << "entries of C_g after disp_ref..." << std::endl;
+		/*std::cout << "entries of C_g after disp_ref..." << std::endl;
 		for (int k = 0; k < param.W_bar; ++k){
 			for (int l = 0; l < param.H_bar; ++l){
 				std::cout << C_g.at<float>(l,k,3) << std::endl;
 			}
-		}
+		}*/
 
 		std::cout << "entries of C_b after disp_ref..." << std::endl;
 		for (int k = 0; k < param.W_bar; ++k){
@@ -315,17 +316,17 @@ void pipeline() {
 
 
 		if (i != param.n_iters) {
-			support_resampling(C_g, C_b, S_d, param, I_l, I_r);
-			for (int i = 0; i < S_d.rows; ++i){
-				std::cout << S_d.at<float>(i,0) << "/" << S_d.at<float>(i,1) << "/" << S_d.at<float>(i,2) << std::endl;
-			}
+			support_resampling(C_g, C_b, S, param, I_l, I_r);
+			/*for (int i = 0; i < S.rows; ++i){
+				std::cout << S.at<float>(i,0) << "/" << S.at<float>(i,1) << "/" << S.at<float>(i,2) << std::endl;
+			}*/
 			// empty E ?
 			//cv::Mat E;
-			delaunay_triangulation(S_d, param.H, param.W, G, T, E);
+			delaunay_triangulation(S, param.H, param.W, G, T, E);
 			// TODO: set G = -1 for all supportpoints within delaunay!
-			for (int j=0; j<S_d.rows; ++j){
-				int u = S_d.at<float>(j,0);
-				int v = S_d.at<float>(j,1);
+			for (int j=0; j<S.rows; ++j){
+				int u = S.at<float>(j,0);
+				int v = S.at<float>(j,1);
 				G.at<int>(v,u) = -1;
 			}
 			showG(I_l, G, param, "G7");
@@ -340,7 +341,7 @@ void pipeline() {
 			std::ostringstream oss;
 			oss << "Delaunay " << i+2;
 			std::string str = oss.str();
-			showGrid(I_l, S_d, E, str);
+			showGrid(I_l, S, E, str);
 		}
 	}
 }
