@@ -39,11 +39,11 @@ void showGrid(cv::Mat I_l, cv::Mat S, cv::Mat E, std::string str){
 	}*/
 	int k = 0;
 	int E_end = E.rows/2;
-	std::cout << "E.rows/2 = " << E_end << std::endl;
+
 	for (int i = 0; i < E.rows/2; ++i) {
 		int i1 = E.at<int>(k++,0);
 		int i2 = E.at<int>(k++,0);
-		//std::cout << "i1 and i2 = " << i1 << " and " << i2 << std::endl;
+
 		cv::Point p1(S.at<float>(i1,0), S.at<float>(i1,1));
 		cv::Point p2(S.at<float>(i2,0), S.at<float>(i2,1));
 
@@ -70,8 +70,6 @@ void showGrid(cv::Mat I_l, cv::Mat S, cv::Mat E, std::string str){
 void showG (cv::Mat I_l, cv::Mat G, parameters param, std::string str){
 
 	std::cout << "showG" << std::endl;
-	std::cout << "image_l size: " << I_l.rows << "/" << I_l.cols << std::endl;
-	std::cout << "Mat G size: " << G.rows << "/" << G.cols << std::endl;
 	cv::Mat G_img = I_l.clone();
 	
 
@@ -131,7 +129,7 @@ void pipeline() {
 
 	//Load parameters
 	parameters param;
-	param.sz_occ = 64;
+	param.sz_occ = 32;
 	param.n_iters = 3;
 	param.t_lo = 0.01; // placeholder, verify optimal value
 	param.t_hi = 0.98; // placeholder, verify optimal value
@@ -140,10 +138,6 @@ void pipeline() {
 	cv::Mat I_l = cv::imread("../data/data_scene_flow/testing/image_2/000000_10.png", CV_LOAD_IMAGE_GRAYSCALE);
 	cv::Mat I_r = cv::imread("../data/data_scene_flow/testing/image_3/000000_10.png", CV_LOAD_IMAGE_GRAYSCALE);
 	
-	// Display images
-	//cv::imshow("Image Left", I_l);
-	//cv::imshow("Image Right", I_r);
-	//cv::waitKey(0);
 
 	// Get image height and width
 	param.H = I_l.rows;
@@ -202,24 +196,18 @@ void pipeline() {
 	S_d.at<float>(3,1) = offset_v + height;
 	S_d.at<float>(3,2) = 0;
 
-/*
-	S_d.at<float>(4,0) = offset_v + width + 200;
-	S_d.at<float>(4,1) = offset_u + height / 2;
-	S_d.at<float>(4,2) = 50;
-*/	
 
+
+	boost::posix_time::ptime lastTime = boost::posix_time::microsec_clock::local_time();
 	sparse_stereo(I_l, I_r, S);
-	//std::cout << "Rows of S: " << S_d.rows << std::endl;
-	//for (int i = 0; i < S_d.rows; ++i){
-		//std::cout << S_d.at<float>(i,0) << "/" << S_d.at<float>(i,1) << "/" << S_d.at<float>(i,2) << std::endl;
-	//}
+	boost::posix_time::time_duration elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
+	std::cout << "Elapsed Time for 'sparse_stereo': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
 
-	
-
+	lastTime = boost::posix_time::microsec_clock::local_time();
 	delaunay_triangulation(S, param.H, param.W, G, T, E);
+	elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
+	std::cout << "Elapsed Time for 'delaunay_triangulation': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
 	showG(I_l, G, param, "G after delaunay");
-	//cv::imshow("test img", I_l);
-	cv::waitKey(0);
 	
 	// set all support points in G to -1
 	for (int j=0; j<S.rows; ++j){
@@ -228,15 +216,6 @@ void pipeline() {
 		G.at<int>(v,u) = -1;
 	}
 	
-	//showG(I_l, G, param, "G1");
-	std::cout << "Rows of S: " << S.rows << std::endl;
-	/*for (int i = 0; i < S.rows; ++i){
-		std::cout << S.at<float>(i,0) << "/" << S.at<float>(i,1) << "/" << S.at<float>(i,2) << std::endl;
-	}*/
-	std::cout << "Rows of E: " << E.rows << std::endl;
-
-	//std::cout << "param.H / param.W = " << param.H << "/" << param.W << std::endl;
-
 	showGrid(I_l, S, E, "Delaunay 1");
 
 
@@ -247,15 +226,19 @@ void pipeline() {
 		D_it = cv::Mat(param.H, param.W, CV_32F, 0.0);
 		C_it = cv::Mat(param.H, param.W, CV_32F, param.t_hi);
 
+		lastTime = boost::posix_time::microsec_clock::local_time();
 		disparity_interpolation(G, T, D_it);
+		elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
+		std::cout << "Elapsed Time for 'disparity_interpolation': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
 		
-
 		showG(I_l, G, param, "G");
 		showDisparity(I_l, D_it);
 
-		
-
+		lastTime = boost::posix_time::microsec_clock::local_time();
 		cost_evaluation(I_l, I_r, D_it, C_it, G, param);
+		elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
+		std::cout << "Elapsed Time for 'cost_evaluation': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
+		
 
 		int sz_g[] = {param.H_bar, param.W_bar, 4}; // dimension of C_g
 		int sz_b[] = {param.H_bar, param.W_bar, 3}; // dimension of C_b
@@ -278,51 +261,23 @@ void pipeline() {
 			}
 		}
 
-
-		// debug C_g and C_b
-		/*std::cout << "entries of C_g before disp_ref..." << std::endl;
-		for (int k = 0; k < param.W_bar; ++k){
-			for (int l = 0; l < param.H_bar; ++l){
-				std::cout << C_g.at<float>(l,k,3) << std::endl;
-			}
-		}*/
-
-		std::cout << "entries of C_b before disp_ref..." << std::endl;
-		for (int k = 0; k < param.W_bar; ++k){
-			for (int l = 0; l < param.H_bar; ++l){
-				std::cout << C_b.at<float>(l,k,2) << std::endl;
-			}
-		}
-
-		cv::Mat C_b_clone = C_b.clone();
+		lastTime = boost::posix_time::microsec_clock::local_time();
 		disparity_refinement(D_it, C_it, G, D_f, C_f, C_g, C_b, param);
-
-		// debug C_g and C_b
-		/*std::cout << "entries of C_g after disp_ref..." << std::endl;
-		for (int k = 0; k < param.W_bar; ++k){
-			for (int l = 0; l < param.H_bar; ++l){
-				std::cout << C_g.at<float>(l,k,3) << std::endl;
-			}
-		}*/
-
-		std::cout << "entries of C_b after disp_ref..." << std::endl;
-		for (int k = 0; k < param.W_bar; ++k){
-			for (int l = 0; l < param.H_bar; ++l){
-				std::cout << C_b.at<float>(l,k,2) << std::endl;
-			}
-		}
-
+		elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
+		std::cout << "Elapsed Time for 'disparity_refinement': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
 		
 
-
 		if (i != param.n_iters) {
+			lastTime = boost::posix_time::microsec_clock::local_time();
 			support_resampling(C_g, C_b, S, param, I_l, I_r);
-			/*for (int i = 0; i < S.rows; ++i){
-				std::cout << S.at<float>(i,0) << "/" << S.at<float>(i,1) << "/" << S.at<float>(i,2) << std::endl;
-			}*/
-			// empty E ?
-			//cv::Mat E;
+			elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
+			std::cout << "Elapsed Time for 'support_resampling': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
+		
+			lastTime = boost::posix_time::microsec_clock::local_time();
 			delaunay_triangulation(S, param.H, param.W, G, T, E);
+			elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
+			std::cout << "Elapsed Time for 'delaunay_triangulation': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
+
 			// TODO: set G = -1 for all supportpoints within delaunay!
 			for (int j=0; j<S.rows; ++j){
 				int u = S.at<float>(j,0);

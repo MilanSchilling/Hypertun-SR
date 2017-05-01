@@ -59,7 +59,7 @@ void sparse_stereo(cv::Mat I_l, cv::Mat I_r, cv::Mat &S){
 	vector<KeyPoint> keypointsLeft, keypointsRight;
 
 	// For performance evaluation we do the stereo matching 100 times
-	for(int i=0; i< 100; i++) {
+	for(int i=0; i< 1; i++) {
 
 		// Featuredetection. This part can be parallelized with OMP
 		#pragma omp parallel sections default(shared) num_threads(2)
@@ -88,7 +88,7 @@ void sparse_stereo(cv::Mat I_l, cv::Mat I_r, cv::Mat &S){
 
 	// Print statistics
 	time_duration elapsed = (microsec_clock::local_time() - lastTime);
-	cout << "Time for 100x stereo matching: " << elapsed.total_microseconds()/1.0e6 << "s" << endl
+	cout << "Time for 1x stereo matching: " << elapsed.total_microseconds()/1.0e6 << "s" << endl
 		<< "Features detected in left image: " << keypointsLeft.size() << endl
 		<< "Features detected in right image: " << keypointsRight.size() << endl
 		<< "Percentage of matched features: " << (100.0 * correspondences.size() / keypointsLeft.size()) << "%" << endl;
@@ -121,10 +121,13 @@ void sparse_stereo(cv::Mat I_l, cv::Mat I_r, cv::Mat &S){
 		circle(screen, mark[i], 1, (Scalar) color, 3);
 	}
 
+	/*
 	// Display image and wait
 	namedWindow("Stereo");
 	imshow("Stereo", screen);
 	waitKey();
+	*/
+	
 
 	// Fill set of support points
 	int num_points = correspondences.size();
