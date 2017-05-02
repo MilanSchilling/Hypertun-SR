@@ -67,10 +67,15 @@ void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv
 	in.numberofpoints = static_cast<int>(N);
 	in.pointlist = (float*)malloc(in.numberofpoints * 2 * sizeof(float));
 
+	cv::Point3f pts[N];
+	int dummy_array[N];
 	int k = 0;
 	for (int i = 0; i < N; ++i) {
 		in.pointlist[k++] = S.at<float>(i,0);
 		in.pointlist[k++] = S.at<float>(i,1);
+		pts[i].x = S.at<float>(i,0);
+		pts[i].y = S.at<float>(i,1);
+		pts[i].z = S.at<float>(i,2);
 	}
 
 	in.numberofpointattributes = 0;
@@ -97,19 +102,12 @@ void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv
 	triangulate(parameters, &in, &out, NULL);
 
 
-	// Compute normal vector of each triangle surface
-	cv::Point3f pts[N];
-	int dummy_array[N];
-	
-	for (int i = 0; i < N; ++i) {
-		pts[i].x = S.at<float>(i,0);
-		pts[i].y = S.at<float>(i,1);
-		pts[i].z = S.at<float>(i,2);
-
-	}
 
 	// Compute 4D plane parameters
 	T = cv::Mat(4, out.numberoftriangles, CV_64F, 0.0);
+
+	// Assign each pixel to the corresponding triangle
+	G = cv::Mat(H, W, CV_32S, cv::Scalar(-1));
 
 	k = 0;
 	for (int i = 0; i < out.numberoftriangles; ++i) {
@@ -119,7 +117,7 @@ void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv
 		int p1 = out.trianglelist[k];
 		int p2 = out.trianglelist[k+1];
 		int p3 = out.trianglelist[k+2];
-		k += 3;
+		//k += 3;
 
 		// Construct 2 lines consisting of triangle edges
 		line_12 = pts[p1] - pts[p2];
@@ -144,37 +142,6 @@ void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv
 						   n_plane.y * pts[p1].y + 
 						   n_plane.z * pts[p1].z;
 
-		/*std::cout << "Plane #" << i << ": " << T.at<float>(0,i) << ", " 
-											<< T.at<float>(1,i) << ", "
-											<< T.at<float>(2,i) << ", "
-											<< T.at<float>(3,i) << std::endl;*/
-
-	}
-
-	// Assign each pixel to the corresponding triangle
-	G = cv::Mat(H, W, CV_32S, cv::Scalar(-1));
-
-	/*for (int y = 0; y < H; ++y) {
-		for (int x = 0; x < W; ++x) {
-			k = 0;
-			for (int i = 0; i < out.numberoftriangles; ++i) {
-				cv::Point3f pt;
-				pt.x = y;
-				pt.y = x;
-				cv::Point3f v1 = pts[out.trianglelist[k]];
-				cv::Point3f v2 = pts[out.trianglelist[k+1]];
-				cv::Point3f v3 = pts[out.trianglelist[k+2]];
-				if (PointInTriangle(pt, v1, v2, v3)) {
-					G.at<int>(x,y,0) = i*20;
-				}
-				k += 3;
-			}
-
-		}
-	}*/
-
-	k = 0;
-	for (int i = 0; i < out.numberoftriangles; ++i){
 
 		// Extract 3 vertices from triangle
 		cv::Point3f v1 = pts[out.trianglelist[k]];
@@ -185,11 +152,6 @@ void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv
 		cv::Point3f min = minCoordinate(v1, v2, v3);
 		cv::Point3f max = maxCoordinate(v1, v2, v3);
 
-		/*std::cout << "1: " << pts[out.trianglelist[k]].x << " " << pts[out.trianglelist[k]].y << std::endl;
-		std::cout << "2: " << pts[out.trianglelist[k+1]].x << " " << pts[out.trianglelist[k+1]].y << std::endl;
-		std::cout << "3: " << pts[out.trianglelist[k+2]].x << " " << pts[out.trianglelist[k+2]].y << std::endl;
-		std::cout << "Min: " << min.x << " " << min.y << std::endl;
-		std::cout << "Max: " << max.x << " " << max.y << std::endl << std::endl;*/
 
 		for(int x = min.x; x < max.x; x++){
 			for( int y = min.y; y < max.y; y++){
@@ -204,7 +166,9 @@ void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv
 		}
 
 		k += 3;
+
 	}
+
 	
 
 	k = 0;
@@ -217,9 +181,6 @@ void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv
 		k += 2;
 		int bla = 0;
 
-		//E.push_back(out.edgelist[k]);
-		//E.push_back(out.edgelist[k+1]);
-		//k += 2;
 	}
 
 	free(in.pointlist);
