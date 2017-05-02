@@ -73,8 +73,9 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 				// store (u,v) for bad point for resampling
 				assert(0 <= C_b.at<float>(v_bar, u_bar, 0) && C_b.at<float>(v_bar, u_bar, 0) <= 1242);
 				assert(0 <= C_b.at<float>(v_bar, u_bar, 1) && C_b.at<float>(v_bar, u_bar, 1) <= 375);
+				std::cout << "C_b(v,u,2): " << C_b.at<float>(v_bar, u_bar, 2) << std::endl;
 				assert(0 <= C_b.at<float>(v_bar, u_bar, 2) && C_b.at<float>(v_bar, u_bar, 2) <= 1);
-				assert(0 <= C_g.at<float>(v_bar, u_bar, 3) && C_b.at<float>(v_bar, u_bar, 3) <= 1);
+				assert(0 <= C_g.at<float>(v_bar, u_bar, 3) && C_g.at<float>(v_bar, u_bar, 3) <= 1);
 
 				//std::cout << "support_resampling here // store (u,v,c) for bad point for resampling" << std::endl;
 				//std::cout << C_b.at<float>(v_bar, u_bar, 0) << "/" << C_b.at<float>(v_bar, u_bar, 1) << "/" << C_b.at<float>(v_bar, u_bar, 2) << std::endl;
