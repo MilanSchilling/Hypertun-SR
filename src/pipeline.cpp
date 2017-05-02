@@ -207,7 +207,7 @@ void pipeline() {
 	delaunay_triangulation(S, param.H, param.W, G, T, E);
 	elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
 	std::cout << "Elapsed Time for 'delaunay_triangulation': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
-	showG(I_l, G, param, "G after delaunay");
+	//showG(I_l, G, param, "G after delaunay");
 	
 	// set all support points in G to -1
 	for (int j=0; j<S.rows; ++j){
@@ -216,7 +216,7 @@ void pipeline() {
 		G.at<int>(v,u) = -1;
 	}
 	
-	showGrid(I_l, S, E, "Delaunay 1");
+	//showGrid(I_l, S, E, "Delaunay 1");
 
 
 	for (int i = 0; i < param.n_iters; ++i) {
@@ -231,8 +231,8 @@ void pipeline() {
 		elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
 		std::cout << "Elapsed Time for 'disparity_interpolation': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
 		
-		showG(I_l, G, param, "G");
-		showDisparity(I_l, D_it);
+		//showG(I_l, G, param, "G");
+		//showDisparity(I_l, D_it);
 
 		lastTime = boost::posix_time::microsec_clock::local_time();
 		cost_evaluation(I_l, I_r, D_it, C_it, G, param);
@@ -284,7 +284,7 @@ void pipeline() {
 				int v = S.at<float>(j,1);
 				G.at<int>(v,u) = -1;
 			}
-			showG(I_l, G, param, "G7");
+			//showG(I_l, G, param, "G7");
 
 			// refine gridsize
 			param.sz_occ = param.sz_occ / 2;
@@ -299,5 +299,6 @@ void pipeline() {
 			showGrid(I_l, S, E, str);
 		}
 	}
+	showGrid(I_l, S, E, "final");
 }
 
