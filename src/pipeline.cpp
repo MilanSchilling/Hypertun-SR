@@ -193,7 +193,6 @@ void pipeline() {
 			//showGrid(I_l, S, E, str);
 		}
 	}
-	// show delaunay grid for last iteration
 	showGrid(I_l, S, E, "final Delaunay");
 }
 
