@@ -7,6 +7,8 @@
 // - C_b   : Cost associated with refions of invalid disparities [H' x W' x (u, v, cost)]
 // - S_it  : Sparse support pixels with valid depths [N x (u, v, d)]
 // - param : Parameter struct
+// - I_l   : Image left
+// - I_r   : Image right
 //
 // outputs:
 // - S_it  : Updated sparse support pixels with valid depths
@@ -29,97 +31,69 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 
 	for (int it_u=0; it_u<param.W_bar; ++it_u){
 		for (int it_v=0; it_v<param.H_bar; ++it_v){
-			
-			if (C_b.at<float>(it_v, it_u, 2) != param.t_hi){
-				//std::cout << "it_u/it_v = " << it_u << "/" << it_v << std::endl;
-				//std::cout << "C_b(it_v,it_u) = " << C_b.at<float>(it_v, it_u, 0) << "/" << C_b.at<float>(it_v, it_u, 1) << "/" << C_b.at<float>(it_v, it_u, 2) << std::endl;
+			// if cost is higher than t_hi
+			if (C_b.at<float>(it_v, it_u, 2) > param.t_hi){
 				noBadPts++;
 			}
-				
-			
+			// if cost is lower than t_lo	
 			if (C_g.at<float>(it_v, it_u, 3) < param.t_lo){
-				//std::cout << "it_u/it_v = " << it_u << "/" << it_v << std::endl;
-				//std::cout << "C_g(it_v,it_u) = " << C_g.at<float>(it_v, it_u, 0) << "/" << C_g.at<float>(it_v, it_u, 1) << "/" << C_g.at<float>(it_v, it_u, 2) << "/" << C_g.at<float>(it_v, it_u, 3) << std::endl;
 				noGoodPts++;
-			}
-				
+			}	
 		}
 	}
 
 
+	// container for bad points
 	int sz_X[] = {noBadPts, 2};
 	cv::Mat X = cv::Mat(2, sz_X, CV_32F, cv::Scalar::all(0));
 	int X_length = 0;
 
-
-
-
-
+	// container for good points
 	int sz_add[] = {noGoodPts, 3};
 	cv::Mat S_add = cv::Mat(2, sz_add, CV_32F,cv::Scalar::all(0));
 	int S_add_length = 0;
-	// counters
-	int count_X = 0;
-	int count_S_it = 0;
-	int count_epi = 0; 
 
-
+	// loop over C_b and C_g, store the data to X or S_add if costs are >t_hi or <T_Lo respectively
 	for (int v_bar = 0; v_bar < param.H_bar; ++v_bar){
 		for (int u_bar = 0; u_bar < param.W_bar; ++u_bar){
-
-
-
+			// if C_b != empty at (v_bar, u_bar)
 			if (C_b.at<float>(v_bar, u_bar, 2) > param.t_hi){
-				// store (u,v) for bad point for resampling
+				// be sure that u and v are in range
 				assert(0 <= C_b.at<float>(v_bar, u_bar, 0) && C_b.at<float>(v_bar, u_bar, 0) <= 1242);
 				assert(0 <= C_b.at<float>(v_bar, u_bar, 1) && C_b.at<float>(v_bar, u_bar, 1) <= 375);
-				std::cout << "C_b(v,u,2): " << C_b.at<float>(v_bar, u_bar, 2) << std::endl;
+				// be sure that costs are in range
 				assert(0 <= C_b.at<float>(v_bar, u_bar, 2) && C_b.at<float>(v_bar, u_bar, 2) <= 1);
 				assert(0 <= C_g.at<float>(v_bar, u_bar, 3) && C_g.at<float>(v_bar, u_bar, 3) <= 1);
 
-				//std::cout << "support_resampling here // store (u,v,c) for bad point for resampling" << std::endl;
-				//std::cout << C_b.at<float>(v_bar, u_bar, 0) << "/" << C_b.at<float>(v_bar, u_bar, 1) << "/" << C_b.at<float>(v_bar, u_bar, 2) << std::endl;
+				// store (u,v) for bad point for resampling
 				X.at<float>(X_length, 0) = C_b.at<float>(v_bar, u_bar, 0);
 				X.at<float>(X_length, 1) = C_b.at<float>(v_bar, u_bar, 1);
+
 				X_length++;
-
-				count_X++;
 			}
-
+			// if C_g != empty at (v_bar, u_bar)
 			if (C_g.at<float>(v_bar, u_bar, 3) < param.t_lo){
-				// store (u,v,d) for valid points
+				// be sure that u and v are in range
 				assert(0 <= C_g.at<float>(v_bar, u_bar, 0) && C_g.at<float>(v_bar, u_bar, 0) <= 1242);
 				assert(0 <= C_g.at<float>(v_bar, u_bar, 1) && C_g.at<float>(v_bar, u_bar, 1) <= 375);
-
-				// be sure costs are between 0 and 1
-				//std::cout << "v_bar / u_bar = " << v_bar << "/" << u_bar << std::endl;
+				// be sure that costs are in range
 				assert(0 <= C_b.at<float>(v_bar, u_bar, 2) && C_b.at<float>(v_bar, u_bar, 2) <= 1);
 				assert(0 <= C_g.at<float>(v_bar, u_bar, 3) && C_b.at<float>(v_bar, u_bar, 3) <= 1);
 
-				//std::cout << "support_resampling here // store (u,v,d,c) for valid points" << std::endl;
-				//std::cout << C_g.at<float>(v_bar, u_bar, 0) << "/" << C_g.at<float>(v_bar, u_bar, 1) << "/" << C_g.at<float>(v_bar, u_bar, 2) << "/" << C_g.at<float>(v_bar, u_bar, 3) << std::endl;
+				// store (u,v,d) for valid points
 				S_add.at<float>(S_add_length, 0) = C_g.at<float>(v_bar, u_bar, 0);
 				S_add.at<float>(S_add_length, 1) = C_g.at<float>(v_bar, u_bar, 1);
 				S_add.at<float>(S_add_length, 2) = C_g.at<float>(v_bar, u_bar, 2);
 
 				S_add_length++;
-				
-				// add valid support point to S_it_next
-				//S_it.push_back(Pt);
-				count_S_it++;
 			}
 		}
 	}
 
 	
-
-// ###
-// epipolar search
-// ###
+	// define container for epipolar search [noBadPts x (u, v, d)]
 	cv::Mat S_epi;
-	S_epi = cv::Mat(X_length, 3, CV_32F, 0.0);
-	int S_epi_length = 0;
-
+	S_epi = cv::Mat(noBadPts, 3, CV_32F, 0.0);
 
 	// pad a frame around the images
 	int border = 2;
@@ -129,79 +103,83 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 	cv::copyMakeBorder(I_l, I_l_p, border, border, border, border, cv::BORDER_REPLICATE);
 
 
-	// loop over X, leave first entry out
-	for (int i=0; i < X_length; ++i){
+	// loop over X
+	for (int i=0; i < noBadPts; ++i){
 		int d = -1;
+		// be sure that u and v are in range
 		assert(0 <= int(X.at<float>(i, 0)) && int(X.at<float>(i, 0)) <= 1242);
 		assert(0 <= int(X.at<float>(i, 1)) && int(X.at<float>(i, 1)) <= 375);
+
+		// perform epipolar to get best census match along the epipolar line
 		epipolar_search(I_l_p, I_r_p,
 						int(X.at<float>(i, 0)), int(X.at<float>(i, 1)), d, param);
-
+		// be sure d is > zero
 		assert(d >= 0);
 
+		// save (u, v, d) to epi
 		S_epi.at<float>(i, 0) = X.at<float>(i, 0);
 		S_epi.at<float>(i, 1) = X.at<float>(i, 1);
 		S_epi.at<float>(i, 2) = float(d);
-
-		count_epi++;
 	}
 
 
 	// combine S_it, S_add and S_epi
 	cv::Mat S_next;
-	S_next = cv::Mat(S_it.rows + S_add_length + X_length, 3, CV_32F);
+	S_next = cv::Mat(S_it.rows + noGoodPts + noBadPts, 3, CV_32F);
 
-	for (int i = 0; i < S_it.rows + S_add_length + X_length; ++i){
+	for (int i = 0; i < S_it.rows + noGoodPts + noBadPts; ++i){
 		if (i < S_it.rows){
 			S_next.at<float>(i, 0) = S_it.at<float>(i, 0);
 			S_next.at<float>(i, 1) = S_it.at<float>(i, 1);
 			S_next.at<float>(i, 2) = S_it.at<float>(i, 2);
-			//std::cout << "i global is " << i << " and i from S_it is " << i << std::endl;
-		} else if(i < S_it.rows + S_add_length){
+		} else if(i < S_it.rows + noGoodPts){
 			S_next.at<float>(i, 0) = S_add.at<float>(i - S_it.rows, 0);
 			S_next.at<float>(i, 1) = S_add.at<float>(i - S_it.rows, 1);
 			S_next.at<float>(i, 2) = S_add.at<float>(i - S_it.rows, 2);
-			//std::cout << "i global is " << i << " and i from S_add is " << i - S_it.rows << std::endl;
 		} else{
-			S_next.at<float>(i, 0) = S_epi.at<float>(i - S_it.rows - S_add_length, 0);
-			S_next.at<float>(i, 1) = S_epi.at<float>(i - S_it.rows - S_add_length, 1);
-			S_next.at<float>(i, 2) = S_epi.at<float>(i - S_it.rows - S_add_length, 2);
-			//std::cout << "i global is " << i << " and i from S_epi is " << i - S_it.rows - S_add_length << std::endl;
+			S_next.at<float>(i, 0) = S_epi.at<float>(i - S_it.rows - noGoodPts, 0);
+			S_next.at<float>(i, 1) = S_epi.at<float>(i - S_it.rows - noGoodPts, 1);
+			S_next.at<float>(i, 2) = S_epi.at<float>(i - S_it.rows - noGoodPts, 2);
 		}
 	}
 	S_it = S_next.clone(); 
 
 
-	std::cout << count_X << " points stored for epi-search." << std::endl;
-	std::cout << count_S_it << " points stored directly as support points." << std::endl;
-	std::cout << count_epi << " points stored from the epi-search." << std::endl;
+	std::cout << X_length << " points stored for epi-search." << std::endl;
+	std::cout << S_add_length << " points stored directly as support points." << std::endl;
+	std::cout << noBadPts << " points stored from the epi-search." << std::endl;
 
 }
 
-
-// this sub-routinr takes the padded left and right image, a pixelcoordinate u/v,
+// Inputs:
+// - I_l_p	  : padded image left
+// - I_r_p    : padded image right
+// - u and v  : pixel coordinates of point of interest
+// - params   : parameter struct
+//
+// Outputs:
+// - d        : disparity of best match   
+// ############################################################################################    
+// This sub-routine takes the padded left and right image, a pixelcoordinate u/v,
 // a container for the disparity d and the parameter struct.
 // It searches along the epipolar line (horizontal) and calculates for every pixel in the
 // right image the census transform and the hemming distance to the census transform of the pixel
 // u/v in the left image. The output is the disparity to the pixel with the smallest hemming cost.
 void epipolar_search(cv::Mat &I_l_p, cv::Mat &I_r_p,
                         int u, int v, int & d, parameters &param){
-
+	// be sure that u and v are in range
 	assert(0 <= u && u <= 1242);
 	assert(0 <= v && v <= 375);
 
-	
 	// get padded indices
 	int u_p = u + 2;
 	int v_p = v + 2;
-
+	// be sure that u_p and v_p are in range
 	assert(0 <= u_p && u_p <= 1242);
 	assert(0 <= v_p && v_p <= 375);
 
 	// get census of keypoint
 	std::bitset<24> cens_l(0);
-	//std::cout << "epi1" << std::endl;
-	//std::cout << "u_p/v_p = " << u_p << "/" << v_p << std::endl;
 	assert(v_p > 0);
 	census(I_l_p, u_p, v_p, cens_l);
 
@@ -239,9 +217,6 @@ void epipolar_search(cv::Mat &I_l_p, cv::Mat &I_r_p,
 			u_best = u_;
 		}
 	}
-
-	// unpad u_best
-	//u_best = u_best - 2;
 
 	// calculate disparity with u_left - u_right
 	d = u - u_best;

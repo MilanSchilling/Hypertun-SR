@@ -3,8 +3,10 @@
 
 // disparity refinement:
 // inputs:
-// -D_it : Interpolated disparity
-// -C_it : Normalized cost associated to D_it
+// -D_it : Interpolated disparity [H x W]
+// -C_it : Normalized cost associated to D_it [H x W]
+// -G    : Matrix G which points to the corresponding triangle for every pixel [H x W]
+// -param: Parameter struct
 //
 // outputs:
 // -updated D_f : final disparity map
@@ -23,7 +25,7 @@ void disparity_refinement(cv::Mat &D_it, cv::Mat &C_it,
 							cv::Mat &D_f, cv::Mat &C_f,
 							cv::Mat &C_g, cv::Mat &C_b,
 							parameters &param){
-	// TODO: pass parameter struct to this function
+
 	std::cout << "disparity_refinement.cpp" << std::endl;
 
 	// loop over C_it
@@ -46,25 +48,19 @@ void disparity_refinement(cv::Mat &D_it, cv::Mat &C_it,
 				if ((C_it.at<float>(v,u) < param.t_lo) && (C_it.at<float>(v,u) < C_g.at<float>(v_bar,u_bar,3))){
 
 					assert(0 <= C_it.at<float>(v, u) && C_it.at<float>(v, u) <= 1);
-
 					C_g.at<float>(v_bar,u_bar, 0) = u;
 					C_g.at<float>(v_bar,u_bar, 1) = v;
 					C_g.at<float>(v_bar,u_bar, 2) = D_it.at<float>(v,u);
 					C_g.at<float>(v_bar,u_bar, 3) = C_it.at<float>(v,u);
 					assert(0 <= C_g.at<float>(v_bar, u_bar, 3) && C_g.at<float>(v_bar, u_bar, 3) <= 1);
-					
-					//std::cout << "disparity_refinement: added point to C_g." << std::endl;
-					//std::cout << "C_it.at<float>(i,j) = " << C_it.at<float>(v,u) << std::endl;
 				}
 
 				// If matching cost is higher than previous worst invalid cost
 				float c_it_cur = C_it.at<float>(v,u);
 				float c_b_cur = C_b.at<float>(v_bar, u_bar, 2);
 				if ((c_it_cur > param.t_hi) && (c_it_cur > c_b_cur)){
-					
-					//std::cout << "*** drinnn ***" << std::endl;
+
 					assert(0 <= C_it.at<float>(v, u) && C_it.at<float>(v, u) <= 1);
-					
 					C_b.at<float>(v_bar,u_bar, 0) = u;
 					C_b.at<float>(v_bar,u_bar, 1) = v;
 					C_b.at<float>(v_bar,u_bar, 2) = C_it.at<float>(v,u);

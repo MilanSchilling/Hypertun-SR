@@ -57,6 +57,7 @@ void pipeline() {
 
 	// Initialize final disparity and associated cost
 	cv::Mat D_f = cv::Mat(param.W, param.H, CV_32F, 0.0);
+	cv::Mat C_dummy_2 = cv::Mat(param.W, param.H, CV_32F, 0.0); // dummy array
 	cv::Mat C_f = cv::Mat(param.W, param.H, CV_32F, param.t_hi);
 
 	// Declare other variables
@@ -186,14 +187,17 @@ void pipeline() {
 			param.H_bar = int(std::floor(param.H / param.sz_occ));
 			param.W_bar = int(std::floor(param.W / param.sz_occ));
 
+			
 			// show delaunay grid for i-th iteration
 			std::ostringstream oss;
 			oss << "Delaunay " << i+2;
 			std::string str = oss.str();
-			//showGrid(I_l, S, E, str);
+			showGrid(I_l, S, E, str);
+			
 		}
 	}
 	showGrid(I_l, S, E, "final Delaunay");
+	cv::waitKey(0);
 }
 
 
@@ -247,7 +251,6 @@ void showGrid(cv::Mat I_l, cv::Mat S, cv::Mat E, std::string str){
 		//std::cout << "drew line: " << i1 << ", " << i2 << std::endl;
 	}
 	cv::imshow(str, I_triangles);
-	cv::waitKey(0);
 }
 
 

@@ -4,9 +4,10 @@
 
 // cost_evaluation:
 // inputs: 
-// - I_l : image left
-// - I_r : image right
-// - D_it: Interpolated disparity
+// - I_l : image left [H x W]
+// - I_r : image right [H x W]
+// - D_it: Interpolated disparity [H x W]
+// - G   : Matrix G which points to the corresponding triangle for every pixel [H x W]
 //
 // outputs:
 // - C_it: Normalized cost associated to D_it
