@@ -97,8 +97,8 @@ void pipeline() {
 	// TODO: set G = -1 for all supportpoints within delaunay!
 	
 	// show the grid from the delaunay triangulation
-	//showGrid(I_l, S, E, "Delaunay 1");
-
+	showGrid(I_l, S, E, "Delaunay 1");
+	boost::posix_time::ptime algorithm_time_start = boost::posix_time::microsec_clock::local_time();
 
 	for (int i = 0; i < param.n_iters; ++i) {
 		std::cout << "################################################" << std::endl;
@@ -196,6 +196,16 @@ void pipeline() {
 			
 		}
 	}
+
+	boost::posix_time::time_duration algorithm_time_elapsed = (boost::posix_time::microsec_clock::local_time() - algorithm_time_start);
+
+	std::cout << "************************************************" << std::endl;
+	std::cout << std::setprecision(2);
+	std::cout << "ALGORITHM TOOK: " << algorithm_time_elapsed.total_microseconds()/1.0e6 << " seconds" << std::endl; 
+	std::cout << "WITH A SPEED OF: " << 1.0e6/algorithm_time_elapsed.total_microseconds() << " Hz" << std::endl;
+	std::cout << "************************************************" << std::endl;
+
+
 	showGrid(I_l, S, E, "final Delaunay");
 	cv::waitKey(0);
 }
