@@ -35,7 +35,9 @@ void disparity_refinement(cv::Mat &D_it, cv::Mat &C_it,
 			if (G.at<int>(v,u) != -1){
 				// Establish occupancy grid for resampled points
 				int u_bar = int(std::floor(u / param.sz_occ));
-				int v_bar = int(std::floor(v / param.sz_occ)); 
+				int v_bar = int(std::floor(v / param.sz_occ));
+				if (u_bar >= param.W_bar) u_bar = param.W_bar - 1;
+				if (v_bar >= param.H_bar) v_bar = param.H_bar - 1; 
 
 				// If matching cost is lower than previous best final cost
 				if (C_it.at<float>(v,u) < C_f.at<float>(v,u)){

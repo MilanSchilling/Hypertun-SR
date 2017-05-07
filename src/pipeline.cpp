@@ -40,7 +40,7 @@ void pipeline() {
 	param.sz_occ = 32;
 	param.n_iters = 3;
 	param.t_lo = 0.01; // placeholder, verify optimal value
-	param.t_hi = 0.98; // placeholder, verify optimal value
+	param.t_hi = 0.95; // placeholder, verify optimal value
 
 	// Load images
 	cv::Mat I_l = cv::imread("../data/data_scene_flow/testing/image_2/000000_10.png", CV_LOAD_IMAGE_GRAYSCALE);

@@ -78,7 +78,7 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 				assert(0 <= C_g.at<float>(v_bar, u_bar, 1) && C_g.at<float>(v_bar, u_bar, 1) <= 375);
 				// be sure that costs are in range
 				assert(0 <= C_b.at<float>(v_bar, u_bar, 2) && C_b.at<float>(v_bar, u_bar, 2) <= 1);
-				assert(0 <= C_g.at<float>(v_bar, u_bar, 3) && C_b.at<float>(v_bar, u_bar, 3) <= 1);
+				assert(0 <= C_g.at<float>(v_bar, u_bar, 3) && C_g.at<float>(v_bar, u_bar, 3) <= 1);
 
 				// store (u,v,d) for valid points
 				S_add.at<float>(S_add_length, 0) = C_g.at<float>(v_bar, u_bar, 0);
