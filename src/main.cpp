@@ -3,7 +3,8 @@ using namespace std;
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-#include <png++/png.hpp>
+#include <iostream>
+//#include <png++/png.hpp>
 
 #include "pipeline.hpp"
 
@@ -39,9 +40,21 @@ int main() {
 		cout << "################################################" << endl;
 	
 		// disparity maps are saved as uint16 PNG images, can be opened with the libpng++ library
-		png::image<png::gray_pixel_16> D_gt_png(filenames_disp[i]);
+		/*png::image<png::gray_pixel_16> D_gt_png(filenames_disp[i]);
 		int32_t D_gt_png_width=D_gt_png.get_width();
-		int32_t D_gt_png_height=D_gt_png.get_height();
+		int32_t D_gt_png_height=D_gt_png.get_height();*/
+		cv::Mat D_gt_png = cv::imread(filenames_disp[i]);
+		int D_gt_png_width = D_f.cols;
+		int D_gt_png_height = D_f.rows;
+		int offset_u = 5;
+		int offset_v = 4;
+		cv::Rect roi; // region of interest
+		roi.x = offset_u;
+		roi.y = offset_v;
+		roi.width = 1232;
+		roi.height = 368;
+
+		cv::Mat D_gt_png_c = D_gt_png(roi);
 		float gt_value;
 
 		// initialize some parameters needed for calculation
@@ -58,7 +71,9 @@ int main() {
 		// comparison with ground-truth disparity and 4 different threshold
 		for (int32_t v=0; v<D_gt_png_height; v++) {
 			for (int32_t u=0; u<D_gt_png_width; u++) {
-				gt_value = D_gt_png.get_pixel(u,v);
+				//gt_value = D_gt_png.get_pixel(u,v);
+				gt_value = D_gt_png_c.at<uint16_t>(v,u,0);
+				//cout << v << ", " << u << ", " << gt_value << endl;
 				if (D_f.at<float>(v,u) != 0 && gt_value != 0) { // both ground-truth and estimate disparity valid
 					n_loops = n_loops + 1;	
 					// ground-truth disparity computed by dividing pixel value by 256 
