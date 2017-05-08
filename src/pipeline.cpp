@@ -26,7 +26,7 @@ void showGrid(cv::Mat I_l, cv::Mat S, cv::Mat E, std::string str);
 void showG (cv::Mat I_l, cv::Mat G, parameters param, std::string str);
 
 // header of 'showDisparity'
-void showDisparity(cv::Mat I_l, cv::Mat D_it);
+void showDisparity(cv::Mat I_l, cv::Mat D_it, std::string str);
 
 
 
@@ -39,8 +39,8 @@ void pipeline() {
 	parameters param;
 	param.sz_occ = 32;
 	param.n_iters = 3;
-	param.t_lo = 0.01; // placeholder, verify optimal value
-	param.t_hi = 0.95; // placeholder, verify optimal value
+	param.t_lo = 1.f/24; // placeholder, verify optimal value
+	param.t_hi = 23.f/24; // placeholder, verify optimal value
 
 	// Load images
 	cv::Mat I_l = cv::imread("../data/data_scene_flow/testing/image_2/000000_10.png", CV_LOAD_IMAGE_GRAYSCALE);
@@ -56,9 +56,9 @@ void pipeline() {
 	param.W_bar = std::floor(param.W / param.sz_occ);
 
 	// Initialize final disparity and associated cost
-	cv::Mat D_f = cv::Mat(param.W, param.H, CV_32F, 0.0);
-	cv::Mat C_dummy_2 = cv::Mat(param.W, param.H, CV_32F, 0.0); // dummy array
-	cv::Mat C_f = cv::Mat(param.W, param.H, CV_32F, param.t_hi);
+	cv::Mat D_f = cv::Mat(param.H, param.W, CV_32F, 0.0);
+	cv::Mat C_dummy_2 = cv::Mat(param.H, param.W, CV_32F, 0.0); // dummy array
+	cv::Mat C_f = cv::Mat(param.H, param.W, CV_32F, param.t_hi);
 
 	// Declare other variables
 	cv::Mat S; // set of N support points with valid depths, Nx3 with [u,v,d]
@@ -119,7 +119,7 @@ void pipeline() {
 		//showG(I_l, G, param, "G");
 
 		// show disparity from disparity_interpolation
-		//showDisparity(I_l, D_it);
+		//showDisparity(I_l, D_it, "Disparity interpolated");
 
 		// execute 'cost_evaluation' with elapsed time estimation
 		lastTime = boost::posix_time::microsec_clock::local_time();
@@ -192,7 +192,7 @@ void pipeline() {
 			std::ostringstream oss;
 			oss << "Delaunay " << i+2;
 			std::string str = oss.str();
-			showGrid(I_l, S, E, str);
+			//showGrid(I_l, S, E, str);
 			
 		}
 	}
@@ -205,8 +205,8 @@ void pipeline() {
 	std::cout << "WITH A SPEED OF: " << 1.0e6/algorithm_time_elapsed.total_microseconds() << " Hz" << std::endl;
 	std::cout << "************************************************" << std::endl;
 
-
 	showGrid(I_l, S, E, "final Delaunay");
+	showDisparity(I_l, D_f, "final Disparity");
 	cv::waitKey(0);
 }
 
@@ -295,7 +295,7 @@ void showG (cv::Mat I_l, cv::Mat G, parameters param, std::string str){
 }
 
 
-void showDisparity(cv::Mat I_l, cv::Mat D_it){
+void showDisparity(cv::Mat I_l, cv::Mat D_it, std::string str){
 		cv::Mat disparity = I_l.clone();
 		cv::cvtColor(disparity, disparity, CV_GRAY2RGB);
 
@@ -315,6 +315,5 @@ void showDisparity(cv::Mat I_l, cv::Mat D_it){
 			}
 		}
 
-		cv::imshow("Disparity Interpolated", disparity);
-		cv::waitKey(0);
+		cv::imshow(str, disparity);
 }
