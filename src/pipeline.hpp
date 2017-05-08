@@ -2,8 +2,9 @@
 #define PIPELINE_HPP
 
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <opencv2/core/core.hpp>
 
-void pipeline();
+void pipeline(cv::String filename_left, cv::String filename_right, cv::String filename_disp);
 
 
 #endif

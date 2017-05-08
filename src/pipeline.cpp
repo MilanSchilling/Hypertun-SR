@@ -28,9 +28,10 @@ void showG (cv::Mat I_l, cv::Mat G, parameters param, std::string str);
 // header of 'showDisparity'
 void showDisparity(cv::Mat I_l, cv::Mat D_it, std::string str);
 
+// header of ´computeAccuracy'
+void computeAccuracy(cv::Mat D_f, cv::String filename_disp);
 
-
-void pipeline() {
+void pipeline(cv::String filename_left, cv::String filename_right, cv::String filename_disp) {
 	std::cout << "#######" << std::endl;
 	std::cout << "DATASET: http://www.cvlibs.net/datasets/kitti/eval_stereo_flow.php?benchmark=flow" << std::endl;
 	std::cout << "#######" << std::endl << std::endl;
@@ -40,21 +41,21 @@ void pipeline() {
 	//Load parameters
 	parameters param;
 	param.sz_occ = 32;
-	param.n_iters = 3;
+	param.n_iters = 2;
 	param.t_lo = 2.f/24; // placeholder, verify optimal value
 	param.t_hi = 24.f/24; // placeholder, verify optimal value
 
 	// Load images
-	cv::Mat I_l = cv::imread("../data/data_stereo_flow/training/colored_0/000009_10.png", CV_LOAD_IMAGE_GRAYSCALE);
-	cv::Mat I_r = cv::imread("../data/data_stereo_flow/training/colored_1/000009_10.png", CV_LOAD_IMAGE_GRAYSCALE);
+	cv::Mat I_l = cv::imread(filename_left, CV_LOAD_IMAGE_GRAYSCALE);
+	cv::Mat I_r = cv::imread(filename_right, CV_LOAD_IMAGE_GRAYSCALE);
 	
 	// crop image to be dividable by 16
 	int offset_u = 5;
-	int offset_v = 4;
+	int offset_v = 2;
 	cv::Rect roi; // region of interest
 	roi.x = offset_u;
 	roi.y = offset_v;
-	roi.width = 1232;
+	roi.width = 1216;
 	roi.height = 368;
 
 	cv::Mat I_l_c = I_l(roi);
@@ -218,6 +219,7 @@ void pipeline() {
 	std::cout << "WITH A SPEED OF: " << 1.0e6/algorithm_time_elapsed.total_microseconds() << " Hz" << std::endl;
 	std::cout << "************************************************" << std::endl;
 
+	computeAccuracy(D_f, filename_disp);
 	showGrid(I_l_c, S, E, "final Delaunay");
 	showDisparity(I_l_c, D_f, "final Disparity");
 	cv::waitKey(0);
@@ -329,4 +331,64 @@ void showDisparity(cv::Mat I_l, cv::Mat D_it, std::string str){
 		}
 
 		cv::imshow(str, disparity);
+}
+
+void computeAccuracy(cv::Mat D_f, cv::String filename_disp){
+
+	std::cout << "################################################" << std::endl;
+	std::cout << "ACCURACY (comparing with ground-truth disparity)" << std::endl;
+	std::cout << "################################################" << std::endl;
+
+	cv::Mat D_gt_png = cv::imread(filename_disp);
+
+	int D_gt_png_width = D_f.cols;
+	int D_gt_png_height = D_f.rows;
+	int offset_u = 5;
+	int offset_v = 2;
+	cv::Rect roi; // region of interest
+	roi.x = offset_u;
+	roi.y = offset_v;
+	roi.width = 1216;
+	roi.height = 368;
+
+	cv::Mat D_gt_png_c = D_gt_png(roi);
+	float gt_value;
+
+	// initialize some parameters needed for calculation
+	float n_loops = 0;
+	float counter_2 = 0;
+	float counter_3 = 0;
+	float counter_4 = 0;
+	float counter_5 = 0;
+	float threshold_2 = 2;
+	float threshold_3 = 3;
+	float threshold_4 = 4;
+	float threshold_5 = 5;
+	
+	// comparison with ground-truth disparity and 4 different threshold
+	for (int32_t v=0; v<D_gt_png_height; v++) {
+		for (int32_t u=0; u<D_gt_png_width; u++) {
+			//gt_value = D_gt_png.get_pixel(u,v);
+			gt_value = D_gt_png_c.at<uint16_t>(v,u,0);
+			//cout << v << ", " << u << ", " << gt_value << endl;
+			if (D_f.at<float>(v,u) != 0 && gt_value != 0) { // both ground-truth and estimate disparity valid
+				n_loops = n_loops + 1;	
+				// ground-truth disparity computed by dividing pixel value by 256 
+				if (abs(D_f.at<float>(v,u)-gt_value/256.0) < threshold_5)  
+					counter_5 = counter_5 + 1;
+					if (abs(D_f.at<float>(v,u)-gt_value/256.0) < threshold_4)
+						counter_4 = counter_4 + 1;
+						if (abs(D_f.at<float>(v,u)-gt_value/256.0) < threshold_3)
+							counter_3 = counter_3 + 1;
+							if (abs(D_f.at<float>(v,u)-gt_value/256.0) < threshold_2)
+								counter_2 = counter_2 + 1;
+			}
+		}
+	}
+
+	std::cout << "less than 2 pixels: " << counter_2/n_loops * 100 << " %" << std::endl;
+	std::cout << "less than 3 pixels: " << counter_3/n_loops * 100 << " %" << std::endl;
+	std::cout << "less than 4 pixels: " << counter_4/n_loops * 100 << " %" << std::endl;
+	std::cout << "less than 5 pixels: " << counter_5/n_loops * 100 << " %" << std::endl;
+
 }
