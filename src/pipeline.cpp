@@ -46,7 +46,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	//Load parameters
 	parameters param;
 	param.sz_occ = 32;
-	param.n_iters = 2;
+	param.n_iters = 3;
 	param.t_lo = 2.f/24; // placeholder, verify optimal value
 	param.t_hi = 24.f/24; // placeholder, verify optimal value
 	param.im_grad = 50;
