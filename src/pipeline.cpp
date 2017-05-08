@@ -91,7 +91,6 @@ void pipeline() {
 	cv::convertScaleAbs(grad_r_y, abs_grad_r_y);	
 
 	// Total Gradient (approximate)
-	//cv::addWeighted( abs_grad_x, 0.5, abs_grad_y, 0.5, 0, grad );
 	cv::addWeighted(abs_grad_l_x, 0.5, abs_grad_l_y, 0.5, 0, grad_l);
 	cv::addWeighted(abs_grad_r_x, 0.5, abs_grad_r_y, 0.5, 0, grad_r);
 
@@ -268,7 +267,7 @@ void pipeline() {
 			std::ostringstream oss;
 			oss << "Delaunay " << i+2;
 			std::string str = oss.str();
-			showGrid(I_l_c, S, E, str);
+			showGrid(I_l_cg, S, E, str);
 			
 		}
 	}
