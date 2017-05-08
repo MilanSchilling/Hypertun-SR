@@ -211,7 +211,7 @@ void pipeline() {
 		
 		// execute 'cost_evaluation' with elapsed time estimation
 		lastTime = boost::posix_time::microsec_clock::local_time();
-		cost_evaluation(I_l_cg, I_r_cg, D_it, G, O, param, C_it);
+		cost_evaluation(I_l_cg, I_r_cg, D_it, G, O, param, C_it, census_l, census_r);
 		elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
 		std::cout << "Elapsed Time for 'cost_evaluation': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;	
 
@@ -293,9 +293,9 @@ void pipeline() {
 	std::cout << "WITH A SPEED OF: " << 1.0e6/algorithm_time_elapsed.total_microseconds() << " Hz" << std::endl;
 	std::cout << "************************************************" << std::endl;
 
-	showGrid(I_l_c, S, E, "final Delaunay");
-	showDisparity(I_l_c, D_f, "final Disparity");
-	showSupportPts(I_l, S, "final Support Points");
+	showGrid(I_l_cg, S, E, "final Delaunay");
+	showDisparity(I_l_cg, D_f, "final Disparity");
+	showSupportPts(I_l_cg, S, "final Support Points");
 	cv::waitKey(0);
 }
 

@@ -26,7 +26,7 @@
 void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r, 
                         cv::Mat &D_it, cv::Mat &G,
                          cv::Mat & O, parameters &param,
-                         cv::Mat &C_it){
+                         cv::Mat &C_it, cv::Mat &census_l, cv::Mat &census_r){
 
 
 
