@@ -31,7 +31,9 @@ void showDisparity(cv::Mat I_l, cv::Mat D_it, std::string str);
 
 
 void pipeline() {
-
+	std::cout << "#######" << std::endl;
+	std::cout << "DATASET: http://www.cvlibs.net/datasets/kitti/eval_stereo_flow.php?benchmark=flow" << std::endl;
+	std::cout << "#######" << std::endl << std::endl;
 	std::cout << "Using CV version: " << CV_VERSION << std::endl;
 	std::cout << "pipeline.cpp" << std::endl;
 
@@ -43,8 +45,8 @@ void pipeline() {
 	param.t_hi = 24.f/24; // placeholder, verify optimal value
 
 	// Load images
-	cv::Mat I_l = cv::imread("../data/data_scene_flow/testing/image_2/000000_10.png", CV_LOAD_IMAGE_GRAYSCALE);
-	cv::Mat I_r = cv::imread("../data/data_scene_flow/testing/image_3/000000_10.png", CV_LOAD_IMAGE_GRAYSCALE);
+	cv::Mat I_l = cv::imread("../data/data_stereo_flow/training/colored_0/000009_10.png", CV_LOAD_IMAGE_GRAYSCALE);
+	cv::Mat I_r = cv::imread("../data/data_stereo_flow/training/colored_1/000009_10.png", CV_LOAD_IMAGE_GRAYSCALE);
 	
 	// crop image to be dividable by 16
 	int offset_u = 5;
