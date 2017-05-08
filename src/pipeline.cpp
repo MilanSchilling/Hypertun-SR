@@ -40,8 +40,8 @@ void pipeline() {
 	param.sz_occ = 32;
 	param.n_iters = 3;
 	param.t_lo = 2.f/24; // placeholder, verify optimal value
-	param.t_hi = 24.f/24; // placeholder, verify optimal value
-	param.im_grad = 224;
+	param.t_hi = 23.f/24; // placeholder, verify optimal value
+	param.im_grad = 150;
 
 	// Load images
 	cv::Mat I_l = cv::imread("../data/data_scene_flow/testing/image_2/000000_10.png", CV_LOAD_IMAGE_COLOR);
@@ -205,7 +205,7 @@ void pipeline() {
 
 		// execute 'cost_evaluation' with elapsed time estimation
 		lastTime = boost::posix_time::microsec_clock::local_time();
-		cost_evaluation(I_l_cg, I_r_cg, D_it, C_it, G, param);
+		cost_evaluation(I_l_cg, I_r_cg, D_it, G, O, param, C_it);
 		elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
 		std::cout << "Elapsed Time for 'cost_evaluation': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;	
 
