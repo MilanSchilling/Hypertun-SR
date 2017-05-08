@@ -32,11 +32,11 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 	for (int it_u=0; it_u<param.W_bar; ++it_u){
 		for (int it_v=0; it_v<param.H_bar; ++it_v){
 			// if cost is higher than t_hi
-			if (C_b.at<float>(it_v, it_u, 2) > param.t_hi){
+			if ((param.t_hi < C_b.at<float>(it_v, it_u, 2)) && (C_b.at<float>(it_v, it_u, 2) <= 1)){
 				noBadPts++;
 			}
 			// if cost is lower than t_lo	
-			if (C_g.at<float>(it_v, it_u, 3) < param.t_lo){
+			if ((0 < C_g.at<float>(it_v, it_u, 3)) && (C_g.at<float>(it_v, it_u, 3) < param.t_lo)){
 				noGoodPts++;
 			}	
 		}
@@ -57,7 +57,7 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 	for (int v_bar = 0; v_bar < param.H_bar; ++v_bar){
 		for (int u_bar = 0; u_bar < param.W_bar; ++u_bar){
 			// if C_b != empty at (v_bar, u_bar)
-			if (C_b.at<float>(v_bar, u_bar, 2) > param.t_hi){
+			if ((param.t_hi < C_b.at<float>(v_bar, u_bar, 2)) && (C_b.at<float>(v_bar, u_bar, 2) <= 1)){
 				// be sure that u and v are in range
 				assert(0 <= C_b.at<float>(v_bar, u_bar, 0) && C_b.at<float>(v_bar, u_bar, 0) <= 1242);
 				assert(0 <= C_b.at<float>(v_bar, u_bar, 1) && C_b.at<float>(v_bar, u_bar, 1) <= 375);
@@ -72,7 +72,7 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 				X_length++;
 			}
 			// check if cost is low enough but not zero
-			if ((C_g.at<float>(v_bar, u_bar, 3) < param.t_lo) && (C_g.at<float>(v_bar, u_bar, 3) != 0)){
+			if ((0 < C_g.at<float>(v_bar, u_bar, 3)) && (C_g.at<float>(v_bar, u_bar, 3) < param.t_lo)){
 				// be sure that u and v are in range
 				assert(0 <= C_g.at<float>(v_bar, u_bar, 0) && C_g.at<float>(v_bar, u_bar, 0) <= 1242);
 				assert(0 <= C_g.at<float>(v_bar, u_bar, 1) && C_g.at<float>(v_bar, u_bar, 1) <= 375);
@@ -84,7 +84,7 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 				S_add.at<float>(S_add_length, 0) = C_g.at<float>(v_bar, u_bar, 0);
 				S_add.at<float>(S_add_length, 1) = C_g.at<float>(v_bar, u_bar, 1);
 				S_add.at<float>(S_add_length, 2) = C_g.at<float>(v_bar, u_bar, 2);
-
+				
 				S_add_length++;
 			}
 		}
