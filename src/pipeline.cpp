@@ -39,7 +39,7 @@ void pipeline() {
 	parameters param;
 	param.sz_occ = 32;
 	param.n_iters = 3;
-	param.t_lo = 0.01; // placeholder, verify optimal value
+	param.t_lo = 2.f/24; // placeholder, verify optimal value
 	param.t_hi = 1; // placeholder, verify optimal value
 
 	// Load images

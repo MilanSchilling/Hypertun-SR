@@ -71,8 +71,8 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 
 				X_length++;
 			}
-			// if C_g != empty at (v_bar, u_bar)
-			if (C_g.at<float>(v_bar, u_bar, 3) < param.t_lo){
+			// check if cost is low enough but not zero
+			if ((C_g.at<float>(v_bar, u_bar, 3) < param.t_lo) && (C_g.at<float>(v_bar, u_bar, 3) != 0)){
 				// be sure that u and v are in range
 				assert(0 <= C_g.at<float>(v_bar, u_bar, 0) && C_g.at<float>(v_bar, u_bar, 0) <= 1242);
 				assert(0 <= C_g.at<float>(v_bar, u_bar, 1) && C_g.at<float>(v_bar, u_bar, 1) <= 375);
