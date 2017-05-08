@@ -6,7 +6,7 @@ using namespace sparsestereo;
 using namespace boost;
 using namespace boost::posix_time;
 
-void sparse_stereo(cv::Mat I_l, cv::Mat I_r){
+void sparse_stereo(cv::Mat I_l, cv::Mat I_r, cv::Mat &S){
 
 	std::cout << "sparse_stereo.cpp" << std::endl;
 
@@ -16,7 +16,7 @@ void sparse_stereo(cv::Mat I_l, cv::Mat I_r){
 	rightImg=I_r;
 	
 	// Stereo matching parameters
-	double uniqueness = 0.7;
+	double uniqueness = 0.5;
 	int maxDisp = 70;
 	int leftRightStep = 2;
 
@@ -59,7 +59,7 @@ void sparse_stereo(cv::Mat I_l, cv::Mat I_r){
 	vector<KeyPoint> keypointsLeft, keypointsRight;
 
 	// For performance evaluation we do the stereo matching 100 times
-	for(int i=0; i< 100; i++) {
+	for(int i=0; i< 1; i++) {
 
 		// Featuredetection. This part can be parallelized with OMP
 		#pragma omp parallel sections default(shared) num_threads(2)
@@ -88,7 +88,7 @@ void sparse_stereo(cv::Mat I_l, cv::Mat I_r){
 
 	// Print statistics
 	time_duration elapsed = (microsec_clock::local_time() - lastTime);
-	cout << "Time for 100x stereo matching: " << elapsed.total_microseconds()/1.0e6 << "s" << endl
+	cout << "Time for 1x stereo matching: " << elapsed.total_microseconds()/1.0e6 << "s" << endl
 		<< "Features detected in left image: " << keypointsLeft.size() << endl
 		<< "Features detected in right image: " << keypointsRight.size() << endl
 		<< "Percentage of matched features: " << (100.0 * correspondences.size() / keypointsLeft.size()) << "%" << endl;
@@ -121,10 +121,24 @@ void sparse_stereo(cv::Mat I_l, cv::Mat I_r){
 		circle(screen, mark[i], 1, (Scalar) color, 3);
 	}
 
+	/*
 	// Display image and wait
 	namedWindow("Stereo");
 	imshow("Stereo", screen);
 	waitKey();
+	*/
+	
+
+	// Fill set of support points
+	int num_points = correspondences.size();
+	S = cv::Mat(num_points, 3, CV_32F, 0.0);
+	for (int i = 0; i < num_points; ++i) // i < num_points;
+	{
+		S.at<float>(i,0) = correspondences_disparity_original[i][0];
+		S.at<float>(i,1) = correspondences_disparity_original[i][1];
+		S.at<float>(i,2) = correspondences_disparity_original[i][2];
+	}
+
 
 	// Clean up
 	delete leftFeatureDetector;
