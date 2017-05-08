@@ -125,7 +125,7 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 		int nuOfZeros = 0;
 
 		// loop along each epipolar line
-		for (int u_ = std::max(0, currU - 40); u_ <= currU; ++u_){
+		for (int u_ = std::max(0, currU - 30); u_ <= currU; ++u_){
 			//extract each right census
 			unsigned int currCensusRight = census_r.at<unsigned int>(currV, u_);
 
