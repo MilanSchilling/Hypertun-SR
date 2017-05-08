@@ -36,7 +36,7 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 				noBadPts++;
 			}
 			// if cost is lower than t_lo	
-			if (C_g.at<float>(it_v, it_u, 3) < param.t_lo){
+			if (C_g.at<float>(it_v, it_u, 3) < param.t_lo && C_g.at<float>(it_v, it_u, 3) != 0){
 				noGoodPts++;
 			}	
 		}
