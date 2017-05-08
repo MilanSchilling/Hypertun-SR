@@ -41,7 +41,7 @@ void pipeline() {
 	param.n_iters = 3;
 	param.t_lo = 2.f/24; // placeholder, verify optimal value
 	param.t_hi = 24.f/24; // placeholder, verify optimal value
-	param.im_grad = 150;
+	param.im_grad = 224;
 
 	// Load images
 	cv::Mat I_l = cv::imread("../data/data_scene_flow/testing/image_2/000000_10.png", CV_LOAD_IMAGE_COLOR);
@@ -94,28 +94,35 @@ void pipeline() {
 	cv::addWeighted(abs_grad_l_x, 0.5, abs_grad_l_y, 0.5, 0, grad_l);
 	cv::addWeighted(abs_grad_r_x, 0.5, abs_grad_r_y, 0.5, 0, grad_r);
 
-	unsigned int highGradCount = 0; 
+	int highGradCount = 0; 
 	// count how many pixels with high gradient in left image
 	for (int vv = 0; vv < I_l_cg.rows; vv++){
 		for (int uu = 0; uu < I_l_cg.cols; uu++){
-			if(int(grad_l.at<uchar>(vv,uu)) < param.im_grad){
+			if(int(grad_l.at<uchar>(vv,uu)) > param.im_grad){
 				highGradCount++;
 			}
 		}
 	}
 
+	param.nOfHiGradPix = highGradCount;
+	std::cout << "Number of pixels with high gradient: " << param.nOfHiGradPix << std::endl;
+
 	// container for high gradient pixel values [nuOfHiGradPixels x (u,v)]
-	cv::Mat O = cv::Mat(highGradCount, 2, CV_16U, 0.0);
+	cv::Mat O = cv::Mat(param.nOfHiGradPix, 2, CV_32S, 0.0);
 	highGradCount = 0;
 	for (int vv = 0; vv < I_l_cg.rows; vv++){
 		for (int uu = 0; uu < I_l_cg.cols; uu++){
-			if(int(grad_l.at<uchar>(vv,uu)) < param.im_grad){
+			if(int(grad_l.at<uchar>(vv,uu)) > param.im_grad){
+				assert((0 <= uu) & (uu <= 1232));
+				assert((0 <= vv) & (vv <= 368));
 				O.at<int>(highGradCount, 0) = uu;
 				O.at<int>(highGradCount, 1) = vv;
 				highGradCount++;
 			}
 		}
 	}
+
+
 	
 
 	cv::imshow("left gradient", grad_l);
@@ -186,7 +193,7 @@ void pipeline() {
 
 		// execute 'disparity_interpolation' with elapsed time estimation
 		lastTime = boost::posix_time::microsec_clock::local_time();
-		disparity_interpolation(G, T, D_it);
+		disparity_interpolation(G, T, O, param, D_it);
 		elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
 		std::cout << "Elapsed Time for 'disparity_interpolation': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
 		
