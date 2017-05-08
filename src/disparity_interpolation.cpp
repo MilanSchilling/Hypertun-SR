@@ -18,7 +18,7 @@ void disparity_interpolation(cv::Mat &G, cv::Mat &T, cv::Mat &O, parameters & pa
 	int H = G.rows;
 	int W = G.cols;
 
-	// loop over all pixels
+	// loop over all high gradient pixels
 	for (int it = 0; it < param.nOfHiGradPix; it++){
 
 		// extract u,v

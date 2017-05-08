@@ -34,20 +34,18 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r,
 	//####################################
 	std::cout << "cost_evaluation.cpp census try" << std::endl;
 
-	cv::Mat empt_cens = cv::Mat(param.H, param.W, CV_32S, cv::Scalar(-1));
-
 	// Sign input images
 	cv::Mat_<unsigned char> leftImg, rightImg;
-	leftImg = I_l.clone();
-	rightImg = I_r.clone();
+	leftImg = I_l;
+	rightImg = I_r;
 
 	// create container for char images
 	cv::Mat_<char> charLeft(param.H, param.W);
 	cv::Mat_<char> charRight(param.H, param.W);
 
 	// create container for census outputs
-	cv::Mat_<unsigned int> censusLeft(param.H, param.W);
-	cv::Mat_<unsigned int> censusRight(param.H, param.W);
+	 cv::Mat_<unsigned int> censusLeft (param.H, param.W);
+	 cv::Mat_<unsigned int> censusRight (param.H, param.W);
 
 	// convert images
 	sparsestereo::ImageConversion::unsignedToSigned(leftImg, &charLeft);
@@ -69,10 +67,11 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r,
 		if (G.at<int>(v,u) != -1){
 			// get interpolated disparity
 			int disp = D_it.at<float>(v,u);
+
+			// be sure u+d does not exeed the image 
 			if (u + disp > 1242){
 				disp = disp - (u + disp - 1242);
 			}
-			assert(u + disp <= 1242);
 
 			sparsestereo::HammingDistance mHamming;
 			// calculate hamming distance

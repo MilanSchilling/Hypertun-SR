@@ -41,14 +41,14 @@ void pipeline() {
 	//Load parameters
 	parameters param;
 	param.sz_occ = 32;
-	param.n_iters = 3;
+	param.n_iters = 2;
 	param.t_lo = 2.f/24; // placeholder, verify optimal value
-	param.t_hi = 23.f/24; // placeholder, verify optimal value
-	param.im_grad = 150;
+	param.t_hi = 24.f/24; // placeholder, verify optimal value
+	param.im_grad = 50;
 
 	// Load images
-	cv::Mat I_l = cv::imread("../data/data_scene_flow/testing/image_2/000000_10.png", CV_LOAD_IMAGE_COLOR);
-	cv::Mat I_r = cv::imread("../data/data_scene_flow/testing/image_3/000000_10.png", CV_LOAD_IMAGE_COLOR);
+	cv::Mat I_l = cv::imread("../data/data_scene_flow/testing/image_2/000004_10.png", CV_LOAD_IMAGE_COLOR);
+	cv::Mat I_r = cv::imread("../data/data_scene_flow/testing/image_3/000004_10.png", CV_LOAD_IMAGE_COLOR);
 	
 	// crop image to be dividable by 16
 	int offset_u = 5;
@@ -72,9 +72,9 @@ void pipeline() {
 	cv::cvtColor(I_r_c, I_r_cg, CV_BGR2GRAY);
 
 	// Generate grad_x and grad_y
-  	cv::Mat grad_l_x, grad_l_y, grad_r_x, grad_r_y;
-  	cv::Mat abs_grad_l_x, abs_grad_l_y, abs_grad_r_x, abs_grad_r_y;
-	cv::Mat grad_l, grad_r;
+  	cv::Mat grad_l_x, grad_l_y;
+  	cv::Mat abs_grad_l_x, abs_grad_l_y;
+	cv::Mat grad_l;
 
 	// parameters for Gradient
 	int scale = 1;
@@ -83,19 +83,14 @@ void pipeline() {
 
 	// Gradient X
 	cv::Sobel( I_l_cg, grad_l_x, ddepth, 1, 0, 3, scale, delta, cv::BORDER_DEFAULT);
-	cv::Sobel( I_r_cg, grad_r_x, ddepth, 1, 0, 3, scale, delta, cv::BORDER_DEFAULT);
 	cv::convertScaleAbs(grad_l_x, abs_grad_l_x);
-	cv::convertScaleAbs(grad_r_x, abs_grad_r_x);
 
 	// Gradient Y
 	cv::Sobel( I_l_cg, grad_l_y, ddepth, 0, 1, 3, scale, delta, cv::BORDER_DEFAULT);
-	cv::Sobel( I_r_cg, grad_r_y, ddepth, 0, 1, 3, scale, delta, cv::BORDER_DEFAULT);
- 	cv::convertScaleAbs(grad_l_y, abs_grad_l_y );
-	cv::convertScaleAbs(grad_r_y, abs_grad_r_y);	
+ 	cv::convertScaleAbs(grad_l_y, abs_grad_l_y );	
 
 	// Total Gradient (approximate)
 	cv::addWeighted(abs_grad_l_x, 0.5, abs_grad_l_y, 0.5, 0, grad_l);
-	cv::addWeighted(abs_grad_r_x, 0.5, abs_grad_r_y, 0.5, 0, grad_r);
 
 	int highGradCount = 0; 
 	// count how many pixels with high gradient in left image
@@ -106,6 +101,7 @@ void pipeline() {
 			}
 		}
 	}
+	// TODO: get rid of this loop above, it is just to count how many pixel above threshold. (maybe push_back?)
 
 	param.nOfHiGradPix = highGradCount;
 	std::cout << "Number of pixels with high gradient: " << param.nOfHiGradPix << std::endl;
@@ -116,8 +112,6 @@ void pipeline() {
 	for (int vv = 0; vv < I_l_cg.rows; vv++){
 		for (int uu = 0; uu < I_l_cg.cols; uu++){
 			if(int(grad_l.at<uchar>(vv,uu)) > param.im_grad){
-				assert((0 <= uu) & (uu <= 1232));
-				assert((0 <= vv) & (vv <= 368));
 				O.at<int>(highGradCount, 0) = uu;
 				O.at<int>(highGradCount, 1) = vv;
 				highGradCount++;
@@ -125,12 +119,9 @@ void pipeline() {
 		}
 	}
 
-
-	
-
-	cv::imshow("left gradient", grad_l);
-	cv::imshow("right gradient", grad_r);
-	cv::waitKey(0);
+	// show gradient image
+	//cv::imshow("left gradient", grad_l);
+	//cv::waitKey(0);
 
 	// Get image height and width
 	param.H = I_l_cg.rows;
@@ -294,8 +285,10 @@ void pipeline() {
 	std::cout << "************************************************" << std::endl;
 
 	showGrid(I_l_cg, S, E, "final Delaunay");
-	showDisparity(I_l_cg, D_f, "final Disparity");
 	showSupportPts(I_l_cg, S, "final Support Points");
+	showDisparity(I_l_cg, D_f, "final Disparity");
+	
+	
 	cv::waitKey(0);
 }
 
