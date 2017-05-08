@@ -232,7 +232,7 @@ void pipeline() {
 
 		// execute 'disparity_refinement' with elapsed time estimation
 		lastTime = boost::posix_time::microsec_clock::local_time();
-		disparity_refinement(D_it, C_it, G, D_f, C_f, C_g, C_b, param);
+		disparity_refinement(D_it, C_it, G, O, D_f, C_f, C_g, C_b, param);
 		elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
 		std::cout << "Elapsed Time for 'disparity_refinement': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
 		
