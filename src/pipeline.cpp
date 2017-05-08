@@ -41,10 +41,11 @@ void pipeline() {
 	param.n_iters = 3;
 	param.t_lo = 2.f/24; // placeholder, verify optimal value
 	param.t_hi = 24.f/24; // placeholder, verify optimal value
+	param.im_grad = 150;
 
 	// Load images
-	cv::Mat I_l = cv::imread("../data/data_scene_flow/testing/image_2/000000_10.png", CV_LOAD_IMAGE_GRAYSCALE);
-	cv::Mat I_r = cv::imread("../data/data_scene_flow/testing/image_3/000000_10.png", CV_LOAD_IMAGE_GRAYSCALE);
+	cv::Mat I_l = cv::imread("../data/data_scene_flow/testing/image_2/000000_10.png", CV_LOAD_IMAGE_COLOR);
+	cv::Mat I_r = cv::imread("../data/data_scene_flow/testing/image_3/000000_10.png", CV_LOAD_IMAGE_COLOR);
 	
 	// crop image to be dividable by 16
 	int offset_u = 5;
@@ -57,10 +58,74 @@ void pipeline() {
 
 	cv::Mat I_l_c = I_l(roi);
 	cv::Mat I_r_c = I_r(roi);
+	cv::Mat I_l_cg, I_r_cg;
+
+	// apply gaussian blur
+	cv::GaussianBlur(I_l_c, I_l_c, cv::Size(3,3), 0, 0, cv::BORDER_DEFAULT);
+	cv::GaussianBlur(I_r_c, I_r_c, cv::Size(3,3), 0, 0, cv::BORDER_DEFAULT);
+
+	// Convert to gray
+	cv::cvtColor(I_l_c, I_l_cg, CV_BGR2GRAY);
+	cv::cvtColor(I_r_c, I_r_cg, CV_BGR2GRAY);
+
+	// Generate grad_x and grad_y
+  	cv::Mat grad_l_x, grad_l_y, grad_r_x, grad_r_y;
+  	cv::Mat abs_grad_l_x, abs_grad_l_y, abs_grad_r_x, abs_grad_r_y;
+	cv::Mat grad_l, grad_r;
+
+	// parameters for Gradient
+	int scale = 1;
+	int delta = 0;
+	int ddepth = -1;
+
+	// Gradient X
+	cv::Sobel( I_l_cg, grad_l_x, ddepth, 1, 0, 3, scale, delta, cv::BORDER_DEFAULT);
+	cv::Sobel( I_r_cg, grad_r_x, ddepth, 1, 0, 3, scale, delta, cv::BORDER_DEFAULT);
+	cv::convertScaleAbs(grad_l_x, abs_grad_l_x);
+	cv::convertScaleAbs(grad_r_x, abs_grad_r_x);
+
+	// Gradient Y
+	cv::Sobel( I_l_cg, grad_l_y, ddepth, 0, 1, 3, scale, delta, cv::BORDER_DEFAULT);
+	cv::Sobel( I_r_cg, grad_r_y, ddepth, 0, 1, 3, scale, delta, cv::BORDER_DEFAULT);
+ 	cv::convertScaleAbs(grad_l_y, abs_grad_l_y );
+	cv::convertScaleAbs(grad_r_y, abs_grad_r_y);	
+
+	// Total Gradient (approximate)
+	//cv::addWeighted( abs_grad_x, 0.5, abs_grad_y, 0.5, 0, grad );
+	cv::addWeighted(abs_grad_l_x, 0.5, abs_grad_l_y, 0.5, 0, grad_l);
+	cv::addWeighted(abs_grad_r_x, 0.5, abs_grad_r_y, 0.5, 0, grad_r);
+
+	unsigned int highGradCount = 0; 
+	// count how many pixels with high gradient in left image
+	for (int vv = 0; vv < I_l_cg.rows; vv++){
+		for (int uu = 0; uu < I_l_cg.cols; uu++){
+			if(int(grad_l.at<uchar>(vv,uu)) < param.im_grad){
+				highGradCount++;
+			}
+		}
+	}
+
+	// container for high gradient pixel values [nuOfHiGradPixels x (u,v)]
+	cv::Mat O = cv::Mat(highGradCount, 2, CV_16U, 0.0);
+	highGradCount = 0;
+	for (int vv = 0; vv < I_l_cg.rows; vv++){
+		for (int uu = 0; uu < I_l_cg.cols; uu++){
+			if(int(grad_l.at<uchar>(vv,uu)) < param.im_grad){
+				O.at<int>(highGradCount, 0) = uu;
+				O.at<int>(highGradCount, 1) = vv;
+				highGradCount++;
+			}
+		}
+	}
+	
+
+	cv::imshow("left gradient", grad_l);
+	cv::imshow("right gradient", grad_r);
+	cv::waitKey(0);
 
 	// Get image height and width
-	param.H = I_l_c.rows;
-	param.W = I_r_c.cols;
+	param.H = I_l_cg.rows;
+	param.W = I_r_cg.cols;
 
 	// Get initial grid height and width
 	param.H_bar = std::floor(param.H / param.sz_occ);
@@ -86,7 +151,7 @@ void pipeline() {
 
 	// execute 'sparse_stereo' with elapsed time estimation 
 	boost::posix_time::ptime lastTime = boost::posix_time::microsec_clock::local_time();
-	sparse_stereo(I_l_c, I_r_c, S);
+	sparse_stereo(I_l_cg, I_r_cg, S);
 	boost::posix_time::time_duration elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
 	std::cout << "Elapsed Time for 'sparse_stereo': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
 
@@ -108,7 +173,7 @@ void pipeline() {
 	// TODO: set G = -1 for all supportpoints within delaunay!
 	
 	// show the grid from the delaunay triangulation
-	showGrid(I_l_c, S, E, "Delaunay 1");
+	showGrid(I_l_cg, S, E, "Delaunay 1");
 	boost::posix_time::ptime algorithm_time_start = boost::posix_time::microsec_clock::local_time();
 
 	for (int i = 0; i < param.n_iters; ++i) {
@@ -134,7 +199,7 @@ void pipeline() {
 
 		// execute 'cost_evaluation' with elapsed time estimation
 		lastTime = boost::posix_time::microsec_clock::local_time();
-		cost_evaluation(I_l_c, I_r_c, D_it, C_it, G, param);
+		cost_evaluation(I_l_cg, I_r_cg, D_it, C_it, G, param);
 		elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
 		std::cout << "Elapsed Time for 'cost_evaluation': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;	
 
@@ -170,7 +235,7 @@ void pipeline() {
 
 			// execute 'support_resampling' with elapsed time estimation
 			lastTime = boost::posix_time::microsec_clock::local_time();
-			support_resampling(C_g, C_b, S, param, I_l_c, I_r_c);
+			support_resampling(C_g, C_b, S, param, I_l_cg, I_r_cg);
 			elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
 			std::cout << "Elapsed Time for 'support_resampling': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
 		
@@ -216,8 +281,8 @@ void pipeline() {
 	std::cout << "WITH A SPEED OF: " << 1.0e6/algorithm_time_elapsed.total_microseconds() << " Hz" << std::endl;
 	std::cout << "************************************************" << std::endl;
 
-	showGrid(I_l_c, S, E, "final Delaunay");
-	showDisparity(I_l_c, D_f, "final Disparity");
+	showGrid(I_l_cg, S, E, "final Delaunay");
+	showDisparity(I_l_cg, D_f, "final Disparity");
 	cv::waitKey(0);
 }
 

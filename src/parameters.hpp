@@ -19,6 +19,9 @@ struct parameters {
 	// grid height and width
 	int H_bar;
 	int W_bar;
+
+	// threshold for image gradient
+	int im_grad;
 };
 
 #endif // PARAMETERS_HPP
