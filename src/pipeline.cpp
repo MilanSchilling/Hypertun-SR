@@ -28,6 +28,9 @@ void showG (cv::Mat I_l, cv::Mat G, parameters param, std::string str);
 // header of 'showDisparity'
 void showDisparity(cv::Mat I_l, cv::Mat D_it, std::string str);
 
+// header of 'showSupportPts'
+void showSupportPts(cv::Mat I_l, cv::Mat S_it, std::string str);
+
 
 
 void pipeline() {
@@ -39,12 +42,12 @@ void pipeline() {
 	parameters param;
 	param.sz_occ = 32;
 	param.n_iters = 4;
-	param.t_lo = 2.f/24; // placeholder, verify optimal value
+	param.t_lo = 1.f/24; // placeholder, verify optimal value
 	param.t_hi = 22.f/24; // placeholder, verify optimal value
 
 	// Load images
-	cv::Mat I_l = cv::imread("../data/data_scene_flow/testing/image_2/000000_10.png", CV_LOAD_IMAGE_GRAYSCALE);
-	cv::Mat I_r = cv::imread("../data/data_scene_flow/testing/image_3/000000_10.png", CV_LOAD_IMAGE_GRAYSCALE);
+	cv::Mat I_l = cv::imread("../data/data_scene_flow/testing/image_2/000004_10.png", CV_LOAD_IMAGE_GRAYSCALE);
+	cv::Mat I_r = cv::imread("../data/data_scene_flow/testing/image_3/000004_10.png", CV_LOAD_IMAGE_GRAYSCALE);
 	
 	// crop image to be dividable by 16
 	int offset_u = 5;
@@ -221,6 +224,7 @@ void pipeline() {
 
 	showGrid(I_l_c, S, E, "final Delaunay");
 	showDisparity(I_l_c, D_f, "final Disparity");
+	showSupportPts(I_l, S, "final Support Points");
 	cv::waitKey(0);
 }
 
@@ -330,4 +334,24 @@ void showDisparity(cv::Mat I_l, cv::Mat D_it, std::string str){
 		}
 
 		cv::imshow(str, disparity);
+}
+
+
+void showSupportPts(cv::Mat I_l, cv::Mat S_it, std::string str){
+	cv::Mat support = I_l.clone();
+	cv::cvtColor(support, support, CV_GRAY2RGB);
+
+	// loop over all points
+	for (int i = 0; i < S_it.rows; ++i){
+		cv::Point p1(S_it.at<float>(i,0), S_it.at<float>(i,1));
+		float maxDisp = 64.0; // staehlii: THIS IS ACTUALLY NOT A CONSTANT BUT I DON'T WANT TO SEARCH FOR THE CORRECT VALUE
+		float scaledDisp1 = S_it.at<float>(i,2)/maxDisp;
+		cv::Vec3b color1;
+
+		cv::circle(support, p1, 1, cv::Scalar(0, scaledDisp1*512, 255), 2, 8, 0);
+
+		cv::imshow(str, support);
+	}
+	
+
 }

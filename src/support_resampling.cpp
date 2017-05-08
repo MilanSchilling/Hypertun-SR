@@ -122,9 +122,10 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 		// define best cost
 		float bestCost = 2.;
 		int u_best = 0;
+		int nuOfZeros = 0;
 
 		// loop along each epipolar line
-		for (int u_ = std::max(0, currU - 15); u_ <= currU; ++u_){
+		for (int u_ = std::max(0, currU - 40); u_ <= currU; ++u_){
 			//extract each right census
 			unsigned int currCensusRight = census_r.at<unsigned int>(currV, u_);
 
@@ -138,13 +139,14 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 				u_best = u_;
 			}
 
-			if (i == 10){
-				//std::cout << "current Hamming / Cost = " << (int)hamming << " / " << currCost << std::endl;
-			}
+			// count how many zero-cost matches there are
+			if (hamming == 0)
+				nuOfZeros++;
 
 		}
 
-		if (bestCost == 0){
+		// check if best match is good and unique
+		if ((bestCost == 0) && (nuOfZeros == 1)){
 			// calculate disparity with u_left - u_right
 			int disp = currU - u_best;
 			assert(disp >= 0);
