@@ -29,6 +29,8 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r,
 	//####################################
 	std::cout << "cost_evaluation.cpp census try" << std::endl;
 
+	cv::Mat empt_cens = cv::Mat(param.H, param.W, CV_32S, cv::Scalar(-1));
+
 	// Sign input images
 	cv::Mat_<unsigned char> leftImg, rightImg;
 	leftImg = I_l.clone();
@@ -45,7 +47,7 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r,
 	// convert images
 	sparsestereo::ImageConversion::unsignedToSigned(leftImg, &charLeft);
 	sparsestereo::ImageConversion::unsignedToSigned(rightImg, &charRight);
-	std::cout << "conversion done" << std::endl;
+	//std::cout << "conversion done" << std::endl;
 
 	// perform census transform
 	sparsestereo::Census::transform5x5(charLeft, &censusLeft);
@@ -70,12 +72,18 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r,
 				//std::cout << "caluclate hamming at (u+d,v) = (" << u << "+" << (int)disp << "," << v <<  ")" << std::endl;
 
 				unsigned int currCensusLeft = censusLeft.at<unsigned int>(v,u);
-				//std::cout << "extracted census Left:  " << std::bitset<32>(currCensusLeft) << std::endl;
+				//std::cout << "extracted census Left:  " << std::bitset<24>(currCensusLeft) << std::endl;
 				unsigned int currCensusRight = censusRight.at<unsigned int>(v,u + (int)disp);
-				//std::cout << "extracted census Right: " << std::bitset<32>(currCensusRight) << std::endl;
+				//std::cout << "extracted census Right: " << std::bitset<24>(currCensusRight) << std::endl;
 				unsigned char hamming = mHamming.calculate(currCensusLeft, currCensusRight);
 				// TODO: verify (v+disp, u) or (v, u+disp)
 				//std::cout << "hamming = " << int(hamming) << std::endl;
+
+				/*
+				if(hamming == 24){
+					empt_cens.at<int>(v,u) = 1;
+				}
+				*/
 
 				// normalize cost
 				float n_cost = hamming / 24.0;
@@ -86,6 +94,24 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r,
 		}
 	}
 
+	/*
+	// show where census is zero
+	cv::Mat cens = I_l.clone();
+	cv::cvtColor(cens, cens, CV_GRAY2RGB);
+	cv::Vec3b color = cv::Vec3b(0,0,255);
+	// loop over empt_cens
+	for (int v = 0; v < param.H; ++v){
+		for (int u = 0; u < param.W; u++){
+			if(empt_cens.at<int>(v,u) > 0){
+				cens.at<cv::Vec3b>(v,u) = color;
+			}
+
+		}
+	}
+
+	cv::imshow("empty census", cens);
+	cv::waitKey(0);
+	*/
 
 
 

@@ -40,7 +40,7 @@ void pipeline() {
 	param.sz_occ = 32;
 	param.n_iters = 3;
 	param.t_lo = 0.01; // placeholder, verify optimal value
-	param.t_hi = 1.0; // placeholder, verify optimal value
+	param.t_hi = 1; // placeholder, verify optimal value
 
 	// Load images
 	cv::Mat I_l = cv::imread("../data/data_scene_flow/testing/image_2/000000_10.png", CV_LOAD_IMAGE_GRAYSCALE);
@@ -61,9 +61,6 @@ void pipeline() {
 	// Get image height and width
 	param.H = I_l_c.rows;
 	param.W = I_r_c.cols;
-	std::cout << "New height and width = " << param.H << " and " << param.W << std::endl;
-	cv::imshow("crop", I_l_c);
-	cv::waitKey(0);
 
 	// Get initial grid height and width
 	param.H_bar = std::floor(param.H / param.sz_occ);
