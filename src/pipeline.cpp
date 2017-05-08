@@ -38,9 +38,9 @@ void pipeline() {
 	//Load parameters
 	parameters param;
 	param.sz_occ = 32;
-	param.n_iters = 3;
+	param.n_iters = 4;
 	param.t_lo = 2.f/24; // placeholder, verify optimal value
-	param.t_hi = 24.f/24; // placeholder, verify optimal value
+	param.t_hi = 22.f/24; // placeholder, verify optimal value
 
 	// Load images
 	cv::Mat I_l = cv::imread("../data/data_scene_flow/testing/image_2/000000_10.png", CV_LOAD_IMAGE_GRAYSCALE);
@@ -48,7 +48,7 @@ void pipeline() {
 	
 	// crop image to be dividable by 16
 	int offset_u = 5;
-	int offset_v = 4;
+	int offset_v = 2;
 	cv::Rect roi; // region of interest
 	roi.x = offset_u;
 	roi.y = offset_v;
@@ -82,6 +82,8 @@ void pipeline() {
 	cv::Mat C_b; // cost associated with regions of bad matches 
 	cv::Mat D_it; // Intermediate disparity (interpolated)
 	cv::Mat C_it; // Cost associated to D_it
+	cv::Mat census_l; // census transformed left image
+	cv::Mat census_r; // census transformed right image
 
 
 	// execute 'sparse_stereo' with elapsed time estimation 
@@ -132,9 +134,10 @@ void pipeline() {
 		// show disparity from disparity_interpolation
 		//showDisparity(I_l_c, D_it, "Disparity interpolated");
 
+		
 		// execute 'cost_evaluation' with elapsed time estimation
 		lastTime = boost::posix_time::microsec_clock::local_time();
-		cost_evaluation(I_l_c, I_r_c, D_it, C_it, G, param);
+		cost_evaluation(I_l_c, I_r_c, D_it, G, C_it, param, census_l, census_r);
 		elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
 		std::cout << "Elapsed Time for 'cost_evaluation': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;	
 
@@ -170,7 +173,7 @@ void pipeline() {
 
 			// execute 'support_resampling' with elapsed time estimation
 			lastTime = boost::posix_time::microsec_clock::local_time();
-			support_resampling(C_g, C_b, S, param, I_l_c, I_r_c);
+			support_resampling(C_g, C_b, S, param, I_l_c, I_r_c, census_l, census_r);
 			elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
 			std::cout << "Elapsed Time for 'support_resampling': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
 		

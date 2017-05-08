@@ -14,14 +14,17 @@
 // - G   : Matrix G which points to the corresponding triangle for every pixel [H x W]
 //
 // outputs:
-// - C_it: Normalized cost associated to D_it
+// - C_it  : Normalized cost associated to D_it
+// - census_l: Census transformed left image
+// - census_r:  Census transformed right image
 // ############################################
 // This function compares every patch with the correspondent patch, 
 // given the interpolated disparity, using a census comparison.
 // It returns a matirx containing the costs for every pixel. 
 void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r, 
-						cv::Mat &D_it, cv::Mat &C_it, 
-						cv::Mat &G, parameters &param){
+						cv::Mat &D_it, cv::Mat &G, 
+						cv::Mat &C_it, parameters &param,
+						cv::Mat &census_l, cv::Mat &census_r){
 
 
 
@@ -93,6 +96,10 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r,
 			}
 		}
 	}
+
+	// copy census transformed images for output
+	census_l = censusLeft;
+	census_r = censusRight;
 
 	/*
 	// show where census is zero
