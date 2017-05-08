@@ -30,7 +30,7 @@ void showDisparity(cv::Mat I_l, cv::Mat D_it, std::string str);
 
 
 
-void pipeline() {
+void pipeline(cv::Mat I_l, cv::Mat I_r, cv::Mat &D_f) {
 
 	std::cout << "Using CV version: " << CV_VERSION << std::endl;
 	std::cout << "pipeline.cpp" << std::endl;
@@ -43,8 +43,8 @@ void pipeline() {
 	param.t_hi = 24.f/24; // placeholder, verify optimal value
 
 	// Load images
-	cv::Mat I_l = cv::imread("../data/data_scene_flow/testing/image_2/000000_10.png", CV_LOAD_IMAGE_GRAYSCALE);
-	cv::Mat I_r = cv::imread("../data/data_scene_flow/testing/image_3/000000_10.png", CV_LOAD_IMAGE_GRAYSCALE);
+	//cv::Mat I_l = cv::imread("../data/data_scene_flow/testing/image_2/000000_10.png", CV_LOAD_IMAGE_GRAYSCALE);
+	//cv::Mat I_r = cv::imread("../data/data_scene_flow/testing/image_3/000000_10.png", CV_LOAD_IMAGE_GRAYSCALE);
 	
 	// crop image to be dividable by 16
 	int offset_u = 5;
@@ -67,7 +67,7 @@ void pipeline() {
 	param.W_bar = std::floor(param.W / param.sz_occ);
 
 	// Initialize final disparity and associated cost
-	cv::Mat D_f = cv::Mat(param.H, param.W, CV_32F, 0.0);
+	D_f = cv::Mat(param.H, param.W, CV_32F, 0.0);
 	cv::Mat C_dummy_2 = cv::Mat(param.H, param.W, CV_32F, 0.0); // dummy array
 	cv::Mat C_f = cv::Mat(param.H, param.W, CV_32F, param.t_hi);
 
