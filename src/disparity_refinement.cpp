@@ -67,8 +67,8 @@ void disparity_refinement(cv::Mat &D_it, cv::Mat &C_it,
 					C_b.at<float>(v_bar,u_bar, 1) = v;
 					C_b.at<float>(v_bar,u_bar, 2) = C_it.at<float>(v,u);
 					assert(0 <= C_b.at<float>(v_bar, u_bar, 2) && C_b.at<float>(v_bar, u_bar, 2) <= 1);
-					std::cout << "disparity_refinement: added point to C_b." << std::endl;
-					std::cout << "C_it.at<float>(i,j) = " << C_it.at<float>(v,u) << std::endl;
+					//std::cout << "disparity_refinement: added point to C_b." << std::endl;
+					//std::cout << "C_it.at<float>(i,j) = " << C_it.at<float>(v,u) << std::endl;
 					
 				}
 			}

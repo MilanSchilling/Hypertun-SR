@@ -39,17 +39,28 @@ void pipeline() {
 	parameters param;
 	param.sz_occ = 32;
 	param.n_iters = 3;
-	param.t_lo = 1.f/24; // placeholder, verify optimal value
-	param.t_hi = 23.f/24; // placeholder, verify optimal value
+	param.t_lo = 2.f/24; // placeholder, verify optimal value
+	param.t_hi = 24.f/24; // placeholder, verify optimal value
 
 	// Load images
 	cv::Mat I_l = cv::imread("../data/data_scene_flow/testing/image_2/000000_10.png", CV_LOAD_IMAGE_GRAYSCALE);
 	cv::Mat I_r = cv::imread("../data/data_scene_flow/testing/image_3/000000_10.png", CV_LOAD_IMAGE_GRAYSCALE);
 	
+	// crop image to be dividable by 16
+	int offset_u = 5;
+	int offset_v = 4;
+	cv::Rect roi; // region of interest
+	roi.x = offset_u;
+	roi.y = offset_v;
+	roi.width = 1232;
+	roi.height = 368;
+
+	cv::Mat I_l_c = I_l(roi);
+	cv::Mat I_r_c = I_r(roi);
 
 	// Get image height and width
-	param.H = I_l.rows;
-	param.W = I_r.cols;
+	param.H = I_l_c.rows;
+	param.W = I_r_c.cols;
 
 	// Get initial grid height and width
 	param.H_bar = std::floor(param.H / param.sz_occ);
@@ -75,7 +86,7 @@ void pipeline() {
 
 	// execute 'sparse_stereo' with elapsed time estimation 
 	boost::posix_time::ptime lastTime = boost::posix_time::microsec_clock::local_time();
-	sparse_stereo(I_l, I_r, S);
+	sparse_stereo(I_l_c, I_r_c, S);
 	boost::posix_time::time_duration elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
 	std::cout << "Elapsed Time for 'sparse_stereo': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
 
@@ -97,7 +108,7 @@ void pipeline() {
 	// TODO: set G = -1 for all supportpoints within delaunay!
 	
 	// show the grid from the delaunay triangulation
-	showGrid(I_l, S, E, "Delaunay 1");
+	showGrid(I_l_c, S, E, "Delaunay 1");
 	boost::posix_time::ptime algorithm_time_start = boost::posix_time::microsec_clock::local_time();
 
 	for (int i = 0; i < param.n_iters; ++i) {
@@ -119,11 +130,11 @@ void pipeline() {
 		//showG(I_l, G, param, "G");
 
 		// show disparity from disparity_interpolation
-		//showDisparity(I_l, D_it, "Disparity interpolated");
+		//showDisparity(I_l_c, D_it, "Disparity interpolated");
 
 		// execute 'cost_evaluation' with elapsed time estimation
 		lastTime = boost::posix_time::microsec_clock::local_time();
-		cost_evaluation(I_l, I_r, D_it, C_it, G, param);
+		cost_evaluation(I_l_c, I_r_c, D_it, C_it, G, param);
 		elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
 		std::cout << "Elapsed Time for 'cost_evaluation': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;	
 
@@ -159,7 +170,7 @@ void pipeline() {
 
 			// execute 'support_resampling' with elapsed time estimation
 			lastTime = boost::posix_time::microsec_clock::local_time();
-			support_resampling(C_g, C_b, S, param, I_l, I_r);
+			support_resampling(C_g, C_b, S, param, I_l_c, I_r_c);
 			elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
 			std::cout << "Elapsed Time for 'support_resampling': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
 		
@@ -192,7 +203,7 @@ void pipeline() {
 			std::ostringstream oss;
 			oss << "Delaunay " << i+2;
 			std::string str = oss.str();
-			//showGrid(I_l, S, E, str);
+			showGrid(I_l_c, S, E, str);
 			
 		}
 	}
@@ -205,8 +216,8 @@ void pipeline() {
 	std::cout << "WITH A SPEED OF: " << 1.0e6/algorithm_time_elapsed.total_microseconds() << " Hz" << std::endl;
 	std::cout << "************************************************" << std::endl;
 
-	showGrid(I_l, S, E, "final Delaunay");
-	showDisparity(I_l, D_f, "final Disparity");
+	showGrid(I_l_c, S, E, "final Delaunay");
+	showDisparity(I_l_c, D_f, "final Disparity");
 	cv::waitKey(0);
 }
 

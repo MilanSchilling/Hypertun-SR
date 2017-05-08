@@ -1,4 +1,8 @@
 #include "cost_evaluation.hpp"
+#include "sparsestereo/sparsestereo-inl.h"
+#include "sparsestereo/census-inl.h"
+#include "sparsestereo/censuswindow.h"
+#include "sparsestereo/imageconversion.h"
 #include <iostream>
 #include <bitset>
 
@@ -19,6 +23,99 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r,
 						cv::Mat &D_it, cv::Mat &C_it, 
 						cv::Mat &G, parameters &param){
 
+
+
+	// try with exfast census
+	//####################################
+	std::cout << "cost_evaluation.cpp census try" << std::endl;
+
+	cv::Mat empt_cens = cv::Mat(param.H, param.W, CV_32S, cv::Scalar(-1));
+
+	// Sign input images
+	cv::Mat_<unsigned char> leftImg, rightImg;
+	leftImg = I_l.clone();
+	rightImg = I_r.clone();
+
+	// create container for char images
+	cv::Mat_<char> charLeft(param.H, param.W);
+	cv::Mat_<char> charRight(param.H, param.W);
+
+	// create container for census outputs
+	cv::Mat_<unsigned int> censusLeft(param.H, param.W);
+	cv::Mat_<unsigned int> censusRight(param.H, param.W);
+
+	// convert images
+	sparsestereo::ImageConversion::unsignedToSigned(leftImg, &charLeft);
+	sparsestereo::ImageConversion::unsignedToSigned(rightImg, &charRight);
+	//std::cout << "conversion done" << std::endl;
+
+	// perform census transform
+	sparsestereo::Census::transform5x5(charLeft, &censusLeft);
+	sparsestereo::Census::transform5x5(charRight, &censusRight);
+
+
+	// loop over interpolated disparities
+	for (int v = 0; v < param.H; ++v){
+		for (int u = 0; u < param.W; u++){
+			
+			// check if triangle is defined for this pixel
+			if (G.at<int>(v,u) != -1){
+				// get interpolated disparity
+				int disp = D_it.at<float>(v,u);
+				if (u + disp > 1242){
+					disp = disp - (u + disp - 1242);
+				}
+				assert(u + disp <= 1242);
+
+				sparsestereo::HammingDistance mHamming;
+				// calculate hamming distance
+				//std::cout << "caluclate hamming at (u+d,v) = (" << u << "+" << (int)disp << "," << v <<  ")" << std::endl;
+
+				unsigned int currCensusLeft = censusLeft.at<unsigned int>(v,u);
+				//std::cout << "extracted census Left:  " << std::bitset<24>(currCensusLeft) << std::endl;
+				unsigned int currCensusRight = censusRight.at<unsigned int>(v,u + (int)disp);
+				//std::cout << "extracted census Right: " << std::bitset<24>(currCensusRight) << std::endl;
+				unsigned char hamming = mHamming.calculate(currCensusLeft, currCensusRight);
+				// TODO: verify (v+disp, u) or (v, u+disp)
+				//std::cout << "hamming = " << int(hamming) << std::endl;
+
+				/*
+				if(hamming == 24){
+					empt_cens.at<int>(v,u) = 1;
+				}
+				*/
+
+				// normalize cost
+				float n_cost = hamming / 24.0;
+				//std::cout << "n_cost: " << n_cost << std::endl;
+				// write cost to C_it
+				C_it.at<float>(v,u) = n_cost;
+			}
+		}
+	}
+
+	/*
+	// show where census is zero
+	cv::Mat cens = I_l.clone();
+	cv::cvtColor(cens, cens, CV_GRAY2RGB);
+	cv::Vec3b color = cv::Vec3b(0,0,255);
+	// loop over empt_cens
+	for (int v = 0; v < param.H; ++v){
+		for (int u = 0; u < param.W; u++){
+			if(empt_cens.at<int>(v,u) > 0){
+				cens.at<cv::Vec3b>(v,u) = color;
+			}
+
+		}
+	}
+
+	cv::imshow("empty census", cens);
+	cv::waitKey(0);
+	*/
+
+
+
+	/*
 	std::cout << "cost_evaluation.cpp" << std::endl;
 
 	// pad a frame around the images
@@ -72,6 +169,7 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r,
 			
 		}
 	}
+	*/
 }
 
 
