@@ -28,6 +28,9 @@ void showG (cv::Mat I_l, cv::Mat G, parameters param, std::string str);
 // header of 'showDisparity'
 void showDisparity(cv::Mat I_l, cv::Mat D_it, std::string str);
 
+// header of 'showSupportPts'
+void showSupportPts(cv::Mat I_l, cv::Mat S_it, std::string str);
+
 
 
 void pipeline() {
@@ -49,7 +52,7 @@ void pipeline() {
 	
 	// crop image to be dividable by 16
 	int offset_u = 5;
-	int offset_v = 4;
+	int offset_v = 2;
 	cv::Rect roi; // region of interest
 	roi.x = offset_u;
 	roi.y = offset_v;
@@ -153,6 +156,8 @@ void pipeline() {
 	cv::Mat C_b; // cost associated with regions of bad matches 
 	cv::Mat D_it; // Intermediate disparity (interpolated)
 	cv::Mat C_it; // Cost associated to D_it
+	cv::Mat census_l; // census transformed left image
+	cv::Mat census_r; // census transformed right image
 
 
 	// execute 'sparse_stereo' with elapsed time estimation 
@@ -203,6 +208,7 @@ void pipeline() {
 		// show disparity from disparity_interpolation
 		//showDisparity(I_l_c, D_it, "Disparity interpolated");
 
+		
 		// execute 'cost_evaluation' with elapsed time estimation
 		lastTime = boost::posix_time::microsec_clock::local_time();
 		cost_evaluation(I_l_cg, I_r_cg, D_it, G, O, param, C_it);
@@ -241,7 +247,7 @@ void pipeline() {
 
 			// execute 'support_resampling' with elapsed time estimation
 			lastTime = boost::posix_time::microsec_clock::local_time();
-			support_resampling(C_g, C_b, S, param, I_l_cg, I_r_cg);
+			support_resampling(C_g, C_b, S, param, I_l_c, I_r_c, census_l, census_r);
 			elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
 			std::cout << "Elapsed Time for 'support_resampling': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
 		
@@ -287,8 +293,9 @@ void pipeline() {
 	std::cout << "WITH A SPEED OF: " << 1.0e6/algorithm_time_elapsed.total_microseconds() << " Hz" << std::endl;
 	std::cout << "************************************************" << std::endl;
 
-	showGrid(I_l_cg, S, E, "final Delaunay");
-	showDisparity(I_l_cg, D_f, "final Disparity");
+	showGrid(I_l_c, S, E, "final Delaunay");
+	showDisparity(I_l_c, D_f, "final Disparity");
+	showSupportPts(I_l, S, "final Support Points");
 	cv::waitKey(0);
 }
 
@@ -398,4 +405,24 @@ void showDisparity(cv::Mat I_l, cv::Mat D_it, std::string str){
 		}
 
 		cv::imshow(str, disparity);
+}
+
+
+void showSupportPts(cv::Mat I_l, cv::Mat S_it, std::string str){
+	cv::Mat support = I_l.clone();
+	cv::cvtColor(support, support, CV_GRAY2RGB);
+
+	// loop over all points
+	for (int i = 0; i < S_it.rows; ++i){
+		cv::Point p1(S_it.at<float>(i,0), S_it.at<float>(i,1));
+		float maxDisp = 64.0; // staehlii: THIS IS ACTUALLY NOT A CONSTANT BUT I DON'T WANT TO SEARCH FOR THE CORRECT VALUE
+		float scaledDisp1 = S_it.at<float>(i,2)/maxDisp;
+		cv::Vec3b color1;
+
+		cv::circle(support, p1, 1, cv::Scalar(0, scaledDisp1*512, 255), 2, 8, 0);
+
+		cv::imshow(str, support);
+	}
+	
+
 }
