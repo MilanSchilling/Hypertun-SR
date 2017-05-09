@@ -22,8 +22,8 @@ int main() {
 	if (single_image) num_files = 1;
 
 	for (size_t i=0; i<num_files; i++) {
-		if (single_image) i = 18;
-		pipeline(filenames_left[i], filenames_right[i], filenames_disp[i]);
+		if (single_image) i = 9;
+		pipeline(filenames_left[i*2], filenames_right[i*2], filenames_disp[i]);
 	}
 
 	return 0;

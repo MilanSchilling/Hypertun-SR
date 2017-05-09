@@ -459,9 +459,9 @@ void computeAccuracy(cv::Mat D_f, cv::String filename_disp){
 	// comparison with ground-truth disparity and 4 different threshold
 	for (int32_t v=0; v<D_gt_png_height; v++) {
 		for (int32_t u=0; u<D_gt_png_width; u++) {
-			//gt_value = D_gt_png.get_pixel(u,v);
+
 			gt_value = D_gt_png_c.at<uint16_t>(v,u,0);
-			//cout << v << ", " << u << ", " << gt_value << endl;
+
 			if (D_f.at<float>(v,u) != 0 && gt_value != 0) { // both ground-truth and estimate disparity valid
 				n_loops = n_loops + 1;	
 				// ground-truth disparity computed by dividing pixel value by 256 
