@@ -35,8 +35,8 @@ void sparse_stereo(cv::Mat I_l, cv::Mat I_r, cv::Mat &S){
 
 	// Resize the input images to the standard image size
 	cv::Mat_<unsigned char> leftImg_resize, rightImg_resize;
-	resize(leftImg, leftImg_resize, size);
-	resize(rightImg, rightImg_resize, size);
+	//resize(leftImg, leftImg_resize, size);
+	//resize(rightImg, rightImg_resize, size);
 
 	// no rectification data in case of KITTI dataset
 	StereoRectification* rectification = NULL;
@@ -52,32 +52,32 @@ void sparse_stereo(cv::Mat I_l, cv::Mat I_r, cv::Mat &S){
 	vector<SparseMatch> correspondences;
 
 	// Objects for storing final and intermediate results
-	cv::Mat_<char> charLeft(leftImg_resize.rows, leftImg_resize.cols), 
-	charRight(rightImg_resize.rows, rightImg_resize.cols);
-	Mat_<unsigned int> censusLeft(leftImg_resize.rows, leftImg_resize.cols), 
-	censusRight(rightImg_resize.rows, rightImg_resize.cols);
+	cv::Mat_<char> charLeft(leftImg.rows, leftImg.cols), 
+	charRight(rightImg.rows, rightImg.cols);
+	Mat_<unsigned int> censusLeft(leftImg.rows, leftImg.cols), 
+	censusRight(rightImg.rows, rightImg.cols);
 	vector<KeyPoint> keypointsLeft, keypointsRight;
 
 	// For performance evaluation we do the stereo matching 100 times
 	for(int i=0; i< 1; i++) {
-
+ 
 		// Featuredetection. This part can be parallelized with OMP
 		#pragma omp parallel sections default(shared) num_threads(2)
 		{
 			#pragma omp section
 			{
-				ImageConversion::unsignedToSigned(leftImg_resize, &charLeft);
+				ImageConversion::unsignedToSigned(leftImg, &charLeft);
 				Census::transform5x5(charLeft, &censusLeft);
 				keypointsLeft.clear();
-				leftFeatureDetector->detect(leftImg_resize, keypointsLeft);
+				leftFeatureDetector->detect(leftImg, keypointsLeft);
 			}
 		
 			#pragma omp section
 			{
-				ImageConversion::unsignedToSigned(rightImg_resize, &charRight);
+				ImageConversion::unsignedToSigned(rightImg, &charRight);
 				Census::transform5x5(charRight, &censusRight);
 				keypointsRight.clear();
-				rightFeatureDetector->detect(rightImg_resize, keypointsRight);
+				rightFeatureDetector->detect(rightImg, keypointsRight);
 			}
 		}
 
@@ -91,13 +91,15 @@ void sparse_stereo(cv::Mat I_l, cv::Mat I_r, cv::Mat &S){
 	cout << "Time for 1x stereo matching: " << elapsed.total_microseconds()/1.0e6 << "s" << endl
 		<< "Features detected in left image: " << keypointsLeft.size() << endl
 		<< "Features detected in right image: " << keypointsRight.size() << endl
-		<< "Percentage of matched features: " << (100.0 * correspondences.size() / keypointsLeft.size()) << "%" << endl;
+		<< "Percentage of matched features: " << (100.0 *  correspondences.size() / keypointsLeft.size()) << "%" << endl;
 
+	
 	// Save matched feature coordinates and corresponding disparity in an array 
 	// Back transformation into orginal frame
 	double correspondences_disparity_original[correspondences.size()][3];	
 	Point mark[correspondences.size()];
-	
+	/*
+
 	for(int j=0; j<(int)correspondences.size(); j++) { 
 		correspondences_disparity_original[j][0] = correspondences[j].imgLeft->pt.x/new_width*original_width;
 		correspondences_disparity_original[j][1] = correspondences[j].imgLeft->pt.y/new_height*original_height;
@@ -110,7 +112,7 @@ void sparse_stereo(cv::Mat I_l, cv::Mat I_r, cv::Mat &S){
 	// Highlight matches as colored boxes
 	Mat_<Vec3b> screen(leftImg.rows, leftImg.cols);
 	cvtColor(leftImg, screen, CV_GRAY2BGR);
-		
+	
 	for(int i=0; i<(int)correspondences.size(); i++) {
 		double scaledDisp = (double)correspondences_disparity_original[i][2] / maxDisp;
 		Vec3b color;
@@ -120,7 +122,7 @@ void sparse_stereo(cv::Mat I_l, cv::Mat I_r, cv::Mat &S){
 
 		circle(screen, mark[i], 1, (Scalar) color, 3);
 	}
-
+	*/
 	/*
 	// Display image and wait
 	namedWindow("Stereo");
@@ -134,9 +136,9 @@ void sparse_stereo(cv::Mat I_l, cv::Mat I_r, cv::Mat &S){
 	S = cv::Mat(num_points, 3, CV_32F, 0.0);
 	for (int i = 0; i < num_points; ++i) // i < num_points;
 	{
-		S.at<float>(i,0) = correspondences_disparity_original[i][0];
-		S.at<float>(i,1) = correspondences_disparity_original[i][1];
-		S.at<float>(i,2) = correspondences_disparity_original[i][2];
+		S.at<float>(i,0) = correspondences[i].imgLeft->pt.x;
+		S.at<float>(i,1) = correspondences[i].imgLeft->pt.y;
+		S.at<float>(i,2) = correspondences[i].disparity();
 	}
 
 
