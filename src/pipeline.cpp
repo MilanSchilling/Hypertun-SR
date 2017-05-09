@@ -232,6 +232,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 				C_b.at<float>(l,k,2) = param.t_hi;
 			}
 		}
+		// TODO: is it possible to inizialize these Mats without a loop?
 
 		// execute 'disparity_refinement' with elapsed time estimation
 		lastTime = boost::posix_time::microsec_clock::local_time();
