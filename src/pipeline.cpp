@@ -159,7 +159,6 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	// execute 'sparse_stereo' with elapsed time estimation 
 	boost::posix_time::ptime lastTime = boost::posix_time::microsec_clock::local_time();
 	sparse_stereo(I_l_cg, I_r_cg, S);
-	// TODO: remove downsampling in sparse_stereo since the image is now dividable by 16
 	boost::posix_time::time_duration elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
 	std::cout << "Elapsed Time for 'sparse_stereo': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
 

@@ -107,6 +107,8 @@ void sparse_stereo(cv::Mat I_l, cv::Mat I_r, cv::Mat &S){
 		mark[j].y=correspondences_disparity_original[j][1];
 	}
 
+
+	/*
 	// Highlight matches as colored boxes
 	Mat_<Vec3b> screen(leftImg.rows, leftImg.cols);
 	cvtColor(leftImg, screen, CV_GRAY2BGR);
@@ -121,7 +123,7 @@ void sparse_stereo(cv::Mat I_l, cv::Mat I_r, cv::Mat &S){
 		circle(screen, mark[i], 1, (Scalar) color, 3);
 	}
 
-	/*
+	
 	// Display image and wait
 	namedWindow("Stereo");
 	imshow("Stereo", screen);

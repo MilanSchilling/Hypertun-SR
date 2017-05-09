@@ -25,24 +25,19 @@ void disparity_interpolation(cv::Mat &G, cv::Mat &T, cv::Mat &O, parameters & pa
 		int u = O.at<int>(it, 0); // j
 		int v = O.at<int>(it, 1); // i		
 
+		// get index of the corresponding triangle
+		int idx_trig = G.at<int>(v,u);
+
 		// check if triangle exists
-		if(G.at<int>(v,u) != -1){
-			// get index of the corresponding triangle 
-			int idx_trig = G.at<int>(v,u);
-			//std::cout << "disparity_interpolation : 2" << std::endl;
-
+		if(idx_trig != -1){
 			// get plane parameters
-			if (idx_trig >= 0) {
-				float a = T.at<float>(0,idx_trig);
-				float b = T.at<float>(1,idx_trig);
-				float c = T.at<float>(2,idx_trig);
-				float d = T.at<float>(3,idx_trig);
-				//std::cout << "disparity_interpolation : 3" << std::endl;
+			float a = T.at<float>(0,idx_trig);
+			float b = T.at<float>(1,idx_trig);
+			float c = T.at<float>(2,idx_trig);
+			float d = T.at<float>(3,idx_trig);
 
-				// interpolate disparity
-				D_it.at<float>(v,u) = (d - a*u - b*v) / c;
-				//std::cout << "disparity_interpolation : 4" << std::endl;
-			}
+			// interpolate disparity
+			D_it.at<float>(v,u) = (d - a*u - b*v) / c;			
 		}
 	}
 
