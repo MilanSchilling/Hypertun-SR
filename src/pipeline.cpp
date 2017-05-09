@@ -46,10 +46,10 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	//Load parameters
 	parameters param;
 	param.sz_occ = 32;
-	param.n_iters = 3;
+	param.n_iters = 2;
 	param.t_lo = 2.f/24; // placeholder, verify optimal value
-	param.t_hi = 24.f/24; // placeholder, verify optimal value
-	param.im_grad = 50;
+	param.t_hi = 22.f/24; // placeholder, verify optimal value
+	param.im_grad = 20;
 
 	// Load images
 	cv::Mat I_l = cv::imread(filename_left, CV_LOAD_IMAGE_COLOR);
@@ -159,6 +159,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	// execute 'sparse_stereo' with elapsed time estimation 
 	boost::posix_time::ptime lastTime = boost::posix_time::microsec_clock::local_time();
 	sparse_stereo(I_l_cg, I_r_cg, S);
+	// TODO: remove downsampling in sparse_stereo since the image is now dividable by 16
 	boost::posix_time::time_duration elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
 	std::cout << "Elapsed Time for 'sparse_stereo': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
 
