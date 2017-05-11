@@ -46,14 +46,14 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	//Load parameters
 	parameters param;
 	param.sz_occ = 32;
-	param.n_iters = 1;
+	param.n_iters = 2;
 	param.t_lo = 2.f/24; // placeholder, verify optimal value
 	param.t_hi = 24.f/24; // placeholder, verify optimal value
 	param.im_grad = 20;
 
 	// Load images
-	cv::Mat I_l = cv::imread(filename_left, CV_LOAD_IMAGE_COLOR);
-	cv::Mat I_r = cv::imread(filename_right, CV_LOAD_IMAGE_COLOR);
+	cv::Mat I_l = cv::imread(filename_left, CV_LOAD_IMAGE_GRAYSCALE);
+	cv::Mat I_r = cv::imread(filename_right, CV_LOAD_IMAGE_GRAYSCALE);
 	
 	// crop image to be dividable by 16
 	int offset_u = 5;
@@ -66,16 +66,10 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 
 	cv::Mat I_l_c = I_l(roi);
 	cv::Mat I_r_c = I_r(roi);
-	cv::Mat I_l_cg, I_r_cg;
+	cv::Mat I_l_cb;
 
 	// apply gaussian blur
-	cv::GaussianBlur(I_l_c, I_l_c, cv::Size(3,3), 0, 0, cv::BORDER_DEFAULT);
-	cv::GaussianBlur(I_r_c, I_r_c, cv::Size(3,3), 0, 0, cv::BORDER_DEFAULT);
-	// TODO: input for sparse_stereo, cost eva and epipolar search should be cropped, but not blurred
-
-	// Convert to gray
-	cv::cvtColor(I_l_c, I_l_cg, CV_BGR2GRAY);
-	cv::cvtColor(I_r_c, I_r_cg, CV_BGR2GRAY);
+	cv::GaussianBlur(I_l_c, I_l_cb, cv::Size(3,3), 0, 0, cv::BORDER_DEFAULT);
 
 	// Generate grad_x and grad_y
   	cv::Mat grad_l_x, grad_l_y;
@@ -88,12 +82,11 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	int ddepth = -1;
 
 	// Gradient X
-	cv::Sobel( I_l_cg, grad_l_x, ddepth, 1, 0, 3, scale, delta, cv::BORDER_DEFAULT);
+	cv::Sobel( I_l_cb, grad_l_x, ddepth, 1, 0, 3, scale, delta, cv::BORDER_DEFAULT);
 	cv::convertScaleAbs(grad_l_x, abs_grad_l_x);
-	// TODO: read gray image instead of color
 
 	// Gradient Y
-	cv::Sobel( I_l_cg, grad_l_y, ddepth, 0, 1, 3, scale, delta, cv::BORDER_DEFAULT);
+	cv::Sobel( I_l_cb, grad_l_y, ddepth, 0, 1, 3, scale, delta, cv::BORDER_DEFAULT);
  	cv::convertScaleAbs(grad_l_y, abs_grad_l_y );	
 
 	// Total Gradient (approximate)
@@ -101,8 +94,8 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 
 	int highGradCount = 0; 
 	// count how many pixels with high gradient in left image
-	for (int vv = 0; vv < I_l_cg.rows; vv++){
-		for (int uu = 0; uu < I_l_cg.cols; uu++){
+	for (int vv = 0; vv < I_l_cb.rows; vv++){
+		for (int uu = 0; uu < I_l_cb.cols; uu++){
 			if(int(grad_l.at<uchar>(vv,uu)) > param.im_grad){
 				highGradCount++;
 			}
@@ -116,8 +109,8 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	// container for high gradient pixel values [nuOfHiGradPixels x (u,v)]
 	cv::Mat O = cv::Mat(param.nOfHiGradPix, 2, CV_32S, 0.0);
 	highGradCount = 0;
-	for (int vv = 0; vv < I_l_cg.rows; vv++){
-		for (int uu = 0; uu < I_l_cg.cols; uu++){
+	for (int vv = 0; vv < I_l_cb.rows; vv++){
+		for (int uu = 0; uu < I_l_cb.cols; uu++){
 			if(int(grad_l.at<uchar>(vv,uu)) > param.im_grad){
 				O.at<int>(highGradCount, 0) = uu;
 				O.at<int>(highGradCount, 1) = vv;
@@ -131,8 +124,8 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	//cv::waitKey(0);
 
 	// Get image height and width
-	param.H = I_l_cg.rows;
-	param.W = I_r_cg.cols;
+	param.H = I_l_c.rows;
+	param.W = I_r_c.cols;
 
 	// Get initial grid height and width
 	param.H_bar = std::floor(param.H / param.sz_occ);
@@ -160,7 +153,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 
 	// execute 'sparse_stereo' with elapsed time estimation 
 	boost::posix_time::ptime lastTime = boost::posix_time::microsec_clock::local_time();
-	sparse_stereo(I_l_cg, I_r_cg, S);
+	sparse_stereo(I_l_c, I_r_c, S);
 	boost::posix_time::time_duration elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
 	std::cout << "Elapsed Time for 'sparse_stereo': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
 
@@ -182,7 +175,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	// TODO: set G = -1 for all supportpoints within delaunay!
 	
 	// show the grid from the delaunay triangulation
-	showGrid(I_l_cg, S, E, "Delaunay 1");
+	showGrid(I_l_c, S, E, "Delaunay 1");
 	boost::posix_time::ptime algorithm_time_start = boost::posix_time::microsec_clock::local_time();
 
 	for (int i = 0; i < param.n_iters; ++i) {
@@ -209,7 +202,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 		
 		// execute 'cost_evaluation' with elapsed time estimation
 		lastTime = boost::posix_time::microsec_clock::local_time();
-		cost_evaluation(I_l_cg, I_r_cg, D_it, G, O, param, C_it, census_l, census_r);
+		cost_evaluation(I_l_c, I_r_c, D_it, G, O, param, C_it, census_l, census_r);
 		elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
 		std::cout << "Elapsed Time for 'cost_evaluation': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;	
 
@@ -279,7 +272,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 			std::ostringstream oss;
 			oss << "Delaunay " << i+2;
 			std::string str = oss.str();
-			showGrid(I_l_cg, S, E, str);
+			showGrid(I_l_c, S, E, str);
 			
 		}
 	}
@@ -292,9 +285,9 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	std::cout << "WITH A SPEED OF: " << 1.0e6/algorithm_time_elapsed.total_microseconds() << " Hz" << std::endl;
 	std::cout << "************************************************" << std::endl;
 
-	showGrid(I_l_cg, S, E, "final Delaunay");
-	showSupportPts(I_l_cg, S, "final Support Points");
-	showDisparity(I_l_cg, D_f, "final Disparity");
+	showGrid(I_l_c, S, E, "final Delaunay");
+	showSupportPts(I_l_c, S, "final Support Points");
+	showDisparity(I_l_c, D_f, "final Disparity");
 	computeAccuracy(D_f, filename_disp);
 
 	cv::waitKey(0);
