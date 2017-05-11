@@ -99,6 +99,11 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	// Total Gradient (approximate)
 	cv::addWeighted(abs_grad_l_x, 0.5, abs_grad_l_y, 0.5, 0, grad_l);
 
+	elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
+	std::cout << "Elapsed Time for image preprocessing: " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
+
+	// gather high gradient pixels in Mat O with time calculation
+	lastTime = boost::posix_time::microsec_clock::local_time();
 
 	cv::Mat O = cv::Mat(0, 2, CV_32S);
 	int highGradCount = 0;
@@ -117,7 +122,9 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	param.nOfHiGradPix = highGradCount;
 
 	elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
-	std::cout << "Elapsed Time for image preprocessing: " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
+	std::cout << "Elapsed Time for building the Mat O: " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
+
+	
 	std::cout << "Number of pixels with high gradient: " << param.nOfHiGradPix << std::endl;
 
 	// show gradient image
