@@ -46,9 +46,9 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	//Load parameters
 	parameters param;
 	param.sz_occ = 32;
-	param.n_iters = 2;
+	param.n_iters = 1;
 	param.t_lo = 2.f/24; // placeholder, verify optimal value
-	param.t_hi = 22.f/24; // placeholder, verify optimal value
+	param.t_hi = 24.f/24; // placeholder, verify optimal value
 	param.im_grad = 20;
 
 	// Load images
@@ -71,6 +71,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	// apply gaussian blur
 	cv::GaussianBlur(I_l_c, I_l_c, cv::Size(3,3), 0, 0, cv::BORDER_DEFAULT);
 	cv::GaussianBlur(I_r_c, I_r_c, cv::Size(3,3), 0, 0, cv::BORDER_DEFAULT);
+	// TODO: input for sparse_stereo, cost eva and epipolar search should be cropped, but not blurred
 
 	// Convert to gray
 	cv::cvtColor(I_l_c, I_l_cg, CV_BGR2GRAY);
@@ -89,6 +90,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	// Gradient X
 	cv::Sobel( I_l_cg, grad_l_x, ddepth, 1, 0, 3, scale, delta, cv::BORDER_DEFAULT);
 	cv::convertScaleAbs(grad_l_x, abs_grad_l_x);
+	// TODO: read gray image instead of color
 
 	// Gradient Y
 	cv::Sobel( I_l_cg, grad_l_y, ddepth, 0, 1, 3, scale, delta, cv::BORDER_DEFAULT);

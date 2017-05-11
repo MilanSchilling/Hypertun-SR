@@ -140,6 +140,7 @@ void sparse_stereo(cv::Mat I_l, cv::Mat I_r, cv::Mat &S){
 		S.at<float>(i,1) = correspondences_disparity_original[i][1];
 		S.at<float>(i,2) = correspondences_disparity_original[i][2];
 	}
+	// TODO: integrate this loop in the loop above
 
 
 	// Clean up
