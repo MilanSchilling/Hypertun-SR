@@ -162,6 +162,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	// execute 'sparse_stereo' with elapsed time estimation 
 	lastTime = boost::posix_time::microsec_clock::local_time();
 	sparse_stereo(I_l_c, I_r_c, S);
+	int num_S_points_init = S.rows;
 	elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
 	std::cout << "Elapsed Time for 'sparse_stereo': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
 
@@ -278,6 +279,14 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	std::cout << "ALGORITHM TOOK: " << algorithm_time_elapsed.total_microseconds()/1.0e6 << " seconds" << std::endl; 
 	std::cout << "WITH A SPEED OF: " << 1.0e6/algorithm_time_elapsed.total_microseconds() << " Hz" << std::endl;
 	std::cout << "************************************************" << std::endl;
+
+	std::cout << "NUMBER OF ITERATIONS: " << param.n_iters << std::endl;
+	std::cout << "NEW SUPPORT POINTS: " << S.rows - num_S_points_init << " / " << S.rows << std::endl;
+	cv::Mat disp_points;
+	cv::compare(C_f, param.t_hi, disp_points, cv::CMP_LT);
+	int num_points = cv::countNonZero(disp_points*1);
+	std::cout << "POINTS WITH DISPARITY: " << num_points;
+	std:: cout << ", " << float(num_points)/(I_l.rows*I_l.cols)*100 << "% of image" << std::endl;
 
 	//showGrid(I_l_c, S, E, "final Delaunay");
 	//showSupportPts(I_l_c, S, "final Support Points");
