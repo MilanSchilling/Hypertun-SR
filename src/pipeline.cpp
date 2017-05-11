@@ -217,9 +217,17 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 		// initialize C_g and C_b new for every iteration
 		int sz_g[] = {param.H_bar, param.W_bar, 4}; // dimension of C_g
 		int sz_b[] = {param.H_bar, param.W_bar, 3}; // dimension of C_b
-		C_g = cv::Mat(3, sz_g, CV_32F, cv::Scalar(0, 0, 0 , param.t_lo));
+
+		C_g = cv::Mat(3, sz_g, CV_32F, cv::Scalar::all(0));
 		cv::Mat C_dummy = cv::Mat(3, sz_g, CV_32F, cv::Scalar::all(0)); // dummy array
-		C_b = cv::Mat(3, sz_b, CV_32F, cv::Scalar(0, 0, param.t_hi));
+		C_b = cv::Mat(3, sz_b, CV_32F, cv::Scalar::all(0));
+
+		for (int vvv = 0; vvv < param.H_bar; vvv++){
+			for (int uuu = 0; uuu < param.W_bar; uuu++){
+				C_g.at<float>(vvv, uuu, 3) = param.t_lo;
+				C_b.at<float>(vvv, uuu, 2) = param.t_hi;
+			}
+		}
 
 
 		// execute 'disparity_refinement' with elapsed time estimation
