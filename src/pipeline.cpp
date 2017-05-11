@@ -175,7 +175,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	// TODO: set G = -1 for all supportpoints within delaunay!
 	
 	// show the grid from the delaunay triangulation
-	showGrid(I_l_c, S, E, "Delaunay 1");
+	//showGrid(I_l_c, S, E, "Delaunay 1");
 	boost::posix_time::ptime algorithm_time_start = boost::posix_time::microsec_clock::local_time();
 
 	for (int i = 0; i < param.n_iters; ++i) {
@@ -272,7 +272,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 			std::ostringstream oss;
 			oss << "Delaunay " << i+2;
 			std::string str = oss.str();
-			showGrid(I_l_c, S, E, str);
+			//showGrid(I_l_c, S, E, str);
 			
 		}
 	}
@@ -285,10 +285,10 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	std::cout << "WITH A SPEED OF: " << 1.0e6/algorithm_time_elapsed.total_microseconds() << " Hz" << std::endl;
 	std::cout << "************************************************" << std::endl;
 
-	showGrid(I_l_c, S, E, "final Delaunay");
-	showSupportPts(I_l_c, S, "final Support Points");
-	showDisparity(I_l_c, D_f, "final Disparity");
-	computeAccuracy(D_f, filename_disp);
+	//showGrid(I_l_c, S, E, "final Delaunay");
+	//showSupportPts(I_l_c, S, "final Support Points");
+	//showDisparity(I_l_c, D_f, "final Disparity");
+	//computeAccuracy(D_f, filename_disp);
 
 	//cv::waitKey(0); -> waitKey is executed in main.cpp
 }
