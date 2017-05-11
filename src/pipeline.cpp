@@ -51,10 +51,17 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	param.t_hi = 24.f/24; // placeholder, verify optimal value
 	param.im_grad = 20;
 
-	// Load images
+	// Load images with time estimation
+	boost::posix_time::ptime lastTime = boost::posix_time::microsec_clock::local_time();
 	cv::Mat I_l = cv::imread(filename_left, CV_LOAD_IMAGE_GRAYSCALE);
 	cv::Mat I_r = cv::imread(filename_right, CV_LOAD_IMAGE_GRAYSCALE);
+	boost::posix_time::time_duration elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
+	std::cout << "Elapsed Time for loading the current images: " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
 	
+
+	// estimate time of image preprocessing
+	lastTime = boost::posix_time::microsec_clock::local_time();
+
 	// crop image to be dividable by 16
 	int offset_u = 5;
 	int offset_v = 2;
@@ -92,32 +99,26 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	// Total Gradient (approximate)
 	cv::addWeighted(abs_grad_l_x, 0.5, abs_grad_l_y, 0.5, 0, grad_l);
 
-	int highGradCount = 0; 
-	// count how many pixels with high gradient in left image
+
+	cv::Mat O = cv::Mat(0, 2, CV_32S);
+	int highGradCount = 0;
 	for (int vv = 0; vv < I_l_cb.rows; vv++){
 		for (int uu = 0; uu < I_l_cb.cols; uu++){
 			if(int(grad_l.at<uchar>(vv,uu)) > param.im_grad){
+				cv::Mat pixel = cv::Mat(1, 2, CV_32S);
+				pixel.at<int>(0, 0) = uu;
+				pixel.at<int>(0, 1) = vv;
+				O.push_back(pixel);
+
 				highGradCount++;
 			}
 		}
 	}
-	// TODO: get rid of this loop above, it is just to count how many pixel above threshold. (maybe push_back?)
-
 	param.nOfHiGradPix = highGradCount;
-	std::cout << "Number of pixels with high gradient: " << param.nOfHiGradPix << std::endl;
 
-	// container for high gradient pixel values [nuOfHiGradPixels x (u,v)]
-	cv::Mat O = cv::Mat(param.nOfHiGradPix, 2, CV_32S, 0.0);
-	highGradCount = 0;
-	for (int vv = 0; vv < I_l_cb.rows; vv++){
-		for (int uu = 0; uu < I_l_cb.cols; uu++){
-			if(int(grad_l.at<uchar>(vv,uu)) > param.im_grad){
-				O.at<int>(highGradCount, 0) = uu;
-				O.at<int>(highGradCount, 1) = vv;
-				highGradCount++;
-			}
-		}
-	}
+	elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
+	std::cout << "Elapsed Time for image preprocessing: " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
+	std::cout << "Number of pixels with high gradient: " << param.nOfHiGradPix << std::endl;
 
 	// show gradient image
 	//cv::imshow("left gradient", grad_l);
@@ -152,9 +153,9 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 
 
 	// execute 'sparse_stereo' with elapsed time estimation 
-	boost::posix_time::ptime lastTime = boost::posix_time::microsec_clock::local_time();
+	lastTime = boost::posix_time::microsec_clock::local_time();
 	sparse_stereo(I_l_c, I_r_c, S);
-	boost::posix_time::time_duration elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
+	elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
 	std::cout << "Elapsed Time for 'sparse_stereo': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
 
 	// execute 'delaunay_triangulation' with elapsed time estimation
@@ -287,8 +288,8 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 
 	//showGrid(I_l_c, S, E, "final Delaunay");
 	//showSupportPts(I_l_c, S, "final Support Points");
-	//showDisparity(I_l_c, D_f, "final Disparity");
-	//computeAccuracy(D_f, filename_disp);
+	showDisparity(I_l_c, D_f, "final Disparity");
+	computeAccuracy(D_f, filename_disp);
 
 	//cv::waitKey(0); -> waitKey is executed in main.cpp
 }
