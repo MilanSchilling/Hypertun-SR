@@ -217,24 +217,10 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 		// initialize C_g and C_b new for every iteration
 		int sz_g[] = {param.H_bar, param.W_bar, 4}; // dimension of C_g
 		int sz_b[] = {param.H_bar, param.W_bar, 3}; // dimension of C_b
-		C_g = cv::Mat(3, sz_g, CV_32F, cv::Scalar::all(0));
+		C_g = cv::Mat(3, sz_g, CV_32F, cv::Scalar(0, 0, 0 , param.t_lo));
 		cv::Mat C_dummy = cv::Mat(3, sz_g, CV_32F, cv::Scalar::all(0)); // dummy array
-		C_b = cv::Mat(3, sz_b, CV_32F, cv::Scalar::all(0));
+		C_b = cv::Mat(3, sz_b, CV_32F, cv::Scalar(0, 0, param.t_hi));
 
-		// write thresholds to C_g and C_b
-		for (int k = 0; k < param.W_bar; ++k){
-			for (int l = 0; l < param.H_bar; ++l){
-				C_g.at<float>(l,k,0) = 0.0;
-				C_g.at<float>(l,k,1) = 0.0;
-				C_g.at<float>(l,k,2) = 0.0;
-				C_g.at<float>(l,k,3) = param.t_lo;
-
-				C_b.at<float>(l,k,0) = 0.0;
-				C_b.at<float>(l,k,1) = 0.0;
-				C_b.at<float>(l,k,2) = param.t_hi;
-			}
-		}
-		// TODO: is it possible to inizialize these Mats without a loop?
 
 		// execute 'disparity_refinement' with elapsed time estimation
 		lastTime = boost::posix_time::microsec_clock::local_time();
