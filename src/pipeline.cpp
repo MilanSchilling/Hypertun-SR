@@ -297,7 +297,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	showDisparity(I_l_cg, D_f, "final Disparity");
 	computeAccuracy(D_f, filename_disp);
 
-	cv::waitKey(0);
+	//cv::waitKey(0); -> waitKey is executed in main.cpp
 }
 
 
