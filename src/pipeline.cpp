@@ -58,6 +58,8 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	boost::posix_time::time_duration elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
 	std::cout << "Elapsed Time for loading the current images: " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
 	
+	// Start timer for performance of whole algorithm
+	boost::posix_time::ptime algorithm_time_start = boost::posix_time::microsec_clock::local_time();
 
 	// estimate time of image preprocessing
 	lastTime = boost::posix_time::microsec_clock::local_time();
@@ -185,7 +187,6 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	
 	// show the grid from the delaunay triangulation
 	//showGrid(I_l_c, S, E, "Delaunay 1");
-	boost::posix_time::ptime algorithm_time_start = boost::posix_time::microsec_clock::local_time();
 
 	for (int i = 0; i < param.n_iters; ++i) {
 		std::cout << "################################################" << std::endl;
