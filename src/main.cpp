@@ -31,9 +31,9 @@ int main() {
 
 		boost::posix_time::time_duration time_elapsed = (boost::posix_time::microsec_clock::local_time() - time_start);
 		std::cout << "#################################################" << std::endl;
-		std::cout << std::setprecision(2);
-		std::cout << "PIPELINE TOOK: " << time_elapsed.total_microseconds()/1.0e6 << " seconds" << std::endl; 
-		std::cout << "WITH A SPEED OF: " << 1.0e6/time_elapsed.total_microseconds() << " Hz" << std::endl;
+		std::cout << std::setprecision(3);
+		std::cout << std::setw(50) << std::left << "PIPELINE TOOK: " << std::right << time_elapsed.total_microseconds()/1.0e3 << " ms" << std::endl; 
+		std::cout << std::setw(50) << std::left << "WITH A SPEED OF: " << std::right << 1.0e6/time_elapsed.total_microseconds() << " Hz" << std::endl;
 		std::cout << "#################################################" << std::endl;
 
 		cv::waitKey(0);

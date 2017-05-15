@@ -42,6 +42,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	std::cout << "#######" << std::endl << std::endl;
 	std::cout << "Using CV version: " << CV_VERSION << std::endl;
 	std::cout << "pipeline.cpp" << std::endl;
+	std::cout << std::setprecision(3);
 
 	//Load parameters
 	parameters param;
@@ -56,7 +57,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	cv::Mat I_l = cv::imread(filename_left, CV_LOAD_IMAGE_GRAYSCALE);
 	cv::Mat I_r = cv::imread(filename_right, CV_LOAD_IMAGE_GRAYSCALE);
 	boost::posix_time::time_duration elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
-	std::cout << "Elapsed Time for loading the current images: " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
+	std::cout << std::setw(50) << std::left << "Elapsed Time for loading the current images: " << std::right << elapsed.total_microseconds()/1.0e3 << " ms" << std::endl;
 	
 	// Start timer for performance of whole algorithm
 	boost::posix_time::ptime algorithm_time_start = boost::posix_time::microsec_clock::local_time();
@@ -102,7 +103,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	cv::addWeighted(abs_grad_l_x, 0.5, abs_grad_l_y, 0.5, 0, grad_l);
 
 	elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
-	std::cout << "Elapsed Time for image preprocessing: " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
+	std::cout << std::setw(50) << std::left << "Elapsed Time for image preprocessing: " << std::right << elapsed.total_microseconds()/1.0e3 << " ms" << std::endl;
 
 	// gather high gradient pixels in Mat O with time calculation
 	lastTime = boost::posix_time::microsec_clock::local_time();
@@ -124,7 +125,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	param.nOfHiGradPix = highGradCount;
 
 	elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
-	std::cout << "Elapsed Time for building the Mat O: " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
+	std::cout << std::setw(50) << std::left << "Elapsed Time for building the Mat O: " << std::right << elapsed.total_microseconds()/1.0e3 << " ms" << std::endl;
 
 	
 	std::cout << "Number of pixels with high gradient: " << param.nOfHiGradPix << std::endl;
@@ -166,13 +167,13 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	sparse_stereo(I_l_c, I_r_c, S);
 	int num_S_points_init = S.rows;
 	elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
-	std::cout << "Elapsed Time for 'sparse_stereo': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
+	std::cout << std::setw(50) << std::left << "Elapsed Time for 'sparse_stereo': " << std::right << elapsed.total_microseconds()/1.0e3 << " ms" << std::endl;
 
 	// execute 'delaunay_triangulation' with elapsed time estimation
 	lastTime = boost::posix_time::microsec_clock::local_time();
 	delaunay_triangulation(S, param.H, param.W, G, T, E);
 	elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
-	std::cout << "Elapsed Time for 'delaunay_triangulation': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
+	std::cout << std::setw(50) << std::left << "Elapsed Time for 'delaunay_triangulation': " << std::right << elapsed.total_microseconds()/1.0e3 << " ms" << std::endl;
 
 	// show matrix G
 	//showG(I_l, G, param, "G after delaunay");
@@ -201,7 +202,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 		lastTime = boost::posix_time::microsec_clock::local_time();
 		disparity_interpolation(G, T, O, param, D_it);
 		elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
-		std::cout << "Elapsed Time for 'disparity_interpolation': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
+		std::cout << std::setw(50) << std::left << "Elapsed Time for 'disparity_interpolation': " << std::right << elapsed.total_microseconds()/1.0e3 << " ms" << std::endl;
 		
 		// show matrix G
 		//showG(I_l, G, param, "G");
@@ -214,7 +215,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 		lastTime = boost::posix_time::microsec_clock::local_time();
 		cost_evaluation(I_l_c, I_r_c, D_it, G, O, param, C_it, census_l, census_r);
 		elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
-		std::cout << "Elapsed Time for 'cost_evaluation': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;	
+		std::cout << std::setw(50) << std::left << "Elapsed Time for 'cost_evaluation': " << std::right << elapsed.total_microseconds()/1.0e3 << " ms" << std::endl;	
 
 		// initialize C_g and C_b new for every iteration
 		int sz_g[] = {param.H_bar, param.W_bar, 4}; // dimension of C_g
@@ -236,7 +237,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 		lastTime = boost::posix_time::microsec_clock::local_time();
 		disparity_refinement(D_it, C_it, G, O, D_f, C_f, C_g, C_b, param);
 		elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
-		std::cout << "Elapsed Time for 'disparity_refinement': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
+		std::cout << std::setw(50) << std::left << "Elapsed Time for 'disparity_refinement': " << std::right << elapsed.total_microseconds()/1.0e3 << " ms" << std::endl;
 		
 		// Prepare for next iteration, if not last iteration
 		if (i != param.n_iters) {
@@ -245,13 +246,13 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 			lastTime = boost::posix_time::microsec_clock::local_time();
 			support_resampling(C_g, C_b, S, param, I_l_c, I_r_c, census_l, census_r);
 			elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
-			std::cout << "Elapsed Time for 'support_resampling': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
+			std::cout << std::setw(50) << std::left << "Elapsed Time for 'support_resampling': " << std::right << elapsed.total_microseconds()/1.0e3 << " ms" << std::endl;
 		
 			// execute 'delaunay_triangulation' with elapsed time estimation
 			lastTime = boost::posix_time::microsec_clock::local_time();
 			delaunay_triangulation(S, param.H, param.W, G, T, E);
 			elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
-			std::cout << "Elapsed Time for 'delaunay_triangulation': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
+			std::cout << std::setw(50) << std::left << "Elapsed Time for 'delaunay_triangulation': " << std::right << elapsed.total_microseconds()/1.0e3 << " ms" << std::endl;
 
 			// set all support points in G to -1
 			for (int j=0; j<S.rows; ++j){
@@ -285,8 +286,8 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 
 	std::cout << "************************************************" << std::endl;
 	std::cout << std::setprecision(2);
-	std::cout << "ALGORITHM TOOK: " << algorithm_time_elapsed.total_microseconds()/1.0e6 << " seconds" << std::endl; 
-	std::cout << "WITH A SPEED OF: " << 1.0e6/algorithm_time_elapsed.total_microseconds() << " Hz" << std::endl;
+	std::cout << std::setw(50) << std::left << "ALGORITHM TOOK: " << std::right << algorithm_time_elapsed.total_microseconds()/1.0e3 << " ms" << std::endl; 
+	std::cout << std::setw(50) << std::left << "WITH A SPEED OF: " << std::right << 1.0e6/algorithm_time_elapsed.total_microseconds() << " Hz" << std::endl;
 	std::cout << "************************************************" << std::endl;
 
 	std::cout << "NUMBER OF ITERATIONS: " << param.n_iters << std::endl;
