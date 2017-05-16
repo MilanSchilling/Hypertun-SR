@@ -106,7 +106,7 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 
 	int epiLength = 0;
 
-	int pattern_sz = 3;
+	int pattern_sz = 7;
 
 	//loop over bad points
 	for (int i=0; i < noBadPts; ++i){
@@ -136,7 +136,7 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 			int nuOfZeros = 0;
 
 			// window on epipolar line
-			int win = 40;
+			int win = 80;
 
 			// loop along each epipolar line
 			for (int u_ = std::max(pattern_sz, currU - win); u_ < std::min(currU, param.W - pattern_sz); ++u_){
@@ -178,7 +178,7 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 			//std::cout << "bestCost = " << bestCost << std::endl;
 
 			// check if best match is good and unique
-			if (bestCost < 0.4){   // (bestCost == 0) && (nuOfZeros == 1)
+			if (bestCost < 0.2){   // (bestCost == 0) && (nuOfZeros == 1)
 				// calculate disparity with u_left - u_right
 				int disp = currU - u_best;
 				assert(disp >= 0);
