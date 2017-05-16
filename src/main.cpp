@@ -19,7 +19,7 @@ int main() {
 	cv::glob(path_disp, filenames_disp);
 	int num_files = filenames_left.size();
 
-	bool single_image = true;
+	bool single_image = false;
 	if (single_image) num_files = 1;
 
 	for (size_t i=0; i<num_files; i++) {

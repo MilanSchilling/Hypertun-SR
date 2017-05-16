@@ -117,11 +117,15 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 		assert((0 <= currU) && ( currU <= 1242));
 		assert((0 <= currV) && ( currV <= 375));
 
-		// get current left census
+		// get current left census pattern of four pixel: center, Up, Down, Left, Right
 		unsigned int currCensusLeft = census_l.at<unsigned int>(currV, currU);
+		unsigned int currCensusLeftU = census_l.at<unsigned int>(currV - 1, currU);
+		unsigned int currCensusLeftD = census_l.at<unsigned int>(currV + 1, currU);
+		unsigned int currCensusLeftL = census_l.at<unsigned int>(currV, currU - 1);
+		unsigned int currCensusLeftR = census_l.at<unsigned int>(currV, currU + 1);
 
 		// define best cost
-		float bestCost = 2.;
+		float bestCost = 6.;
 		int u_best = 0;
 		int nuOfZeros = 0;
 
@@ -129,16 +133,31 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 		int win = 40;
 
 		// loop along each epipolar line
-		for (int u_ = std::max(0, currU - win); u_ <= currU; ++u_){
-			//extract each right census
+		for (int u_ = std::max(2, currU - win); u_ < currU; ++u_){
+			//extract each right census pattern
 			unsigned int currCensusRight = census_r.at<unsigned int>(currV, u_);
+			unsigned int currCensusRightU = census_r.at<unsigned int>(currV - 2, u_);
+			unsigned int currCensusRightD = census_r.at<unsigned int>(currV + 2, u_);
+			unsigned int currCensusRightL = census_r.at<unsigned int>(currV, u_ - 2);
+			unsigned int currCensusRightR = census_r.at<unsigned int>(currV, u_ + 2);
 
-			// calculate Hamming distance
+			// calculate Hamming distances
 			unsigned char hamming = mHamming.calculate(currCensusLeft, currCensusRight);
+			unsigned char hammingU = mHamming.calculate(currCensusLeftU, currCensusRightU);
+			unsigned char hammingD = mHamming.calculate(currCensusLeftD, currCensusRightD);
+			unsigned char hammingL = mHamming.calculate(currCensusLeftL, currCensusRightL);
+			unsigned char hammingR = mHamming.calculate(currCensusLeftR, currCensusRightR);
+
 			float currCost = hamming / 24.0f;
+			float currCostU = hammingU / 24.0f;
+			float currCostD = hammingD / 24.0f;
+			float currCostL = hammingL / 24.0f;
+			float currCostR = hammingR / 24.0f;
+
+			float totCost = currCost + currCostU + currCostD + currCostL + currCostR; 
 
 			// store best match
-			if (currCost < bestCost){
+			if (totCost < bestCost){
 				bestCost = currCost;
 				u_best = u_;
 			}
@@ -150,10 +169,13 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 		}
 
 		// check if best match is good and unique
-		if ((bestCost == 0) && (nuOfZeros == 1)){
+		if ((bestCost == 0) && (nuOfZeros == 1)){   // (bestCost == 0) && (nuOfZeros == 1)
 			// calculate disparity with u_left - u_right
 			int disp = currU - u_best;
 			assert(disp >= 0);
+
+			std::cout << "BestCost = " << bestCost << std::endl;
+			std::cout << "number of zero matches = " << nuOfZeros << std::endl;
 
 			// save (u, v, d) to epi
 			S_epi.at<float>(epiLength, 0) = X.at<float>(i, 0);
@@ -333,8 +355,8 @@ void showMatch (cv::Mat &I_l, cv::Mat &I_r, cv::Mat &S_epi, int epiL){
 
 		ptR.x = ptL.x + sz1.width - d;
 		ptR.y = ptL.y;
-		cv::circle(im3, ptL, 1, (cv::Scalar) color, 1);
-		cv::circle(im3, ptR, 1, (cv::Scalar) color, 1);
+		cv::circle(im3, ptL, 5, (cv::Scalar) color, 2);
+		cv::circle(im3, ptR, 5, (cv::Scalar) color, 2);
 		cv::line(im3, ptL, ptR, (cv::Scalar) color);
 	}
 
