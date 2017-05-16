@@ -119,10 +119,10 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 
 		// get current left census pattern of four pixel: center, Up, Down, Left, Right
 		unsigned int currCensusLeft = census_l.at<unsigned int>(currV, currU);
-		unsigned int currCensusLeftU = census_l.at<unsigned int>(currV - 1, currU);
-		unsigned int currCensusLeftD = census_l.at<unsigned int>(currV + 1, currU);
-		unsigned int currCensusLeftL = census_l.at<unsigned int>(currV, currU - 1);
-		unsigned int currCensusLeftR = census_l.at<unsigned int>(currV, currU + 1);
+		unsigned int currCensusLeftU = census_l.at<unsigned int>(currV - 3, currU);
+		unsigned int currCensusLeftD = census_l.at<unsigned int>(currV + 3, currU);
+		unsigned int currCensusLeftL = census_l.at<unsigned int>(currV, currU - 3);
+		unsigned int currCensusLeftR = census_l.at<unsigned int>(currV, currU + 3);
 
 		// define best cost
 		float bestCost = 6.;
@@ -136,10 +136,10 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 		for (int u_ = std::max(2, currU - win); u_ < currU; ++u_){
 			//extract each right census pattern
 			unsigned int currCensusRight = census_r.at<unsigned int>(currV, u_);
-			unsigned int currCensusRightU = census_r.at<unsigned int>(currV - 2, u_);
-			unsigned int currCensusRightD = census_r.at<unsigned int>(currV + 2, u_);
-			unsigned int currCensusRightL = census_r.at<unsigned int>(currV, u_ - 2);
-			unsigned int currCensusRightR = census_r.at<unsigned int>(currV, u_ + 2);
+			unsigned int currCensusRightU = census_r.at<unsigned int>(currV - 3, u_);
+			unsigned int currCensusRightD = census_r.at<unsigned int>(currV + 3, u_);
+			unsigned int currCensusRightL = census_r.at<unsigned int>(currV, u_ - 3);
+			unsigned int currCensusRightR = census_r.at<unsigned int>(currV, u_ + 3);
 
 			// calculate Hamming distances
 			unsigned char hamming = mHamming.calculate(currCensusLeft, currCensusRight);
@@ -156,20 +156,23 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 
 			float totCost = currCost + currCostU + currCostD + currCostL + currCostR; 
 
+			 
+
 			// store best match
 			if (totCost < bestCost){
-				bestCost = currCost;
+				bestCost = totCost;
 				u_best = u_;
 			}
 
 			// count how many zero-cost matches there are
-			if (hamming == 0)
+			if (totCost == 0)
 				nuOfZeros++;
 
 		}
+		std::cout << "bestCost = " << bestCost << std::endl;
 
 		// check if best match is good and unique
-		if ((bestCost == 0) && (nuOfZeros == 1)){   // (bestCost == 0) && (nuOfZeros == 1)
+		if (bestCost < 0.4){   // (bestCost == 0) && (nuOfZeros == 1)
 			// calculate disparity with u_left - u_right
 			int disp = currU - u_best;
 			assert(disp >= 0);
@@ -362,6 +365,6 @@ void showMatch (cv::Mat &I_l, cv::Mat &I_r, cv::Mat &S_epi, int epiL){
 	std::string str = oss.str();
 
 	cv::imshow(str, im3);
-	//cv::waitKey(0);
+	cv::waitKey(0);
 
 }
