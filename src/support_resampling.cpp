@@ -196,7 +196,7 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 
 	}
 
-	showMatch(I_l, I_r, S_epi, epiLength);
+	//showMatch(I_l, I_r, S_epi, epiLength);
 
 
 	/*
@@ -374,6 +374,6 @@ void showMatch (cv::Mat &I_l, cv::Mat &I_r, cv::Mat &S_epi, int epiL){
 	std::string str = oss.str();
 
 	cv::imshow(str, im3);
-	cv::waitKey(0);
+	//cv::waitKey(0);
 
 }

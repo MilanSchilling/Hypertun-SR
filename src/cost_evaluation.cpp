@@ -4,6 +4,7 @@
 #include "sparsestereo/censuswindow.h"
 #include "sparsestereo/imageconversion.h"
 #include <iostream>
+#include <cassert>
 #include <bitset>
 
 // cost_evaluation:
@@ -82,8 +83,7 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r,
 			unsigned int currCensusRight = censusRight.at<unsigned int>(v,u + (int)disp);
 			//std::cout << "extracted census Right: " << std::bitset<24>(currCensusRight) << std::endl;
 			unsigned char hamming = mHamming.calculate(currCensusLeft, currCensusRight);
-			// TODO: verify (v+disp, u) or (v, u+disp)
-			//std::cout << "hamming = " << int(hamming) << std::endl;
+
 
 			/*
 			if(hamming == 24){
@@ -91,8 +91,14 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r,
 			}
 			*/
 
+			// milan: mHamming.calculate returns sometimes a hamming = 25, Idk why...
+			if (hamming >= 24){
+				hamming = 24;
+			}
+
 			// normalize cost
 			float n_cost = hamming / 24.0;
+			assert((0 <= n_cost) && (n_cost <= 1));
 			//std::cout << "n_cost: " << n_cost << std::endl;
 			// write cost to C_it
 			C_it.at<float>(v,u) = n_cost;
