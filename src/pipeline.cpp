@@ -49,7 +49,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	param.sz_occ = 32;
 	param.n_iters = 2;
 	param.t_lo = 2.f/24; // placeholder, verify optimal value
-	param.t_hi = 24.f/24; // placeholder, verify optimal value
+	param.t_hi = 21.f/24; // placeholder, verify optimal value
 	param.im_grad = 20;
 
 	// Load images with time estimation
@@ -298,7 +298,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	std::cout << "POINTS WITH DISPARITY: " << num_points;
 	std:: cout << ", " << float(num_points)/(I_l.rows*I_l.cols)*100 << "% of image" << std::endl;
 
-	//showGrid(I_l_c, S, E, "final Delaunay");
+	showGrid(I_l_c, S, E, "final Delaunay");
 	//showSupportPts(I_l_c, S, "final Support Points");
 	showDisparity(I_l_c, D_f, "final Disparity");
 	computeAccuracy(D_f, filename_disp);

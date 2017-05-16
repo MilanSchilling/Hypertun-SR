@@ -174,9 +174,6 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 			int disp = currU - u_best;
 			assert(disp >= 0);
 
-			std::cout << "BestCost = " << bestCost << std::endl;
-			std::cout << "number of zero matches = " << nuOfZeros << std::endl;
-
 			// save (u, v, d) to epi
 			S_epi.at<float>(epiLength, 0) = X.at<float>(i, 0);
 			S_epi.at<float>(epiLength, 1) = X.at<float>(i, 1);
@@ -360,7 +357,11 @@ void showMatch (cv::Mat &I_l, cv::Mat &I_r, cv::Mat &S_epi, int epiL){
 		cv::line(im3, ptL, ptR, (cv::Scalar) color);
 	}
 
-	cv::imshow("im3", im3);
-	cv::waitKey(0);
+	std::ostringstream oss;
+	oss << "matches " << rng.uniform(0, 15);
+	std::string str = oss.str();
+
+	cv::imshow(str, im3);
+	//cv::waitKey(0);
 
 }
