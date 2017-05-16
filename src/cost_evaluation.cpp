@@ -34,27 +34,51 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r,
 	//####################################
 	std::cout << "cost_evaluation.cpp census try" << std::endl;
 
-	// Sign input images
+	// define containers
 	cv::Mat_<unsigned char> leftImg, rightImg;
-	leftImg = I_l;
-	rightImg = I_r;
+	cv::Mat_<char> charLeft, charRight;
+	cv::Mat_<unsigned int> censusLeft, censusRight;
 
-	// create container for char images
-	cv::Mat_<char> charLeft(param.H, param.W);
-	cv::Mat_<char> charRight(param.H, param.W);
 
-	// create container for census outputs
-	 cv::Mat_<unsigned int> censusLeft (param.H, param.W);
-	 cv::Mat_<unsigned int> censusRight (param.H, param.W);
+	#pragma omp parallel sections default(shared) num_threads(2)
+	{
+		#pragma omp section
+		{
+			// Sign input image
+			leftImg = I_l;
 
-	// convert images
-	sparsestereo::ImageConversion::unsignedToSigned(leftImg, &charLeft);
-	sparsestereo::ImageConversion::unsignedToSigned(rightImg, &charRight);
-	//std::cout << "conversion done" << std::endl;
+			// create container for char images
+			charLeft = cv::Mat_<char>(param.H, param.W);
 
-	// perform census transform
-	sparsestereo::Census::transform5x5(charLeft, &censusLeft);
-	sparsestereo::Census::transform5x5(charRight, &censusRight);
+			// create container for census outputs
+			censusLeft = cv::Mat_<unsigned int> (param.H, param.W);
+
+			// convert images
+			sparsestereo::ImageConversion::unsignedToSigned(leftImg, &charLeft);
+
+			// perform census transform
+			sparsestereo::Census::transform5x5(charLeft, &censusLeft);
+		}
+
+		#pragma omp section
+		{
+			// Sign input images
+			rightImg = I_r;
+
+			// create container for char images
+			charRight = cv::Mat_<char>(param.H, param.W);
+
+			// create container for census outputs
+			censusRight = cv::Mat_<unsigned int> (param.H, param.W);
+
+			// convert images
+			sparsestereo::ImageConversion::unsignedToSigned(rightImg, &charRight);
+
+			// perform census transform
+			sparsestereo::Census::transform5x5(charRight, &censusRight);
+		}
+	}
+
 
 	// loop over all high gradient pixels
 	for (int it = 0; it < param.nOfHiGradPix; it++){
