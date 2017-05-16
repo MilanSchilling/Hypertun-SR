@@ -5,6 +5,8 @@
 #include "sparsestereo/imageconversion.h"
 #include <iostream>
 
+void showMatch (cv::Mat &I_l, cv::Mat &I_r, cv::Mat &S_epi, int epiL);
+
 // support_resampling :
 // inputs:
 // - C_g   : Cost associated with regions of high confidence matches [H' x W' x (u, v, d, cost)]
@@ -35,7 +37,6 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 	// get number of points in C_b and C_g
 	int noBadPts = 0;
 	int noGoodPts = 0;
-
 	for (int it_u=0; it_u<param.W_bar; ++it_u){
 		for (int it_v=0; it_v<param.H_bar; ++it_v){
 			// if cost is higher than t_hi
@@ -163,6 +164,8 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 		}
 
 	}
+
+	showMatch(I_l, I_r, S_epi, epiLength);
 
 
 	/*
@@ -299,4 +302,43 @@ void epipolar_search(cv::Mat &I_l_p, cv::Mat &I_r_p,
 
 	// calculate disparity with u_left - u_right
 	d = u - u_best;
+}
+
+
+
+void showMatch (cv::Mat &I_l, cv::Mat &I_r, cv::Mat &S_epi, int epiL){
+	cv::Mat im1 = I_l.clone();
+	cv::Mat im2 = I_r.clone();
+
+	cv::Size sz1 = im1.size();
+	cv::Size sz2 = im2.size();
+
+	cv::Mat im3(sz1.height, sz1.width + sz2.width, CV_8UC1);
+	cv::Mat left(im3, cv::Rect(0, 0, sz1.width, sz1.height));
+	im1.copyTo(left);
+
+	cv::Mat right(im3, cv::Rect(sz1.width, 0, sz2.width, sz2.height));
+	im2.copyTo(right);
+
+	cv::cvtColor(im3, im3, CV_GRAY2RGB);
+
+	cv::RNG rng(424242);
+	for (int i = 0; i < epiL; ++i){
+		cv::Vec3b color;
+		color = cv::Vec3b(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
+		cv::Point ptL, ptR;
+		ptL.x = S_epi.at<float>(i, 0);
+		ptL.y = S_epi.at<float>(i, 1);
+		int d = S_epi.at<float>(i, 2);
+
+		ptR.x = ptL.x + sz1.width - d;
+		ptR.y = ptL.y;
+		cv::circle(im3, ptL, 1, (cv::Scalar) color, 1);
+		cv::circle(im3, ptR, 1, (cv::Scalar) color, 1);
+		cv::line(im3, ptL, ptR, (cv::Scalar) color);
+	}
+
+	cv::imshow("im3", im3);
+	cv::waitKey(0);
+
 }

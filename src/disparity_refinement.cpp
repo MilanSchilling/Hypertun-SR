@@ -61,9 +61,7 @@ void disparity_refinement(cv::Mat &D_it, cv::Mat &C_it,
 		}
 
 		// If matching cost is higher than previous worst invalid cost
-		float c_it_cur = C_it.at<float>(v,u);
-		float c_b_cur = C_b.at<float>(v_bar, u_bar, 2);
-		if ((c_it_cur > param.t_hi) && (c_it_cur > c_b_cur)){
+		if ((C_it.at<float>(v,u) > param.t_hi) && (C_it.at<float>(v,u) > C_b.at<float>(v_bar, u_bar, 2))){
 
 			assert(0 <= C_it.at<float>(v, u) && C_it.at<float>(v, u) <= 1);
 			C_b.at<float>(v_bar,u_bar, 0) = u;
