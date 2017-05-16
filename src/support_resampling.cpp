@@ -1,4 +1,8 @@
 #include "support_resampling.hpp"
+#include "sparsestereo/sparsestereo-inl.h"
+#include "sparsestereo/census-inl.h"
+#include "sparsestereo/censuswindow.h"
+#include "sparsestereo/imageconversion.h"
 #include <iostream>
 
 // support_resampling :
@@ -9,6 +13,8 @@
 // - param : Parameter struct
 // - I_l   : Image left
 // - I_r   : Image right
+// - census_l : census transformed left image
+// - census_r : census transformed right image
 //
 // outputs:
 // - S_it  : Updated sparse support pixels with valid depths
@@ -20,7 +26,8 @@
 // Those new found matches are then also added to S_it.
 void support_resampling(cv::Mat &C_g, cv::Mat &C_b, 
                             cv::Mat &S_it, parameters &param,
-							cv::Mat &I_l, cv::Mat &I_r){
+							cv::Mat &I_l, cv::Mat &I_r,
+							cv::Mat &census_l, cv::Mat &census_r){
 
 	std::cout << "support_resampling.cpp" << std::endl;
 
@@ -84,11 +91,81 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 				S_add.at<float>(S_add_length, 0) = C_g.at<float>(v_bar, u_bar, 0);
 				S_add.at<float>(S_add_length, 1) = C_g.at<float>(v_bar, u_bar, 1);
 				S_add.at<float>(S_add_length, 2) = C_g.at<float>(v_bar, u_bar, 2);
-				
+
 				S_add_length++;
 			}
 		}
 	}
+
+	// define container for epipolar search [noBadPts x (u, v, d)]
+	cv::Mat S_epi;
+	S_epi = cv::Mat(noBadPts, 3, CV_32F, 0.0);
+
+	sparsestereo::HammingDistance mHamming;
+
+	int epiLength = 0;
+
+	//loop over bad points
+	for (int i=0; i < noBadPts; ++i){
+
+		// assume nonzero disparity
+		int currU = X.at<float>(i, 0);
+		int currV = X.at<float>(i, 1);
+
+		// be sure that u and v are in range
+		assert((0 <= currU) && ( currU <= 1242));
+		assert((0 <= currV) && ( currV <= 375));
+
+		// get current left census
+		unsigned int currCensusLeft = census_l.at<unsigned int>(currV, currU);
+
+		// define best cost
+		float bestCost = 2.;
+		int u_best = 0;
+		int nuOfZeros = 0;
+
+		// window on epipolar line
+		int win = 40;
+
+		// loop along each epipolar line
+		for (int u_ = std::max(0, currU - win); u_ <= currU; ++u_){
+			//extract each right census
+			unsigned int currCensusRight = census_r.at<unsigned int>(currV, u_);
+
+			// calculate Hamming distance
+			unsigned char hamming = mHamming.calculate(currCensusLeft, currCensusRight);
+			float currCost = hamming / 24.0f;
+
+			// store best match
+			if (currCost < bestCost){
+				bestCost = currCost;
+				u_best = u_;
+			}
+
+			// count how many zero-cost matches there are
+			if (hamming == 0)
+				nuOfZeros++;
+
+		}
+
+		// check if best match is good and unique
+		if ((bestCost == 0) && (nuOfZeros == 1)){
+			// calculate disparity with u_left - u_right
+			int disp = currU - u_best;
+			assert(disp >= 0);
+
+			// save (u, v, d) to epi
+			S_epi.at<float>(epiLength, 0) = X.at<float>(i, 0);
+			S_epi.at<float>(epiLength, 1) = X.at<float>(i, 1);
+			S_epi.at<float>(epiLength, 2) = float(disp);
+
+			epiLength++;
+		}
+
+	}
+
+
+	/*
 
 	
 	// define container for epipolar search [noBadPts x (u, v, d)]
@@ -122,12 +199,14 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 		S_epi.at<float>(i, 2) = float(d);
 	}
 
+	*/
+
 
 	// combine S_it, S_add and S_epi
 	cv::Mat S_next;
-	S_next = cv::Mat(S_it.rows + noGoodPts + noBadPts, 3, CV_32F);
+	S_next = cv::Mat(S_it.rows + noGoodPts + epiLength, 3, CV_32F);
 
-	for (int i = 0; i < S_it.rows + noGoodPts + noBadPts; ++i){
+	for (int i = 0; i < S_it.rows + noGoodPts + epiLength; ++i){
 		if (i < S_it.rows){
 			S_next.at<float>(i, 0) = S_it.at<float>(i, 0);
 			S_next.at<float>(i, 1) = S_it.at<float>(i, 1);
@@ -142,12 +221,12 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 			S_next.at<float>(i, 2) = S_epi.at<float>(i - S_it.rows - noGoodPts, 2);
 		}
 	}
-	S_it = S_next.clone(); 
+	S_it = S_next; 
 
 
 	std::cout << X_length << " points stored for epi-search." << std::endl;
 	std::cout << S_add_length << " points stored directly as support points." << std::endl;
-	std::cout << noBadPts << " points stored from the epi-search." << std::endl;
+	std::cout << epiLength << " points stored from the epi-search." << std::endl;
 
 }
 

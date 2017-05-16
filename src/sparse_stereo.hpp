@@ -5,6 +5,7 @@
 #include <opencv2/opencv.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <vector>
+#include <omp.h>
 
 #include "sparsestereo/exception.h"
 #include "sparsestereo/extendedfast.h"

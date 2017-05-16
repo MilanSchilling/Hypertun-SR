@@ -19,6 +19,12 @@ struct parameters {
 	// grid height and width
 	int H_bar;
 	int W_bar;
+
+	// number of pixels with high gradient
+	int nOfHiGradPix;
+
+	// threshold for image gradient
+	int im_grad;
 };
 
 #endif // PARAMETERS_HPP

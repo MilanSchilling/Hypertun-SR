@@ -29,34 +29,110 @@ void showG (cv::Mat I_l, cv::Mat G, parameters param, std::string str);
 void showDisparity(cv::Mat I_l, cv::Mat D_it, std::string str);
 
 
+// header of 'showSupportPts'
+void showSupportPts(cv::Mat I_l, cv::Mat S_it, std::string str);
 
-void pipeline() {
+// header of ´computeAccuracy'
+void computeAccuracy(cv::Mat D_f, cv::String filename_disp);
 
+
+void pipeline(cv::String filename_left, cv::String filename_right, cv::String filename_disp) {
+	std::cout << "#######" << std::endl;
+	std::cout << "DATASET: http://www.cvlibs.net/datasets/kitti/eval_stereo_flow.php?benchmark=flow" << std::endl;
+	std::cout << "#######" << std::endl << std::endl;
 	std::cout << "Using CV version: " << CV_VERSION << std::endl;
 	std::cout << "pipeline.cpp" << std::endl;
+	std::cout << std::setprecision(3);
 
 	//Load parameters
 	parameters param;
 	param.sz_occ = 32;
-	param.n_iters = 3;
+	param.n_iters = 2;
 	param.t_lo = 2.f/24; // placeholder, verify optimal value
 	param.t_hi = 24.f/24; // placeholder, verify optimal value
+	param.im_grad = 20;
 
-	// Load images
-	cv::Mat I_l = cv::imread("../data/data_scene_flow/testing/image_2/000000_10.png", CV_LOAD_IMAGE_GRAYSCALE);
-	cv::Mat I_r = cv::imread("../data/data_scene_flow/testing/image_3/000000_10.png", CV_LOAD_IMAGE_GRAYSCALE);
+	// Load images with time estimation
+	boost::posix_time::ptime lastTime = boost::posix_time::microsec_clock::local_time();
+	cv::Mat I_l = cv::imread(filename_left, CV_LOAD_IMAGE_GRAYSCALE);
+	cv::Mat I_r = cv::imread(filename_right, CV_LOAD_IMAGE_GRAYSCALE);
+	boost::posix_time::time_duration elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
+	std::cout << std::setw(50) << std::left << "Elapsed Time for loading the current images: " << std::right << elapsed.total_microseconds()/1.0e3 << " ms" << std::endl;
 	
+	// Start timer for performance of whole algorithm
+	boost::posix_time::ptime algorithm_time_start = boost::posix_time::microsec_clock::local_time();
+
+	// estimate time of image preprocessing
+	lastTime = boost::posix_time::microsec_clock::local_time();
+
 	// crop image to be dividable by 16
 	int offset_u = 5;
-	int offset_v = 4;
+	int offset_v = 2;
 	cv::Rect roi; // region of interest
 	roi.x = offset_u;
 	roi.y = offset_v;
-	roi.width = 1232;
+	roi.width = 1216;
 	roi.height = 368;
 
 	cv::Mat I_l_c = I_l(roi);
 	cv::Mat I_r_c = I_r(roi);
+	cv::Mat I_l_cb;
+
+	// apply gaussian blur
+	cv::GaussianBlur(I_l_c, I_l_cb, cv::Size(3,3), 0, 0, cv::BORDER_DEFAULT);
+
+	// Generate grad_x and grad_y
+  	cv::Mat grad_l_x, grad_l_y;
+  	cv::Mat abs_grad_l_x, abs_grad_l_y;
+	cv::Mat grad_l;
+
+	// parameters for Gradient
+	int scale = 1;
+	int delta = 0;
+	int ddepth = -1;
+
+	// Gradient X
+	cv::Sobel( I_l_cb, grad_l_x, ddepth, 1, 0, 3, scale, delta, cv::BORDER_DEFAULT);
+	cv::convertScaleAbs(grad_l_x, abs_grad_l_x);
+
+	// Gradient Y
+	cv::Sobel( I_l_cb, grad_l_y, ddepth, 0, 1, 3, scale, delta, cv::BORDER_DEFAULT);
+ 	cv::convertScaleAbs(grad_l_y, abs_grad_l_y );	
+
+	// Total Gradient (approximate)
+	cv::addWeighted(abs_grad_l_x, 0.5, abs_grad_l_y, 0.5, 0, grad_l);
+
+	elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
+	std::cout << std::setw(50) << std::left << "Elapsed Time for image preprocessing: " << std::right << elapsed.total_microseconds()/1.0e3 << " ms" << std::endl;
+
+	// gather high gradient pixels in Mat O with time calculation
+	lastTime = boost::posix_time::microsec_clock::local_time();
+
+	cv::Mat O = cv::Mat(0, 2, CV_32S);
+	int highGradCount = 0;
+	for (int vv = 0; vv < I_l_cb.rows; vv++){
+		for (int uu = 0; uu < I_l_cb.cols; uu++){
+			if(int(grad_l.at<uchar>(vv,uu)) > param.im_grad){
+				cv::Mat pixel = cv::Mat(1, 2, CV_32S);
+				pixel.at<int>(0, 0) = uu;
+				pixel.at<int>(0, 1) = vv;
+				O.push_back(pixel);
+
+				highGradCount++;
+			}
+		}
+	}
+	param.nOfHiGradPix = highGradCount;
+
+	elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
+	std::cout << std::setw(50) << std::left << "Elapsed Time for building the Mat O: " << std::right << elapsed.total_microseconds()/1.0e3 << " ms" << std::endl;
+
+	
+	std::cout << "Number of pixels with high gradient: " << param.nOfHiGradPix << std::endl;
+
+	// show gradient image
+	//cv::imshow("left gradient", grad_l);
+	//cv::waitKey(0);
 
 	// Get image height and width
 	param.H = I_l_c.rows;
@@ -82,19 +158,22 @@ void pipeline() {
 	cv::Mat C_b; // cost associated with regions of bad matches 
 	cv::Mat D_it; // Intermediate disparity (interpolated)
 	cv::Mat C_it; // Cost associated to D_it
+	cv::Mat census_l; // census transformed left image
+	cv::Mat census_r; // census transformed right image
 
 
 	// execute 'sparse_stereo' with elapsed time estimation 
-	boost::posix_time::ptime lastTime = boost::posix_time::microsec_clock::local_time();
+	lastTime = boost::posix_time::microsec_clock::local_time();
 	sparse_stereo(I_l_c, I_r_c, S);
-	boost::posix_time::time_duration elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
-	std::cout << "Elapsed Time for 'sparse_stereo': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
+	int num_S_points_init = S.rows;
+	elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
+	std::cout << std::setw(50) << std::left << "Elapsed Time for 'sparse_stereo': " << std::right << elapsed.total_microseconds()/1.0e3 << " ms" << std::endl;
 
 	// execute 'delaunay_triangulation' with elapsed time estimation
 	lastTime = boost::posix_time::microsec_clock::local_time();
 	delaunay_triangulation(S, param.H, param.W, G, T, E);
 	elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
-	std::cout << "Elapsed Time for 'delaunay_triangulation': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
+	std::cout << std::setw(50) << std::left << "Elapsed Time for 'delaunay_triangulation': " << std::right << elapsed.total_microseconds()/1.0e3 << " ms" << std::endl;
 
 	// show matrix G
 	//showG(I_l, G, param, "G after delaunay");
@@ -108,8 +187,7 @@ void pipeline() {
 	// TODO: set G = -1 for all supportpoints within delaunay!
 	
 	// show the grid from the delaunay triangulation
-	showGrid(I_l_c, S, E, "Delaunay 1");
-	boost::posix_time::ptime algorithm_time_start = boost::posix_time::microsec_clock::local_time();
+	//showGrid(I_l_c, S, E, "Delaunay 1");
 
 	for (int i = 0; i < param.n_iters; ++i) {
 		std::cout << "################################################" << std::endl;
@@ -122,9 +200,9 @@ void pipeline() {
 
 		// execute 'disparity_interpolation' with elapsed time estimation
 		lastTime = boost::posix_time::microsec_clock::local_time();
-		disparity_interpolation(G, T, D_it);
+		disparity_interpolation(G, T, O, param, D_it);
 		elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
-		std::cout << "Elapsed Time for 'disparity_interpolation': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
+		std::cout << std::setw(50) << std::left << "Elapsed Time for 'disparity_interpolation': " << std::right << elapsed.total_microseconds()/1.0e3 << " ms" << std::endl;
 		
 		// show matrix G
 		//showG(I_l, G, param, "G");
@@ -132,53 +210,49 @@ void pipeline() {
 		// show disparity from disparity_interpolation
 		//showDisparity(I_l_c, D_it, "Disparity interpolated");
 
+		
 		// execute 'cost_evaluation' with elapsed time estimation
 		lastTime = boost::posix_time::microsec_clock::local_time();
-		cost_evaluation(I_l_c, I_r_c, D_it, C_it, G, param);
+		cost_evaluation(I_l_c, I_r_c, D_it, G, O, param, C_it, census_l, census_r);
 		elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
-		std::cout << "Elapsed Time for 'cost_evaluation': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;	
+		std::cout << std::setw(50) << std::left << "Elapsed Time for 'cost_evaluation': " << std::right << elapsed.total_microseconds()/1.0e3 << " ms" << std::endl;	
 
 		// initialize C_g and C_b new for every iteration
 		int sz_g[] = {param.H_bar, param.W_bar, 4}; // dimension of C_g
 		int sz_b[] = {param.H_bar, param.W_bar, 3}; // dimension of C_b
+
 		C_g = cv::Mat(3, sz_g, CV_32F, cv::Scalar::all(0));
 		cv::Mat C_dummy = cv::Mat(3, sz_g, CV_32F, cv::Scalar::all(0)); // dummy array
 		C_b = cv::Mat(3, sz_b, CV_32F, cv::Scalar::all(0));
 
-		// write thresholds to C_g and C_b
-		for (int k = 0; k < param.W_bar; ++k){
-			for (int l = 0; l < param.H_bar; ++l){
-				C_g.at<float>(l,k,0) = 0.0;
-				C_g.at<float>(l,k,1) = 0.0;
-				C_g.at<float>(l,k,2) = 0.0;
-				C_g.at<float>(l,k,3) = param.t_lo;
-
-				C_b.at<float>(l,k,0) = 0.0;
-				C_b.at<float>(l,k,1) = 0.0;
-				C_b.at<float>(l,k,2) = param.t_hi;
+		for (int vvv = 0; vvv < param.H_bar; vvv++){
+			for (int uuu = 0; uuu < param.W_bar; uuu++){
+				C_g.at<float>(vvv, uuu, 3) = param.t_lo;
+				C_b.at<float>(vvv, uuu, 2) = param.t_hi;
 			}
 		}
 
+
 		// execute 'disparity_refinement' with elapsed time estimation
 		lastTime = boost::posix_time::microsec_clock::local_time();
-		disparity_refinement(D_it, C_it, G, D_f, C_f, C_g, C_b, param);
+		disparity_refinement(D_it, C_it, G, O, D_f, C_f, C_g, C_b, param);
 		elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
-		std::cout << "Elapsed Time for 'disparity_refinement': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
+		std::cout << std::setw(50) << std::left << "Elapsed Time for 'disparity_refinement': " << std::right << elapsed.total_microseconds()/1.0e3 << " ms" << std::endl;
 		
 		// Prepare for next iteration, if not last iteration
 		if (i != param.n_iters) {
 
 			// execute 'support_resampling' with elapsed time estimation
 			lastTime = boost::posix_time::microsec_clock::local_time();
-			support_resampling(C_g, C_b, S, param, I_l_c, I_r_c);
+			support_resampling(C_g, C_b, S, param, I_l_c, I_r_c, census_l, census_r);
 			elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
-			std::cout << "Elapsed Time for 'support_resampling': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
+			std::cout << std::setw(50) << std::left << "Elapsed Time for 'support_resampling': " << std::right << elapsed.total_microseconds()/1.0e3 << " ms" << std::endl;
 		
 			// execute 'delaunay_triangulation' with elapsed time estimation
 			lastTime = boost::posix_time::microsec_clock::local_time();
 			delaunay_triangulation(S, param.H, param.W, G, T, E);
 			elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
-			std::cout << "Elapsed Time for 'delaunay_triangulation': " << elapsed.total_microseconds()/1.0e6 << " s" << std::endl;
+			std::cout << std::setw(50) << std::left << "Elapsed Time for 'delaunay_triangulation': " << std::right << elapsed.total_microseconds()/1.0e3 << " ms" << std::endl;
 
 			// set all support points in G to -1
 			for (int j=0; j<S.rows; ++j){
@@ -203,7 +277,7 @@ void pipeline() {
 			std::ostringstream oss;
 			oss << "Delaunay " << i+2;
 			std::string str = oss.str();
-			showGrid(I_l_c, S, E, str);
+			//showGrid(I_l_c, S, E, str);
 			
 		}
 	}
@@ -212,13 +286,24 @@ void pipeline() {
 
 	std::cout << "************************************************" << std::endl;
 	std::cout << std::setprecision(2);
-	std::cout << "ALGORITHM TOOK: " << algorithm_time_elapsed.total_microseconds()/1.0e6 << " seconds" << std::endl; 
-	std::cout << "WITH A SPEED OF: " << 1.0e6/algorithm_time_elapsed.total_microseconds() << " Hz" << std::endl;
+	std::cout << std::setw(50) << std::left << "ALGORITHM TOOK: " << std::right << algorithm_time_elapsed.total_microseconds()/1.0e3 << " ms" << std::endl; 
+	std::cout << std::setw(50) << std::left << "WITH A SPEED OF: " << std::right << 1.0e6/algorithm_time_elapsed.total_microseconds() << " Hz" << std::endl;
 	std::cout << "************************************************" << std::endl;
 
-	showGrid(I_l_c, S, E, "final Delaunay");
+	std::cout << "NUMBER OF ITERATIONS: " << param.n_iters << std::endl;
+	std::cout << "NEW SUPPORT POINTS: " << S.rows - num_S_points_init << " / " << S.rows << std::endl;
+	cv::Mat disp_points;
+	cv::compare(C_f, param.t_hi, disp_points, cv::CMP_LT);
+	int num_points = cv::countNonZero(disp_points*1);
+	std::cout << "POINTS WITH DISPARITY: " << num_points;
+	std:: cout << ", " << float(num_points)/(I_l.rows*I_l.cols)*100 << "% of image" << std::endl;
+
+	//showGrid(I_l_c, S, E, "final Delaunay");
+	//showSupportPts(I_l_c, S, "final Support Points");
 	showDisparity(I_l_c, D_f, "final Disparity");
-	cv::waitKey(0);
+	computeAccuracy(D_f, filename_disp);
+
+	//cv::waitKey(0); -> waitKey is executed in main.cpp
 }
 
 
@@ -327,4 +412,82 @@ void showDisparity(cv::Mat I_l, cv::Mat D_it, std::string str){
 		}
 
 		cv::imshow(str, disparity);
+}
+
+void showSupportPts(cv::Mat I_l, cv::Mat S_it, std::string str){
+	cv::Mat support = I_l.clone();
+	cv::cvtColor(support, support, CV_GRAY2RGB);
+
+	// loop over all points
+	for (int i = 0; i < S_it.rows; ++i){
+		cv::Point p1(S_it.at<float>(i,0), S_it.at<float>(i,1));
+		float maxDisp = 64.0; // staehlii: THIS IS ACTUALLY NOT A CONSTANT BUT I DON'T WANT TO SEARCH FOR THE CORRECT VALUE
+		float scaledDisp1 = S_it.at<float>(i,2)/maxDisp;
+		cv::Vec3b color1;
+
+		cv::circle(support, p1, 1, cv::Scalar(0, scaledDisp1*512, 255), 2, 8, 0);
+
+		cv::imshow(str, support);
+	}
+}
+
+
+
+void computeAccuracy(cv::Mat D_f, cv::String filename_disp){
+
+	std::cout << "################################################" << std::endl;
+	std::cout << "ACCURACY (comparing with ground-truth disparity)" << std::endl;
+	std::cout << "################################################" << std::endl;
+
+	cv::Mat D_gt_png = cv::imread(filename_disp);
+
+	int D_gt_png_width = D_f.cols;
+	int D_gt_png_height = D_f.rows;
+	int offset_u = 5;
+	int offset_v = 2;
+	cv::Rect roi; // region of interest
+	roi.x = offset_u;
+	roi.y = offset_v;
+	roi.width = 1216;
+	roi.height = 368;
+
+	cv::Mat D_gt_png_c = D_gt_png(roi);
+	float gt_value;
+
+	// initialize some parameters needed for calculation
+	float n_loops = 0;
+	float counter_2 = 0;
+	float counter_3 = 0;
+	float counter_4 = 0;
+	float counter_5 = 0;
+	float threshold_2 = 2;
+	float threshold_3 = 3;
+	float threshold_4 = 4;
+	float threshold_5 = 5;
+	
+	// comparison with ground-truth disparity and 4 different threshold
+	for (int32_t v=0; v<D_gt_png_height; v++) {
+		for (int32_t u=0; u<D_gt_png_width; u++) {
+
+			gt_value = D_gt_png_c.at<uint16_t>(v,u,0);
+
+			if (D_f.at<float>(v,u) != 0 && gt_value != 0) { // both ground-truth and estimate disparity valid
+				n_loops = n_loops + 1;	
+				// ground-truth disparity computed by dividing pixel value by 256 
+				if (abs(D_f.at<float>(v,u)-gt_value/256.0) < threshold_5)  
+					counter_5 = counter_5 + 1;
+					if (abs(D_f.at<float>(v,u)-gt_value/256.0) < threshold_4)
+						counter_4 = counter_4 + 1;
+						if (abs(D_f.at<float>(v,u)-gt_value/256.0) < threshold_3)
+							counter_3 = counter_3 + 1;
+							if (abs(D_f.at<float>(v,u)-gt_value/256.0) < threshold_2)
+								counter_2 = counter_2 + 1;
+			}
+		}
+	}
+
+	std::cout << "less than 2 pixels: " << counter_2/n_loops * 100 << " %" << std::endl;
+	std::cout << "less than 3 pixels: " << counter_3/n_loops * 100 << " %" << std::endl;
+	std::cout << "less than 4 pixels: " << counter_4/n_loops * 100 << " %" << std::endl;
+	std::cout << "less than 5 pixels: " << counter_5/n_loops * 100 << " %" << std::endl;
 }

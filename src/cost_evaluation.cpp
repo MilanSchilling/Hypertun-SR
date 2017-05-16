@@ -12,16 +12,21 @@
 // - I_r : image right [H x W]
 // - D_it: Interpolated disparity [H x W]
 // - G   : Matrix G which points to the corresponding triangle for every pixel [H x W]
+// - O   : [N x (u,v)] matrix, containing all N pixels with high gradient
+// - param: parameter struct
 //
 // outputs:
-// - C_it: Normalized cost associated to D_it
+// - C_it  : Normalized cost associated to D_it
+// - census_l: Census transformed left image
+// - census_r:  Census transformed right image
 // ############################################
 // This function compares every patch with the correspondent patch, 
 // given the interpolated disparity, using a census comparison.
 // It returns a matirx containing the costs for every pixel. 
 void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r, 
-						cv::Mat &D_it, cv::Mat &C_it, 
-						cv::Mat &G, parameters &param){
+                        cv::Mat &D_it, cv::Mat &G,
+                         cv::Mat & O, parameters &param,
+                         cv::Mat &C_it, cv::Mat &census_l, cv::Mat &census_r){
 
 
 
@@ -29,20 +34,18 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r,
 	//####################################
 	std::cout << "cost_evaluation.cpp census try" << std::endl;
 
-	cv::Mat empt_cens = cv::Mat(param.H, param.W, CV_32S, cv::Scalar(-1));
-
 	// Sign input images
 	cv::Mat_<unsigned char> leftImg, rightImg;
-	leftImg = I_l.clone();
-	rightImg = I_r.clone();
+	leftImg = I_l;
+	rightImg = I_r;
 
 	// create container for char images
 	cv::Mat_<char> charLeft(param.H, param.W);
 	cv::Mat_<char> charRight(param.H, param.W);
 
 	// create container for census outputs
-	cv::Mat_<unsigned int> censusLeft(param.H, param.W);
-	cv::Mat_<unsigned int> censusRight(param.H, param.W);
+	 cv::Mat_<unsigned int> censusLeft (param.H, param.W);
+	 cv::Mat_<unsigned int> censusRight (param.H, param.W);
 
 	// convert images
 	sparsestereo::ImageConversion::unsignedToSigned(leftImg, &charLeft);
@@ -53,7 +56,50 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r,
 	sparsestereo::Census::transform5x5(charLeft, &censusLeft);
 	sparsestereo::Census::transform5x5(charRight, &censusRight);
 
+	// loop over all high gradient pixels
+	for (int it = 0; it < param.nOfHiGradPix; it++){
 
+		// extract u,v
+		int u = O.at<int>(it, 0);
+		int v = O.at<int>(it, 1);
+
+		// check if triangle is defined for this pixel
+		if (G.at<int>(v,u) != -1){
+			// get interpolated disparity
+			int disp = D_it.at<float>(v,u);
+
+			// be sure u+d does not exeed the image 
+			if (u + disp > 1242){
+				disp = disp - (u + disp - 1242);
+			}
+
+			sparsestereo::HammingDistance mHamming;
+			// calculate hamming distance
+			//std::cout << "caluclate hamming at (u+d,v) = (" << u << "+" << (int)disp << "," << v <<  ")" << std::endl;
+
+			unsigned int currCensusLeft = censusLeft.at<unsigned int>(v,u);
+			//std::cout << "extracted census Left:  " << std::bitset<24>(currCensusLeft) << std::endl;
+			unsigned int currCensusRight = censusRight.at<unsigned int>(v,u + (int)disp);
+			//std::cout << "extracted census Right: " << std::bitset<24>(currCensusRight) << std::endl;
+			unsigned char hamming = mHamming.calculate(currCensusLeft, currCensusRight);
+			// TODO: verify (v+disp, u) or (v, u+disp)
+			//std::cout << "hamming = " << int(hamming) << std::endl;
+
+			/*
+			if(hamming == 24){
+				empt_cens.at<int>(v,u) = 1;
+			}
+			*/
+
+			// normalize cost
+			float n_cost = hamming / 24.0;
+			//std::cout << "n_cost: " << n_cost << std::endl;
+			// write cost to C_it
+			C_it.at<float>(v,u) = n_cost;
+		}
+	}
+
+	/*
 	// loop over interpolated disparities
 	for (int v = 0; v < param.H; ++v){
 		for (int u = 0; u < param.W; u++){
@@ -79,11 +125,6 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r,
 				// TODO: verify (v+disp, u) or (v, u+disp)
 				//std::cout << "hamming = " << int(hamming) << std::endl;
 
-				/*
-				if(hamming == 24){
-					empt_cens.at<int>(v,u) = 1;
-				}
-				*/
 
 				// normalize cost
 				float n_cost = hamming / 24.0;
@@ -93,6 +134,11 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r,
 			}
 		}
 	}
+	*/
+
+	// copy census transformed images for output
+	census_l = censusLeft;
+	census_r = censusRight;
 
 	/*
 	// show where census is zero

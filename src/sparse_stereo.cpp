@@ -98,15 +98,19 @@ void sparse_stereo(cv::Mat I_l, cv::Mat I_r, cv::Mat &S){
 	double correspondences_disparity_original[correspondences.size()][3];	
 	Point mark[correspondences.size()];
 	
+	int num_points = correspondences.size();
+	S = cv::Mat(num_points, 3, CV_32F, 0.0);
 	for(int j=0; j<(int)correspondences.size(); j++) { 
-		correspondences_disparity_original[j][0] = correspondences[j].imgLeft->pt.x/new_width*original_width;
-		correspondences_disparity_original[j][1] = correspondences[j].imgLeft->pt.y/new_height*original_height;
-		correspondences_disparity_original[j][2] = correspondences[j].disparity()/new_width*original_width;
+		S.at<float>(j,0) = correspondences[j].imgLeft->pt.x/new_width*original_width;
+		S.at<float>(j,1) = correspondences[j].imgLeft->pt.y/new_height*original_height;
+		S.at<float>(j,2) = correspondences[j].disparity()/new_width*original_width;
 			
-		mark[j].x=correspondences_disparity_original[j][0];
-		mark[j].y=correspondences_disparity_original[j][1];
+		//mark[j].x=correspondences_disparity_original[j][0];
+		//mark[j].y=correspondences_disparity_original[j][1];
 	}
 
+
+	/*
 	// Highlight matches as colored boxes
 	Mat_<Vec3b> screen(leftImg.rows, leftImg.cols);
 	cvtColor(leftImg, screen, CV_GRAY2BGR);
@@ -121,24 +125,12 @@ void sparse_stereo(cv::Mat I_l, cv::Mat I_r, cv::Mat &S){
 		circle(screen, mark[i], 1, (Scalar) color, 3);
 	}
 
-	/*
+	
 	// Display image and wait
 	namedWindow("Stereo");
 	imshow("Stereo", screen);
 	waitKey();
 	*/
-	
-
-	// Fill set of support points
-	int num_points = correspondences.size();
-	S = cv::Mat(num_points, 3, CV_32F, 0.0);
-	for (int i = 0; i < num_points; ++i) // i < num_points;
-	{
-		S.at<float>(i,0) = correspondences_disparity_original[i][0];
-		S.at<float>(i,1) = correspondences_disparity_original[i][1];
-		S.at<float>(i,2) = correspondences_disparity_original[i][2];
-	}
-
 
 	// Clean up
 	delete leftFeatureDetector;
