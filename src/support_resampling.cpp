@@ -169,7 +169,7 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 				nuOfZeros++;
 
 		}
-		std::cout << "bestCost = " << bestCost << std::endl;
+		//std::cout << "bestCost = " << bestCost << std::endl;
 
 		// check if best match is good and unique
 		if (bestCost < 0.4){   // (bestCost == 0) && (nuOfZeros == 1)
