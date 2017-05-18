@@ -52,6 +52,8 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	param.t_lo = 2.f/24; // placeholder, verify optimal value
 	param.t_hi = 21.f/24; // placeholder, verify optimal value
 	param.im_grad = 20;
+	param.t_epi = 0.3f;
+	param.epi_window = 80;
 
 	// Load images with time estimation
 	boost::posix_time::ptime lastTime = boost::posix_time::microsec_clock::local_time();

@@ -136,7 +136,7 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 			int nuOfZeros = 0;
 
 			// window on epipolar line
-			int win = 80;
+			int win = param.epi_window;
 
 			// loop along each epipolar line
 			for (int u_ = std::max(pattern_sz, currU - win); u_ < std::min(currU, param.W - pattern_sz); ++u_){
@@ -176,10 +176,10 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 					nuOfZeros++;
 
 			}
-			//std::cout << "bestCost = " << bestCost << std::endl;
+
 
 			// check if best match is good and unique
-			if (bestCost < 0.2){   // (bestCost == 0) && (nuOfZeros == 1)
+			if (bestCost < param.t_epi){   // (bestCost == 0) && (nuOfZeros == 1)
 				// calculate disparity with u_left - u_right
 				int disp = currU - u_best;
 				assert(disp >= 0);
@@ -196,45 +196,6 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 		
 
 	}
-
-	//showMatch(I_l, I_r, S_epi, epiLength);
-
-
-	/*
-
-	
-	// define container for epipolar search [noBadPts x (u, v, d)]
-	cv::Mat S_epi;
-	S_epi = cv::Mat(noBadPts, 3, CV_32F, 0.0);
-
-	// pad a frame around the images
-	int border = 2;
-	cv::Mat I_r_p = cv::Mat(I_r.rows + border*2, I_r.cols + border*2, I_r.depth());
-	cv::Mat I_l_p = cv::Mat(I_l.rows + border*2, I_l.cols + border*2, I_l.depth());
-	cv::copyMakeBorder(I_r, I_r_p, border, border, border, border, cv::BORDER_REPLICATE);
-	cv::copyMakeBorder(I_l, I_l_p, border, border, border, border, cv::BORDER_REPLICATE);
-
-
-	// loop over X
-	for (int i=0; i < noBadPts; ++i){
-		int d = -1;
-		// be sure that u and v are in range
-		assert(0 <= int(X.at<float>(i, 0)) && int(X.at<float>(i, 0)) <= 1242);
-		assert(0 <= int(X.at<float>(i, 1)) && int(X.at<float>(i, 1)) <= 375);
-
-		// perform epipolar to get best census match along the epipolar line
-		epipolar_search(I_l_p, I_r_p,
-						int(X.at<float>(i, 0)), int(X.at<float>(i, 1)), d, param);
-		// be sure d is > zero
-		assert(d >= 0);
-
-		// save (u, v, d) to epi
-		S_epi.at<float>(i, 0) = X.at<float>(i, 0);
-		S_epi.at<float>(i, 1) = X.at<float>(i, 1);
-		S_epi.at<float>(i, 2) = float(d);
-	}
-
-	*/
 
 
 	// combine S_it, S_add and S_epi

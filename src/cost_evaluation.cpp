@@ -109,12 +109,6 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r,
 			unsigned char hamming = mHamming.calculate(currCensusLeft, currCensusRight);
 
 
-			
-			if(hamming >= 24){
-				hamming = 24;
-			}
-			
-
 			// milan: mHamming.calculate returns sometimes a hamming = 25, Idk why...
 			if (hamming >= 24){
 				hamming = 24;
@@ -129,123 +123,10 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r,
 		}
 	}
 
-	/*
-	// loop over interpolated disparities
-	for (int v = 0; v < param.H; ++v){
-		for (int u = 0; u < param.W; u++){
-			
-			// check if triangle is defined for this pixel
-			if (G.at<int>(v,u) != -1){
-				// get interpolated disparity
-				int disp = D_it.at<float>(v,u);
-				if (u + disp > 1242){
-					disp = disp - (u + disp - 1242);
-				}
-				assert(u + disp <= 1242);
-
-				sparsestereo::HammingDistance mHamming;
-				// calculate hamming distance
-				//std::cout << "caluclate hamming at (u+d,v) = (" << u << "+" << (int)disp << "," << v <<  ")" << std::endl;
-
-				unsigned int currCensusLeft = censusLeft.at<unsigned int>(v,u);
-				//std::cout << "extracted census Left:  " << std::bitset<24>(currCensusLeft) << std::endl;
-				unsigned int currCensusRight = censusRight.at<unsigned int>(v,u + (int)disp);
-				//std::cout << "extracted census Right: " << std::bitset<24>(currCensusRight) << std::endl;
-				unsigned char hamming = mHamming.calculate(currCensusLeft, currCensusRight);
-				// TODO: verify (v+disp, u) or (v, u+disp)
-				//std::cout << "hamming = " << int(hamming) << std::endl;
-
-
-				// normalize cost
-				float n_cost = hamming / 24.0;
-				//std::cout << "n_cost: " << n_cost << std::endl;
-				// write cost to C_it
-				C_it.at<float>(v,u) = n_cost;
-			}
-		}
-	}
-	*/
-
 	// copy census transformed images for output
 	census_l = censusLeft;
 	census_r = censusRight;
 
-	/*
-	// show where census is zero
-	cv::Mat cens = I_l.clone();
-	cv::cvtColor(cens, cens, CV_GRAY2RGB);
-	cv::Vec3b color = cv::Vec3b(0,0,255);
-	// loop over empt_cens
-	for (int v = 0; v < param.H; ++v){
-		for (int u = 0; u < param.W; u++){
-			if(empt_cens.at<int>(v,u) > 0){
-				cens.at<cv::Vec3b>(v,u) = color;
-			}
-
-		}
-	}
-
-	cv::imshow("empty census", cens);
-	cv::waitKey(0);
-	*/
-
-
-
-	/*
-	std::cout << "cost_evaluation.cpp" << std::endl;
-
-	// pad a frame around the images
-	int border = 2;
-	cv::Mat I_r_p = cv::Mat(param.H + border*2, param.W + border*2, I_r.depth());
-	cv::Mat I_l_p = cv::Mat(param.H + border*2, param.W + border*2, I_l.depth());
-	cv::copyMakeBorder(I_r, I_r_p, border, border, border, border, cv::BORDER_REPLICATE);
-	cv::copyMakeBorder(I_l, I_l_p, border, border, border, border, cv::BORDER_REPLICATE);
-
-	// loop over interpolated disparities
-	for (int v = 0; v < param.H; ++v){
-		for (int u = 0; u < param.W; u++){
-
-			if (G.at<int>(v,u) != -1){
-				float disp = D_it.at<float>(v,u); // TODO: verify order of i,j!
-
-				//evaluate cost for given disparity
-				int u_pad = u + border;
-				int v_pad = v + border;
-
-				std::bitset<24> cens_l(0);
-				std::bitset<24> cens_r(0);
-
-				// get census of left image
-				census(I_l_p, u_pad, v_pad, cens_l);
-
-				// get census of right image at the interpolated disparity
-				census(I_r_p, u_pad, v_pad + disp, cens_r);
-
-				// calculate cost
-				ushort cost = 0;
-				std::bitset<24> mask(1);
-				std::bitset<24> result(0);
-
-				// calculating Hemming distance
-				result = cens_l ^ cens_r;
-				for (int it = 0; it < 24; ++it){
-					std::bitset<24> current_bit = (result & (mask<<it))>>it;
-					if (current_bit == mask){
-						cost++;
-					}
-				}
-
-				// normalize cost
-				float n_cost = cost / 24.0;
-				//std::cout << "cost: " << cost << std::endl;
-				// write cost to C_it
-				C_it.at<float>(v,u) = n_cost;
-				//std::cout << "n_cost: " << n_cost << std::endl;
-			}
-			
-		}
-	}
-	*/
 }
 
 
