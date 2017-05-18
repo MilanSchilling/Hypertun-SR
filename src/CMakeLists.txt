@@ -10,6 +10,7 @@ add_executable( main.out
 				cost_evaluation.cpp
 				disparity_refinement.cpp
 				support_resampling.cpp
+				image_gradient.cpp
 				../libs/triangulation/DelaunayTriangulation.cpp)
 target_link_libraries( main.out sparsestereo ${OpenCV_LIBS} )
 

@@ -109,11 +109,11 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r,
 			unsigned char hamming = mHamming.calculate(currCensusLeft, currCensusRight);
 
 
-			/*
-			if(hamming == 24){
-				empt_cens.at<int>(v,u) = 1;
+			
+			if(hamming >= 24){
+				hamming = 24;
 			}
-			*/
+			
 
 			// milan: mHamming.calculate returns sometimes a hamming = 25, Idk why...
 			if (hamming >= 24){
