@@ -88,7 +88,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
   	cv::Mat abs_grad_l_x, abs_grad_l_y;
 	cv::Mat grad_l;
 
-	/*
+	///*
 	image_gradient(I_l_cb, grad_l, param);
 
 	elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
@@ -114,9 +114,9 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	}
 	param.nOfHiGradPix = highGradCount;
 
-	*/
+	//*/
 
-	///*
+	/*
 	// parameters for Gradient
 	int scale = 1;
 	int delta = 0;
@@ -155,7 +155,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 		}
 	}
 	param.nOfHiGradPix = highGradCount;
-	//*/
+	*/
 	
 
 	elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);

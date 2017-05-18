@@ -1,6 +1,15 @@
 #include "image_gradient.hpp"
 
-
+// image_gradient
+//##########################################
+//
+// input:
+// - image_in       : grayscale image [H, W]
+// - image_out      : gradient image [H, W]
+//
+// This function calculates for each pixel the value delta u and delta v (du, dv), using the
+// values of the pixels at u+-1 and v+-1. If the pixel lies at the border, the value of the border is used.
+// The resulting gradient is calculated by sqrt(du^2 + dv^2)
 void image_gradient (cv::Mat &image_in, cv::Mat &image_out, parameters &param){
 
     // get image size
@@ -45,7 +54,7 @@ void image_gradient (cv::Mat &image_in, cv::Mat &image_out, parameters &param){
 
 
             // combine gradients
-            int grad = 0.5 * std::abs(du) + 0.5 * std::abs(dv);
+            int grad = std::sqrt(std::pow(du, 2) + std::pow(dv, 2));
 
             // write gradint
             image_out.at<uchar>(v, u) = grad;

@@ -109,11 +109,11 @@ void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r,
 			// TODO: verify (v+disp, u) or (v, u+disp)
 			//std::cout << "hamming = " << int(hamming) << std::endl;
 
-			/*
-			if(hamming == 24){
-				empt_cens.at<int>(v,u) = 1;
+			
+			if(hamming >= 24){
+				hamming = 24;
 			}
-			*/
+			
 
 			// normalize cost
 			float n_cost = hamming / 24.0;
