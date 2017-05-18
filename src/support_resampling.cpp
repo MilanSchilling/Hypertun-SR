@@ -120,8 +120,8 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 		assert((0 <= currV) && ( currV <= 375));
 
 		// check if pixels in pattern are within image
-		if ((currV - pattern_sz >= 0) && (currV + pattern_sz <= param.H)
-			 && (currU - pattern_sz >= 0) && (currU + pattern_sz <= param.W)){
+		if ((currV - pattern_sz >= 0) && (currV + pattern_sz < param.H)
+			 && (currU - pattern_sz >= 0) && (currU + pattern_sz < param.W)){
 			
 			// get current left census pattern of four pixel: center, Up, Down, Left, Right
 			unsigned int currCensusLeft = census_l.at<unsigned int>(currV, currU);
@@ -140,6 +140,7 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 
 			// loop along each epipolar line
 			for (int u_ = std::max(pattern_sz, currU - win); u_ < std::min(currU, param.W - pattern_sz); ++u_){
+
 				//extract each right census pattern
 				unsigned int currCensusRight = census_r.at<unsigned int>(currV, u_);
 				unsigned int currCensusRightU = census_r.at<unsigned int>(currV - pattern_sz, u_);
