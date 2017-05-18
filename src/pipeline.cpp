@@ -83,12 +83,9 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	cv::GaussianBlur(I_l_c, I_l_cb, cv::Size(3,3), 0, 0, cv::BORDER_DEFAULT);
 
 
-	// Generate grad_x and grad_y
-  	cv::Mat grad_l_x, grad_l_y;
-  	cv::Mat abs_grad_l_x, abs_grad_l_y;
+	// Generate gradient image
 	cv::Mat grad_l;
 
-	///*
 	image_gradient(I_l_cb, grad_l, param);
 
 	elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
@@ -101,7 +98,6 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	int highGradCount = 0;
 	for (int vv = 0; vv < I_l_cb.rows; vv++){
 		for (int uu = 0; uu < I_l_cb.cols; uu++){
-			//std::cout << "grad = " << int(grad_l.at<uchar>(vv,uu)) << std::endl;
 			if(grad_l.at<uchar>(vv,uu) > param.im_grad){
 				cv::Mat pixel = cv::Mat(1, 2, CV_32S);
 				pixel.at<int>(0, 0) = uu;
@@ -113,49 +109,6 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 		}
 	}
 	param.nOfHiGradPix = highGradCount;
-
-	//*/
-
-	/*
-	// parameters for Gradient
-	int scale = 1;
-	int delta = 0;
-	int ddepth = -1;
-
-	// Gradient X
-	cv::Sobel( I_l_cb, grad_l_x, ddepth, 1, 0, 3, scale, delta, cv::BORDER_DEFAULT);
-	cv::convertScaleAbs(grad_l_x, abs_grad_l_x);
-
-	// Gradient Y
-	cv::Sobel( I_l_cb, grad_l_y, ddepth, 0, 1, 3, scale, delta, cv::BORDER_DEFAULT);
- 	cv::convertScaleAbs(grad_l_y, abs_grad_l_y );	
-
-	// Total Gradient (approximate)
-	cv::addWeighted(abs_grad_l_x, 0.5, abs_grad_l_y, 0.5, 0, grad_l);
-
-	elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
-	std::cout << std::setw(50) << std::left << "Elapsed Time for image preprocessing: " << std::right << elapsed.total_microseconds()/1.0e3 << " ms" << std::endl;
-
-	// gather high gradient pixels in Mat O with time calculation
-	lastTime = boost::posix_time::microsec_clock::local_time();
-
-	cv::Mat O = cv::Mat(0, 2, CV_32S);
-	int highGradCount = 0;
-	for (int vv = 0; vv < I_l_cb.rows; vv++){
-		for (int uu = 0; uu < I_l_cb.cols; uu++){
-			//std::cout << "grad = " << int(grad_l.at<uchar>(vv,uu)) << std::endl;
-			if(int(grad_l.at<uchar>(vv,uu)) > param.im_grad){
-				cv::Mat pixel = cv::Mat(1, 2, CV_32S);
-				pixel.at<int>(0, 0) = uu;
-				pixel.at<int>(0, 1) = vv;
-				O.push_back(pixel);
-
-				highGradCount++;
-			}
-		}
-	}
-	param.nOfHiGradPix = highGradCount;
-	*/
 	
 
 	elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
@@ -164,9 +117,6 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	
 	std::cout << "Number of pixels with high gradient: " << param.nOfHiGradPix << std::endl;
 
-	// show gradient image
-	//cv::imshow("left gradient", grad_l);
-	//cv::waitKey(0);
 
 	// Get image height and width
 	param.H = I_l_c.rows;
