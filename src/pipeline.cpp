@@ -15,6 +15,7 @@
 #include "disparity_refinement.hpp"
 #include "support_resampling.hpp"
 #include "parameters.hpp"
+#include "image_gradient.hpp"
 
 // header of 'line2'
 void line2(cv::Mat& img, const cv::Point& start, const cv::Point& end, 
@@ -81,11 +82,41 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	// apply gaussian blur
 	cv::GaussianBlur(I_l_c, I_l_cb, cv::Size(3,3), 0, 0, cv::BORDER_DEFAULT);
 
+
 	// Generate grad_x and grad_y
   	cv::Mat grad_l_x, grad_l_y;
   	cv::Mat abs_grad_l_x, abs_grad_l_y;
 	cv::Mat grad_l;
 
+	/*
+	image_gradient(I_l_cb, grad_l, param);
+
+	elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
+	std::cout << std::setw(50) << std::left << "Elapsed Time for image preprocessing: " << std::right << elapsed.total_microseconds()/1.0e3 << " ms" << std::endl;
+
+	// gather high gradient pixels in Mat O with time calculation
+	lastTime = boost::posix_time::microsec_clock::local_time();
+
+	cv::Mat O = cv::Mat(0, 2, CV_32S);
+	int highGradCount = 0;
+	for (int vv = 0; vv < I_l_cb.rows; vv++){
+		for (int uu = 0; uu < I_l_cb.cols; uu++){
+			//std::cout << "grad = " << int(grad_l.at<uchar>(vv,uu)) << std::endl;
+			if(grad_l.at<uchar>(vv,uu) > param.im_grad){
+				cv::Mat pixel = cv::Mat(1, 2, CV_32S);
+				pixel.at<int>(0, 0) = uu;
+				pixel.at<int>(0, 1) = vv;
+				O.push_back(pixel);
+
+				highGradCount++;
+			}
+		}
+	}
+	param.nOfHiGradPix = highGradCount;
+
+	*/
+
+	///*
 	// parameters for Gradient
 	int scale = 1;
 	int delta = 0;
@@ -112,6 +143,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	int highGradCount = 0;
 	for (int vv = 0; vv < I_l_cb.rows; vv++){
 		for (int uu = 0; uu < I_l_cb.cols; uu++){
+			//std::cout << "grad = " << int(grad_l.at<uchar>(vv,uu)) << std::endl;
 			if(int(grad_l.at<uchar>(vv,uu)) > param.im_grad){
 				cv::Mat pixel = cv::Mat(1, 2, CV_32S);
 				pixel.at<int>(0, 0) = uu;
@@ -123,6 +155,8 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 		}
 	}
 	param.nOfHiGradPix = highGradCount;
+	//*/
+	
 
 	elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
 	std::cout << std::setw(50) << std::left << "Elapsed Time for building the Mat O: " << std::right << elapsed.total_microseconds()/1.0e3 << " ms" << std::endl;
