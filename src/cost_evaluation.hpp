@@ -3,6 +3,7 @@
 
 #include <opencv2/opencv.hpp>
 #include <bitset>
+#include <omp.h>
 #include "parameters.hpp"
 
 void cost_evaluation(cv::Mat &I_l, cv::Mat &I_r, 
