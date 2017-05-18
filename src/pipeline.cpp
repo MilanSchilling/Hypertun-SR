@@ -16,6 +16,8 @@
 #include "support_resampling.hpp"
 #include "parameters.hpp"
 #include "image_gradient.hpp"
+#include "stats.hpp"
+
 
 // header of 'line2'
 void line2(cv::Mat& img, const cv::Point& start, const cv::Point& end, 
@@ -37,7 +39,7 @@ void showSupportPts(cv::Mat I_l, cv::Mat S_it, std::string str);
 void computeAccuracy(cv::Mat D_f, cv::String filename_disp);
 
 
-void pipeline(cv::String filename_left, cv::String filename_right, cv::String filename_disp) {
+void pipeline(cv::String filename_left, cv::String filename_right, cv::String filename_disp, stats &statistics) {
 	std::cout << "#######" << std::endl;
 	std::cout << "DATASET: http://www.cvlibs.net/datasets/kitti/eval_stereo_flow.php?benchmark=flow" << std::endl;
 	std::cout << "#######" << std::endl << std::endl;
@@ -288,6 +290,11 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	//showSupportPts(I_l_c, S, "final Support Points");
 	showDisparity(I_l_c, D_f, "final Disparity");
 	computeAccuracy(D_f, filename_disp);
+
+	// fill stats struct as output to main
+	statistics.alg_time = algorithm_time_elapsed.total_microseconds()/1.0e3;
+	statistics.alg_freq = 1.0e6/algorithm_time_elapsed.total_microseconds();
+	statistics.it = param.n_iters;
 
 	//cv::waitKey(0); -> waitKey is executed in main.cpp
 }
