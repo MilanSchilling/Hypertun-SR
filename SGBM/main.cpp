@@ -1,53 +1,44 @@
-// Adapted from:
-// http://www.jayrambhia.com/blog/disparity-mpas
-// https://github.com/jayrambhia/Vision/blob/master/OpenCV/C%2B%2B/disparity.cpp
-
-#include "opencv2/core/core.hpp"
-#include "opencv2/calib3d/calib3d.hpp"
+#include "pipeline_sgbm.hpp"
+#include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include "opencv2/contrib/contrib.hpp"
-#include <stdio.h>
-#include <iostream>
-
-using namespace cv;
-using namespace std;
-
-int main(int argc, char const *argv[]) {
 
 
-	Mat img1, img2, g1, g2;
-	Mat disp, disp8;
+int main() {
 
-	img1 = imread("../data/data_scene_flow/testing/image_2/000000_10.png");
-	img2 = imread("../data/data_scene_flow/testing/image_3/000000_10.png");
+	//setting folder paths and choosing all .png files
+	cv::String path_left("../data/data_stereo_flow/training/colored_0/*.png");
+	cv::String path_right("../data/data_stereo_flow/training/colored_1/*.png");
+	cv::String path_disp("../data/data_stereo_flow/training/disp_occ/*.png");
 	
+	//adressing filenames with indexes
+	std::vector<cv::String> filenames_left;
+	std::vector<cv::String> filenames_right;
+	std::vector<cv::String> filenames_disp;
+	cv::glob(path_left, filenames_left);
+	cv::glob(path_right, filenames_right);
+	cv::glob(path_disp, filenames_disp);
+	int num_files = filenames_left.size();
 
-	cvtColor(img1, g1, CV_BGR2GRAY);
-	cvtColor(img2, g2, CV_BGR2GRAY);
+	bool single_image = true;
+	if (single_image) num_files = 1;
 
-	StereoSGBM sgbm;
-	sgbm.SADWindowSize = 5;
-	sgbm.numberOfDisparities = 192;
-	sgbm.preFilterCap = 4;
-	sgbm.minDisparity = -0;
-	sgbm.uniquenessRatio = 1;
-	sgbm.speckleWindowSize = 150;
-	sgbm.speckleRange = 2;
-	sgbm.disp12MaxDiff = 10;
-	sgbm.fullDP = false;
-	sgbm.P1 = 600;
-	sgbm.P2 = 2400;
+	for (size_t i=0; i<num_files; i++) {
+		if (single_image) i = 9;
+		
+		boost::posix_time::ptime time_start = boost::posix_time::microsec_clock::local_time();
 
-	sgbm(g1, g2, disp);
-	normalize(disp, disp8, 0, 255, CV_MINMAX, CV_8U);
+		pipeline_sgbm(filenames_left[i*2], filenames_right[i*2], filenames_disp[i]);
 
-	imshow("left", img1);
-	imshow("right", img2);
-	imshow("disp", disp8);
-	waitKey(0);
+		boost::posix_time::time_duration time_elapsed = (boost::posix_time::microsec_clock::local_time() - time_start);
+		std::cout << "#################################################" << std::endl;
+		std::cout << std::setprecision(2);
+		std::cout << "PIPELINE TOOK: " << time_elapsed.total_microseconds()/1.0e6 << " seconds" << std::endl; 
+		std::cout << "WITH A SPEED OF: " << 1.0e6/time_elapsed.total_microseconds() << " Hz" << std::endl;
+		std::cout << "#################################################" << std::endl;
+
+		cv::waitKey(0);
+	}
 
 	return 0;
+
 }
-
-
