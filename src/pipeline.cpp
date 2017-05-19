@@ -175,11 +175,11 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	// TODO: set G = -1 for all supportpoints within delaunay!
 	
 	// show the grid from the delaunay triangulation
-	//showGrid(I_l_c, S, E, "Delaunay 1");
+	//showGrid(I_l_c, S, E, "Initial Delaunay");
 
 	for (int i = 0; i < param.n_iters; ++i) {
 		std::cout << "################################################" << std::endl;
-		std::cout << "ITERATION :: " << i << std::endl;
+		std::cout << "ITERATION :: " << i+1 << std::endl;
 		std::cout << "################################################" << std::endl;
 
 		// initialize D_it and C_it new for every iteration
@@ -263,7 +263,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 			
 			// show delaunay grid for i-th iteration
 			std::ostringstream oss;
-			oss << "Delaunay " << i+2;
+			oss << "Delaunay " << i+1;
 			std::string str = oss.str();
 			//showGrid(I_l_c, S, E, str);
 			
@@ -272,11 +272,10 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 
 	boost::posix_time::time_duration algorithm_time_elapsed = (boost::posix_time::microsec_clock::local_time() - algorithm_time_start);
 
-	std::cout << "************************************************" << std::endl;
-	std::cout << std::setprecision(2);
+	std::cout << "################################################" << std::endl;
 	std::cout << std::setw(50) << std::left << "ALGORITHM TOOK: " << std::right << algorithm_time_elapsed.total_microseconds()/1.0e3 << " ms" << std::endl; 
 	std::cout << std::setw(50) << std::left << "WITH A SPEED OF: " << std::right << 1.0e6/algorithm_time_elapsed.total_microseconds() << " Hz" << std::endl;
-	std::cout << "************************************************" << std::endl;
+	std::cout << "################################################" << std::endl;
 
 	std::cout << "NUMBER OF ITERATIONS: " << param.n_iters << std::endl;
 	std::cout << "NEW SUPPORT POINTS: " << S.rows - num_S_points_init << " / " << S.rows << std::endl;
@@ -286,9 +285,9 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	std::cout << "POINTS WITH DISPARITY: " << num_points;
 	std:: cout << ", " << float(num_points)/(I_l.rows*I_l.cols)*100 << "% of image" << std::endl;
 
-	showGrid(I_l_c, S, E, "final Delaunay");
+	showGrid(I_l_c, S, E, "Final Delaunay");
 	//showSupportPts(I_l_c, S, "final Support Points");
-	showDisparity(I_l_c, D_f, "final Disparity");
+	showDisparity(I_l_c, D_f, "Final Disparity");
 	computeAccuracy(D_f, filename_disp);
 
 	// fill stats struct as output to main
