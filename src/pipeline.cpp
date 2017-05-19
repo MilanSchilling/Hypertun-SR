@@ -427,6 +427,8 @@ void showSupportPts(cv::Mat I_l, cv::Mat S_it, std::string str){
 
 void computeAccuracy(cv::Mat D_f, cv::String filename_disp){
 
+	if (filename_disp == " ") return;
+
 	std::cout << "################################################" << std::endl;
 	std::cout << "ACCURACY (comparing with ground-truth disparity)" << std::endl;
 	std::cout << "################################################" << std::endl;

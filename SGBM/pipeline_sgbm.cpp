@@ -23,40 +23,45 @@ void pipeline_sgbm(cv::String filename_left, cv::String filename_right, cv::Stri
 	cvtColor(I_l, g1, CV_BGR2GRAY);
 	cvtColor(I_r, g2, CV_BGR2GRAY);
 
+	// Parameter values according to:
+	// http://www.cvlibs.net/datasets/kitti/eval_stereo_flow_detail.php?benchmark=stereo&result=3ae300a3a3b3ed3e48a63ecb665dffcc127cf8ab
 	StereoSGBM sgbm;
-	sgbm.SADWindowSize = 5;
-	sgbm.numberOfDisparities = 256; // Adapted this value to use whole range of uint8
-	sgbm.preFilterCap = 4;
-	sgbm.minDisparity = 0;			// Adapted this value to avoid segmentation fault
-	sgbm.uniquenessRatio = 1;
-	sgbm.speckleWindowSize = 150;
-	sgbm.speckleRange = 2;
-	sgbm.disp12MaxDiff = 10;
-	sgbm.fullDP = false;
-	sgbm.P1 = 600;
-	sgbm.P2 = 2400;
+	sgbm.SADWindowSize = 3;
+	sgbm.numberOfDisparities = 128;
+	sgbm.preFilterCap = 63;
+	sgbm.minDisparity = 0;
+	sgbm.uniquenessRatio = 10;
+	sgbm.speckleWindowSize = 100;
+	sgbm.speckleRange = 32;
+	sgbm.disp12MaxDiff = 1;
+	sgbm.fullDP = 1;
+	sgbm.P1 = sgbm.SADWindowSize*sgbm.SADWindowSize*4;
+	sgbm.P2 = sgbm.SADWindowSize*sgbm.SADWindowSize*32;
 
 	sgbm(g1, g2, disp);
-	normalize(disp, disp8, 0, 255, CV_MINMAX, CV_8U);
+	normalize(disp, disp8, 0, 256, CV_MINMAX, CV_8U);
 
 	boost::posix_time::time_duration algorithm_time_elapsed = (boost::posix_time::microsec_clock::local_time() - algorithm_time_start);
-	std::cout << "************************************************" << std::endl;
-	std::cout << std::setprecision(2);
+	std::cout << std::setprecision(3);
+	std::cout << "#################################################" << std::endl;
 	std::cout << "ALGORITHM TOOK: " << algorithm_time_elapsed.total_microseconds()/1.0e6 << " seconds" << std::endl; 
 	std::cout << "WITH A SPEED OF: " << 1.0e6/algorithm_time_elapsed.total_microseconds() << " Hz" << std::endl;
-	std::cout << "************************************************" << std::endl;
+	std::cout << "#################################################" << std::endl;
 
 	cv::imshow("Disparity", disp8);
+	std::cout << disp.type() << std::endl;
 
-	computeAccuracy(disp8, filename_disp);
+	computeAccuracy(disp, filename_disp);
 
 }
 
 void computeAccuracy(cv::Mat D_f, cv::String filename_disp){
 
+	if (filename_disp == " ") return;
+
 	std::cout << "################################################" << std::endl;
 	std::cout << "ACCURACY (comparing with ground-truth disparity)" << std::endl;
-	std::cout << "################################################" << std::endl;
+	//std::cout << "################################################" << std::endl;
 
 	cv::Mat D_gt_png = cv::imread(filename_disp);
 
@@ -76,14 +81,17 @@ void computeAccuracy(cv::Mat D_f, cv::String filename_disp){
 	float threshold_4 = 4;
 	float threshold_5 = 5;
 
+	//normalize(D_gt_png, D_gt_png, 0, 256, CV_MINMAX, CV_8U);
+
 	// comparison with ground-truth disparity and 4 different threshold
 	for (int32_t v=0; v<D_gt_png_height; v++) {
 		for (int32_t u=0; u<D_gt_png_width; u++) {
 
 			gt_value = D_gt_png.at<uint16_t>(v,u,0);
+			float disp = D_f.at<int>(v,u,0)/256/256/16;
+			// Why the 16?: http://stackoverflow.com/questions/33308326/why-does-stereosgbm-give-negative-and-above-numberofdisparities-numbers
 
-			if (D_f.at<uint8_t>(v,u,0) != 0 && gt_value != 0) { // both ground-truth and estimate disparity valid
-				float disp = D_f.at<uint8_t>(v,u,0)*1;
+			if (disp != 0 && gt_value != 0) { // both ground-truth and estimate disparity valid
 				n_loops = n_loops + 1;	
 				// ground-truth disparity computed by dividing pixel value by 256 
 				if (abs(disp-gt_value/256.0) < threshold_5)  

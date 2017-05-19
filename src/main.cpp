@@ -6,10 +6,26 @@
 
 int main() {
 
+	const int ACCURACY_DATASET = 0;
+	const int PERFORMANCE_DATASET = 1;
+
+	int DATASET = ACCURACY_DATASET;
+
+	cv::String path_left;
+	cv::String path_right;
+	cv::String path_disp;
+
 	//setting folder paths and choosing all .png files
-	cv::String path_left("../data/data_stereo_flow/training/colored_0/*.png");
-	cv::String path_right("../data/data_stereo_flow/training/colored_1/*.png");
-	cv::String path_disp("../data/data_stereo_flow/training/disp_occ/*.png");
+	if (DATASET == ACCURACY_DATASET) {
+		path_left = "../data/data_stereo_flow/training/colored_0/*.png";
+		path_right = "../data/data_stereo_flow/training/colored_1/*.png";
+		path_disp = "../data/data_stereo_flow/training/disp_occ/*.png";
+	}
+	if (DATASET == PERFORMANCE_DATASET) {
+		path_left = "../data/data_odometry_color/00/image_2/*.png";
+		path_right = "../data/data_odometry_color/00/image_3/*.png";
+		path_disp = "../data/data_odometry_color/00/image_3/*.png";
+	}
 	
 	//adressing filenames with indexes
 	std::vector<cv::String> filenames_left;
@@ -29,6 +45,7 @@ int main() {
 	//#######################
 	int range = 5;               //<<<<-------------- // set here range to 'ALL', 'ONE' or a specific number
 	//#######################
+	if (DATASET == PERFORMANCE_DATASET) range = ALL;
 
 	// prepare range of images
 	if (range == ALL){
@@ -55,7 +72,8 @@ int main() {
 		
 		boost::posix_time::ptime time_start = boost::posix_time::microsec_clock::local_time();
 
-		pipeline(filenames_left[i*2], filenames_right[i*2], filenames_disp[i], statistics);
+		if (DATASET == PERFORMANCE_DATASET) pipeline(filenames_left[i*2], filenames_right[i*2], " ", statistics);
+		else pipeline(filenames_left[i*2], filenames_right[i*2], filenames_disp[i], statistics);
 
 		boost::posix_time::time_duration time_elapsed = (boost::posix_time::microsec_clock::local_time() - time_start);
 
@@ -70,7 +88,8 @@ int main() {
 		std::cout << std::setw(50) << std::left << "WITH A SPEED OF: " << std::right << 1.0e6/time_elapsed.total_microseconds() << " Hz" << std::endl;
 		std::cout << "#################################################" << std::endl;
 
-		cv::waitKey(0);
+		if (DATASET == ACCURACY_DATASET) cv::waitKey(0);
+		if (DATASET == PERFORMANCE_DATASET) cv::waitKey(1);
 	}
 
 	if (range != 1){
