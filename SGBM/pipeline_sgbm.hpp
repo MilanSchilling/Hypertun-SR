@@ -7,11 +7,12 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include "opencv2/contrib/contrib.hpp"
+#include "stats.hpp"
 #include <stdio.h>
 #include <iostream>
 
 
-void pipeline_sgbm(cv::String filename_left, cv::String filename_right, cv::String filename_disp);
+void pipeline_sgbm(cv::String filename_left, cv::String filename_right, cv::String filename_disp, stats &statistics);
 
 
 #endif
