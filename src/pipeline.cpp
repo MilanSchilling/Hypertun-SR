@@ -36,7 +36,7 @@ void showDisparity(cv::Mat I_l, cv::Mat D_it, std::string str);
 void showSupportPts(cv::Mat I_l, cv::Mat S_it, std::string str);
 
 // header of ´computeAccuracy'
-void computeAccuracy(cv::Mat D_f, cv::String filename_disp);
+void computeAccuracy(cv::Mat D_f, cv::String filename_disp, stats &statistics);
 
 
 void pipeline(cv::String filename_left, cv::String filename_right, cv::String filename_disp, stats &statistics) {
@@ -288,7 +288,9 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	showGrid(I_l_c, S, E, "Final Delaunay");
 	//showSupportPts(I_l_c, S, "final Support Points");
 	showDisparity(I_l_c, D_f, "Final Disparity");
-	computeAccuracy(D_f, filename_disp);
+	// calculate accuracy if correct dataset is given
+	if(statistics.acc_calc) computeAccuracy(D_f, filename_disp, statistics);
+	
 
 	// fill stats struct as output to main
 	statistics.alg_time = algorithm_time_elapsed.total_microseconds()/1.0e3;
@@ -425,7 +427,7 @@ void showSupportPts(cv::Mat I_l, cv::Mat S_it, std::string str){
 
 
 
-void computeAccuracy(cv::Mat D_f, cv::String filename_disp){
+void computeAccuracy(cv::Mat D_f, cv::String filename_disp, stats &statistics){
 
 	if (filename_disp == " ") return;
 
@@ -480,8 +482,15 @@ void computeAccuracy(cv::Mat D_f, cv::String filename_disp){
 		}
 	}
 
-	std::cout << "less than 2 pixels: " << counter_2/n_loops * 100 << " %" << std::endl;
-	std::cout << "less than 3 pixels: " << counter_3/n_loops * 100 << " %" << std::endl;
-	std::cout << "less than 4 pixels: " << counter_4/n_loops * 100 << " %" << std::endl;
-	std::cout << "less than 5 pixels: " << counter_5/n_loops * 100 << " %" << std::endl;
+	statistics.acc2 = counter_2/n_loops * 100;
+	statistics.acc3 = counter_3/n_loops * 100;
+	statistics.acc4 = counter_4/n_loops * 100;
+	statistics.acc5 = counter_5/n_loops * 100;
+
+
+
+	std::cout << "less than 2 pixels: " << statistics.acc2 << " %" << std::endl;
+	std::cout << "less than 3 pixels: " << statistics.acc3 << " %" << std::endl;
+	std::cout << "less than 4 pixels: " << statistics.acc4 << " %" << std::endl;
+	std::cout << "less than 5 pixels: " << statistics.acc5 << " %" << std::endl;
 }

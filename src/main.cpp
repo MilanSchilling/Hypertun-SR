@@ -43,7 +43,7 @@ int main() {
 
 	
 	//#######################
-	int range = 5;               //<<<<-------------- // set here range to 'ALL', 'ONE' or a specific number
+	int range = 15;               //<<<<-------------- // set here range to 'ALL', 'ONE' or a specific number
 	//#######################
 	if (DATASET == PERFORMANCE_DATASET) range = ALL;
 
@@ -60,12 +60,21 @@ int main() {
 
 	// create instance of stats
 	stats statistics;
+	if(DATASET == ACCURACY_DATASET) statistics.acc_calc = true;
+	else statistics.acc_calc = false;
 
 	// container for average numbers
 	float avrg_PL_time = 0;
 	float avrg_PL_freq = 0;
 	float avrg_ALG_time = 0;
 	float avrg_ALG_freq = 0;
+
+	float avrg_acc2 = 0;
+	float avrg_acc3 = 0;
+	float avrg_acc4 = 0;
+	float avrg_acc5 = 0;
+
+	
 
 	for (size_t i=0; i<range; i++) {
 		if (single_image) i = 9;
@@ -81,6 +90,12 @@ int main() {
 		avrg_PL_freq += 1.0e6/time_elapsed.total_microseconds();
 		avrg_ALG_time += statistics.alg_time;
 		avrg_ALG_freq += statistics.alg_freq;
+		if (statistics.acc_calc){
+			avrg_acc2 += statistics.acc2;
+			avrg_acc3 += statistics.acc3;
+			avrg_acc4 += statistics.acc4;
+			avrg_acc5 += statistics.acc5;
+		} 
 
 		std::cout << "#################################################" << std::endl;
 		std::cout << std::setprecision(3);
@@ -104,6 +119,12 @@ int main() {
 		std::cout << std::endl;
 		std::cout << std::setw(50) << std::left << "ALGORITHM TOOK ON AVERAGE: " << std::right << avrg_ALG_time / range << " ms" << std::endl;
 		std::cout << std::setw(50) << std::left << "WITH AN AVERAGE SPEED OF: " << std::right << avrg_ALG_freq / range << " Hz" << std::endl;
+		std::cout << std::endl;
+		std::cout << std::setw(50) << std::left << "AVERAGE ACCURACY " << std::endl;
+		std::cout << std::setw(50) << std::left << "less than 2 pixels deviation: " << std::right << avrg_acc2 / range << " %" << std::endl;
+		std::cout << std::setw(50) << std::left << "less than 3 pixels deviation: " << std::right << avrg_acc3 / range << " %" << std::endl;
+		std::cout << std::setw(50) << std::left << "less than 4 pixels deviation: " << std::right << avrg_acc4 / range << " %" << std::endl;
+		std::cout << std::setw(50) << std::left << "less than 5 pixels deviation: " << std::right << avrg_acc5 / range << " %" << std::endl;
 		std::cout << "#################################################" << std::endl;
 		std::cout << "#################################################" << std::endl;
 
