@@ -9,7 +9,7 @@ int main() {
 	const int ACCURACY_DATASET = 0;
 	const int PERFORMANCE_DATASET = 1;
 
-	int DATASET = ACCURACY_DATASET;
+	int DATASET = PERFORMANCE_DATASET;
 
 	cv::String path_left;
 	cv::String path_right;
@@ -45,7 +45,7 @@ int main() {
 	//#######################
 	int range = 5;               //<<<<-------------- // set here range to 'ALL', 'ONE' or a specific number
 	//#######################
-	if (DATASET == PERFORMANCE_DATASET) range = ALL;
+	if (DATASET == PERFORMANCE_DATASET) range = 1;
 
 	// prepare range of images
 	if (range == ALL){
@@ -68,12 +68,12 @@ int main() {
 	float avrg_ALG_freq = 0;
 
 	for (size_t i=0; i<range; i++) {
-		if (single_image) i = 9;
+		if (single_image) i = 0;
 		
 		boost::posix_time::ptime time_start = boost::posix_time::microsec_clock::local_time();
 
-		if (DATASET == PERFORMANCE_DATASET) pipeline(filenames_left[i*2], filenames_right[i*2], " ", statistics);
-		else pipeline(filenames_left[i*2], filenames_right[i*2], filenames_disp[i], statistics);
+		if (DATASET == PERFORMANCE_DATASET) pipeline(filenames_left[i*2], filenames_right[i*2], " ", statistics, i);
+		else pipeline(filenames_left[i*2], filenames_right[i*2], filenames_disp[i], statistics, i);
 
 		boost::posix_time::time_duration time_elapsed = (boost::posix_time::microsec_clock::local_time() - time_start);
 

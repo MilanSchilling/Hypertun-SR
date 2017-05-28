@@ -35,11 +35,14 @@ void showDisparity(cv::Mat I_l, cv::Mat D_it, std::string str);
 // header of 'showSupportPts'
 void showSupportPts(cv::Mat I_l, cv::Mat S_it, std::string str);
 
+// header of 'showDenseDisparity'
+void showDenseDisparity(cv::Mat D_it, cv::Mat G, cv::Mat T, cv::Mat I_l , cv::Mat E, cv::Mat S);
+
 // header of ´computeAccuracy'
 void computeAccuracy(cv::Mat D_f, cv::String filename_disp);
 
 
-void pipeline(cv::String filename_left, cv::String filename_right, cv::String filename_disp, stats &statistics) {
+void pipeline(cv::String filename_left, cv::String filename_right, cv::String filename_disp, stats &statistics, int val) {
 	std::cout << "#######" << std::endl;
 	std::cout << "DATASET: http://www.cvlibs.net/datasets/kitti/eval_stereo_flow.php?benchmark=flow" << std::endl;
 	std::cout << "#######" << std::endl << std::endl;
@@ -50,7 +53,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	//Load parameters
 	parameters param;
 	param.sz_occ = 32;
-	param.n_iters = 2;
+	param.n_iters = 1;
 	param.t_lo = 2.f/24; // placeholder, verify optimal value
 	param.t_hi = 21.f/24; // placeholder, verify optimal value
 	param.im_grad = 20;
@@ -91,6 +94,13 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	cv::Mat grad_l;
 
 	image_gradient(I_l_cb, grad_l, param);
+	
+	// SAVE PICTURE FOR REPORT
+	/*cv::Mat img;
+	cv::compare(grad_l, param.im_grad, img, 1);
+	//normalize(img, img, 0, 256, CV_MINMAX, CV_8U);
+	cv::imwrite("../high_gradient.png", img);
+	cv::imshow("High grad", img);*/
 
 	elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
 	std::cout << std::setw(50) << std::left << "Elapsed Time for image preprocessing: " << std::right << elapsed.total_microseconds()/1.0e3 << " ms" << std::endl;
@@ -165,6 +175,12 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 
 	// show matrix G
 	//showG(I_l, G, param, "G after delaunay");
+
+	// SAVE PICTURE FOR REPORT
+	/*cv::Mat triangle_associations;
+	cv::normalize(G, triangle_associations, 0, 256, CV_MINMAX, CV_8U);
+	cv::imwrite("../triangle_associations.png", triangle_associations);
+	cv::imshow("Triangles", triangle_associations);*/
 	
 	// set all support points in G to -1
 	for (int j=0; j<S.rows; ++j){
@@ -176,7 +192,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	
 	// show the grid from the delaunay triangulation
 	//showGrid(I_l_c, S, E, "Initial Delaunay");
-
+	//showSupportPts(I_l_c, S, "Initial Support Points");
 	for (int i = 0; i < param.n_iters; ++i) {
 		std::cout << "################################################" << std::endl;
 		std::cout << "ITERATION :: " << i+1 << std::endl;
@@ -191,7 +207,10 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 		disparity_interpolation(G, T, O, param, D_it);
 		elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
 		std::cout << std::setw(50) << std::left << "Elapsed Time for 'disparity_interpolation': " << std::right << elapsed.total_microseconds()/1.0e3 << " ms" << std::endl;
-		
+
+		// SAVE PICTURE FOR REPORT
+		//showDenseDisparity(D_it.clone(), G, T, I_l_c, E, S);
+
 		// show matrix G
 		//showG(I_l, G, param, "G");
 
@@ -290,6 +309,12 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	showDisparity(I_l_c, D_f, "Final Disparity");
 	computeAccuracy(D_f, filename_disp);
 
+	/*std::ostringstream oss;
+	oss << "../disp_imgs/" << "disp" << val << ".png";
+	std::string str = oss.str();
+	std::cout << "FILE: " << str << std::endl; 
+	cv::imwrite(str, D_f);*/
+
 	// fill stats struct as output to main
 	statistics.alg_time = algorithm_time_elapsed.total_microseconds()/1.0e3;
 	statistics.alg_freq = 1.0e6/algorithm_time_elapsed.total_microseconds();
@@ -348,6 +373,7 @@ void showGrid(cv::Mat I_l, cv::Mat S, cv::Mat E, std::string str){
 		line2(I_triangles, p1, p2, (cv::Scalar) color1, (cv::Scalar) color2);
 		//std::cout << "drew line: " << i1 << ", " << i2 << std::endl;
 	}
+	cv::imwrite("../triangles.png", I_triangles);
 	cv::imshow(str, I_triangles);
 }
 
@@ -386,10 +412,12 @@ void showG (cv::Mat I_l, cv::Mat G, parameters param, std::string str){
 void showDisparity(cv::Mat I_l, cv::Mat D_it, std::string str){
 		cv::Mat disparity = I_l.clone();
 		cv::cvtColor(disparity, disparity, CV_GRAY2RGB);
+		cv::Mat normalized;
+		normalize(D_it.clone(), normalized, 0, 256, CV_MINMAX, CV_32F);
 
 		for (int x = 0; x < I_l.rows; ++x){
 			for (int y = 0; y < I_l.cols; ++y){
-				float scaledDisp = D_it.at<float>(x,y)/64.0;
+				float scaledDisp = normalized.at<float>(x,y)/255.0;
 				cv::Vec3b color;
 				cv::Point point;
 				point.x = y;
@@ -421,6 +449,78 @@ void showSupportPts(cv::Mat I_l, cv::Mat S_it, std::string str){
 
 		cv::imshow(str, support);
 	}
+}
+
+void showDenseDisparity(cv::Mat D_it, cv::Mat G, cv::Mat T, cv::Mat I_l, cv::Mat E, cv::Mat S){
+
+	int H = G.rows;
+	int W = G.cols;
+	//cv::Mat D_it = I_l.clone();
+	cv::Mat disparity = I_l.clone();
+	cv::cvtColor(disparity, disparity, CV_GRAY2RGB);
+
+	// loop over every pixel
+	for (int i = 0; i < H; ++i) {
+		for (int j = 0; j < W; ++j) {
+
+			if (G.at<int>(i,j) != -1){
+				// get index of the corresponding triangle 
+				int idx_trig = G.at<int>(i,j);
+
+				// get plane parameters
+				if (idx_trig >= 0) {
+					float a = T.at<float>(0,idx_trig);
+					float b = T.at<float>(1,idx_trig);
+					float c = T.at<float>(2,idx_trig);
+					float d = T.at<float>(3,idx_trig);
+
+					// interpolate disparity
+					D_it.at<float>(i,j) = (d - a*j - b*i) / c;
+
+					//std::cout << D_it.at<float>(i,j) << " ";
+					float scaledDisp = D_it.at<float>(i,j)/64.0;
+					cv::Vec3b color;
+					cv::Point point;
+					point.x = j;
+					point.y = i;
+					if(scaledDisp < 0.5)
+						color = cv::Vec3b(0, scaledDisp*512, 255);
+					else color = cv::Vec3b(0, 255, (1-scaledDisp)*512);
+
+					if (scaledDisp != 0)
+					circle(disparity, point, 1, (cv::Scalar) color, 1);
+				}
+			}
+		}
+	}
+	/*int k = 0;
+	for (int i = 0; i < E.rows/2; ++i) {
+		int i1 = E.at<int>(k++,0);
+		int i2 = E.at<int>(k++,0);
+		cv::Point p1(S.at<float>(i1,0), S.at<float>(i1,1));
+		cv::Point p2(S.at<float>(i2,0), S.at<float>(i2,1));
+		cv::line(disparity, p1, p2, cv::Scalar(0,0,0), 1, 8, 0);
+		//std::cout << "drew line: " << i1 << ", " << i2 << std::endl;
+	}*/
+	int H_bar = H/32;
+	int W_bar = W/32;
+	for (int i=0; i<H_bar; i++){
+		cv::Point p1(0, i*32);
+		cv::Point p2(W, i*32);
+		cv::line(disparity, p1, p2, cv::Scalar(0,0,0), 1, 8, 0);
+	}
+	for (int i=0; i<W_bar; i++){
+		cv::Point p1(i*32, 0);
+		cv::Point p2(i*32, H);
+		cv::line(disparity, p1, p2, cv::Scalar(0,0,0), 1, 8, 0);
+	}
+
+	cv::Mat img;
+	normalize(disparity, img, 0, 256, CV_MINMAX, CV_8U);
+	cv::imwrite("../disparity_interpolated.png", img);
+
+	cv::imshow("Disparity", disparity);
+	//showDisparity(I_l, D_it, "Disparity");
 }
 
 

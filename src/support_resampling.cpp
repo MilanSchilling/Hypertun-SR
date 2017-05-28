@@ -197,7 +197,9 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 
 	}
 
+	//showMatch(I_l, I_r, S_epi, epiLength);
 
+	
 	// combine S_it, S_add and S_epi
 	cv::Mat S_next;
 	S_next = cv::Mat(S_it.rows + noGoodPts + epiLength, 3, CV_32F);
@@ -326,14 +328,17 @@ void showMatch (cv::Mat &I_l, cv::Mat &I_r, cv::Mat &S_epi, int epiL){
 
 		ptR.x = ptL.x + sz1.width - d;
 		ptR.y = ptL.y;
-		cv::circle(im3, ptL, 5, (cv::Scalar) color, 2);
-		cv::circle(im3, ptR, 5, (cv::Scalar) color, 2);
-		cv::line(im3, ptL, ptR, (cv::Scalar) color);
+		cv::circle(im3, ptL, 5, (cv::Scalar) color, 5);
+		cv::circle(im3, ptR, 5, (cv::Scalar) color, 5);
+		cv::line(im3, ptL, ptR, (cv::Scalar) color, 3);
 	}
 
 	std::ostringstream oss;
 	oss << "matches " << rng.uniform(0, 15);
 	std::string str = oss.str();
+
+	// SAVE PICTURE FOR REPORT
+	//cv::imwrite("../epipolar_search.png", im3);
 
 	cv::imshow(str, im3);
 	//cv::waitKey(0);
