@@ -8,8 +8,8 @@ The pipeline also used the exFAST library, which is included in src/sparsestereo
 
 ### Datasets
 Two KITTI datasets are used which should be contained in folders as:
-Hypertun-SR/data/data_stereo_flow 		(http://www.cvlibs.net/datasets/kitti/eval_stereo_flow.php?benchmark=stereo)
-Hypertun-SR/data/data_odometry_color	(http://www.cvlibs.net/datasets/kitti/eval_odometry.php, only the folder 00)
+ - Hypertun-SR/data/data_stereo_flow 		(http://www.cvlibs.net/datasets/kitti/eval_stereo_flow.php?benchmark=stereo)
+ - Hypertun-SR/data/data_odometry_color		(http://www.cvlibs.net/datasets/kitti/eval_odometry.php, only the folder 00)
 
 These two datasets can be toggled by changing the variable `int DATASET` in the main.cpp.
 
