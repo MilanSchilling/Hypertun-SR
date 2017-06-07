@@ -172,7 +172,6 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 		int v = S.at<float>(j,1);
 		G.at<int>(v,u) = -1;
 	}
-	// TODO: set G = -1 for all supportpoints within delaunay!
 	
 	// show the grid from the delaunay triangulation
 	//showGrid(I_l_c, S, E, "Initial Delaunay");
@@ -248,7 +247,6 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 				int v = S.at<float>(j,1);
 				G.at<int>(v,u) = -1;
 			}
-			// TODO: set G = -1 for all supportpoints within delaunay!
 
 			// show matrix G
 			//showG(I_l, G, param, "G7");
@@ -297,7 +295,6 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	statistics.alg_freq = 1.0e6/algorithm_time_elapsed.total_microseconds();
 	statistics.it = param.n_iters;
 
-	//cv::waitKey(0); -> waitKey is executed in main.cpp
 }
 
 
@@ -321,10 +318,7 @@ void showGrid(cv::Mat I_l, cv::Mat S, cv::Mat E, std::string str){
 	// Draw Triangles and display image
 	cv::Mat I_triangles = I_l.clone();
 	cv::cvtColor(I_triangles, I_triangles, CV_GRAY2RGB);
-	/*for (int i = 0; i < S.cols; ++i) {
-		cv::circle(I_triangles, cv::Point(S.at<float>(0,i),S.at<float>(1,i)), 
-			1, cv::Scalar(0,255,255),CV_FILLED, 1,0);
-	}*/
+
 	int k = 0;
 	int E_end = E.rows/2;
 

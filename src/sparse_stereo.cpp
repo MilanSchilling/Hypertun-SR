@@ -110,28 +110,6 @@ void sparse_stereo(cv::Mat I_l, cv::Mat I_r, cv::Mat &S){
 	}
 
 
-	/*
-	// Highlight matches as colored boxes
-	Mat_<Vec3b> screen(leftImg.rows, leftImg.cols);
-	cvtColor(leftImg, screen, CV_GRAY2BGR);
-		
-	for(int i=0; i<(int)correspondences.size(); i++) {
-		double scaledDisp = (double)correspondences_disparity_original[i][2] / maxDisp;
-		Vec3b color;
-		if(scaledDisp > 0.5)
-			color = Vec3b(0, (1 - scaledDisp)*512, 255);
-		else color = Vec3b(0, 255, scaledDisp*512);
-
-		circle(screen, mark[i], 1, (Scalar) color, 3);
-	}
-
-	
-	// Display image and wait
-	namedWindow("Stereo");
-	imshow("Stereo", screen);
-	waitKey();
-	*/
-
 	// Clean up
 	delete leftFeatureDetector;
 	delete rightFeatureDetector;
