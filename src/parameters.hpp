@@ -25,6 +25,11 @@ struct parameters {
 
 	// threshold for image gradient
 	int im_grad;
+
+	// threshold for epipolar search
+	float t_epi;
+	// window size for epipolar serch
+	int epi_window;
 };
 
 #endif // PARAMETERS_HPP

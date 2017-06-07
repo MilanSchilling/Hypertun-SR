@@ -15,6 +15,9 @@
 #include "disparity_refinement.hpp"
 #include "support_resampling.hpp"
 #include "parameters.hpp"
+#include "image_gradient.hpp"
+#include "stats.hpp"
+
 
 // header of 'line2'
 void line2(cv::Mat& img, const cv::Point& start, const cv::Point& end, 
@@ -33,10 +36,10 @@ void showDisparity(cv::Mat I_l, cv::Mat D_it, std::string str);
 void showSupportPts(cv::Mat I_l, cv::Mat S_it, std::string str);
 
 // header of ´computeAccuracy'
-void computeAccuracy(cv::Mat D_f, cv::String filename_disp);
+void computeAccuracy(cv::Mat D_f, cv::String filename_disp, stats &statistics);
 
 
-void pipeline(cv::String filename_left, cv::String filename_right, cv::String filename_disp) {
+void pipeline(cv::String filename_left, cv::String filename_right, cv::String filename_disp, stats &statistics) {
 	std::cout << "#######" << std::endl;
 	std::cout << "DATASET: http://www.cvlibs.net/datasets/kitti/eval_stereo_flow.php?benchmark=flow" << std::endl;
 	std::cout << "#######" << std::endl << std::endl;
@@ -49,8 +52,10 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	param.sz_occ = 32;
 	param.n_iters = 2;
 	param.t_lo = 2.f/24; // placeholder, verify optimal value
-	param.t_hi = 24.f/24; // placeholder, verify optimal value
+	param.t_hi = 21.f/24; // placeholder, verify optimal value
 	param.im_grad = 20;
+	param.t_epi = 0.3f;
+	param.epi_window = 80;
 
 	// Load images with time estimation
 	boost::posix_time::ptime lastTime = boost::posix_time::microsec_clock::local_time();
@@ -81,26 +86,11 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	// apply gaussian blur
 	cv::GaussianBlur(I_l_c, I_l_cb, cv::Size(3,3), 0, 0, cv::BORDER_DEFAULT);
 
-	// Generate grad_x and grad_y
-  	cv::Mat grad_l_x, grad_l_y;
-  	cv::Mat abs_grad_l_x, abs_grad_l_y;
+
+	// Generate gradient image
 	cv::Mat grad_l;
 
-	// parameters for Gradient
-	int scale = 1;
-	int delta = 0;
-	int ddepth = -1;
-
-	// Gradient X
-	cv::Sobel( I_l_cb, grad_l_x, ddepth, 1, 0, 3, scale, delta, cv::BORDER_DEFAULT);
-	cv::convertScaleAbs(grad_l_x, abs_grad_l_x);
-
-	// Gradient Y
-	cv::Sobel( I_l_cb, grad_l_y, ddepth, 0, 1, 3, scale, delta, cv::BORDER_DEFAULT);
- 	cv::convertScaleAbs(grad_l_y, abs_grad_l_y );	
-
-	// Total Gradient (approximate)
-	cv::addWeighted(abs_grad_l_x, 0.5, abs_grad_l_y, 0.5, 0, grad_l);
+	image_gradient(I_l_cb, grad_l, param);
 
 	elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
 	std::cout << std::setw(50) << std::left << "Elapsed Time for image preprocessing: " << std::right << elapsed.total_microseconds()/1.0e3 << " ms" << std::endl;
@@ -112,7 +102,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	int highGradCount = 0;
 	for (int vv = 0; vv < I_l_cb.rows; vv++){
 		for (int uu = 0; uu < I_l_cb.cols; uu++){
-			if(int(grad_l.at<uchar>(vv,uu)) > param.im_grad){
+			if(grad_l.at<uchar>(vv,uu) > param.im_grad){
 				cv::Mat pixel = cv::Mat(1, 2, CV_32S);
 				pixel.at<int>(0, 0) = uu;
 				pixel.at<int>(0, 1) = vv;
@@ -123,6 +113,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 		}
 	}
 	param.nOfHiGradPix = highGradCount;
+	
 
 	elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
 	std::cout << std::setw(50) << std::left << "Elapsed Time for building the Mat O: " << std::right << elapsed.total_microseconds()/1.0e3 << " ms" << std::endl;
@@ -130,9 +121,6 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	
 	std::cout << "Number of pixels with high gradient: " << param.nOfHiGradPix << std::endl;
 
-	// show gradient image
-	//cv::imshow("left gradient", grad_l);
-	//cv::waitKey(0);
 
 	// Get image height and width
 	param.H = I_l_c.rows;
@@ -187,11 +175,11 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	// TODO: set G = -1 for all supportpoints within delaunay!
 	
 	// show the grid from the delaunay triangulation
-	//showGrid(I_l_c, S, E, "Delaunay 1");
+	//showGrid(I_l_c, S, E, "Initial Delaunay");
 
 	for (int i = 0; i < param.n_iters; ++i) {
 		std::cout << "################################################" << std::endl;
-		std::cout << "ITERATION :: " << i << std::endl;
+		std::cout << "ITERATION :: " << i+1 << std::endl;
 		std::cout << "################################################" << std::endl;
 
 		// initialize D_it and C_it new for every iteration
@@ -275,7 +263,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 			
 			// show delaunay grid for i-th iteration
 			std::ostringstream oss;
-			oss << "Delaunay " << i+2;
+			oss << "Delaunay " << i+1;
 			std::string str = oss.str();
 			//showGrid(I_l_c, S, E, str);
 			
@@ -284,11 +272,10 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 
 	boost::posix_time::time_duration algorithm_time_elapsed = (boost::posix_time::microsec_clock::local_time() - algorithm_time_start);
 
-	std::cout << "************************************************" << std::endl;
-	std::cout << std::setprecision(2);
+	std::cout << "################################################" << std::endl;
 	std::cout << std::setw(50) << std::left << "ALGORITHM TOOK: " << std::right << algorithm_time_elapsed.total_microseconds()/1.0e3 << " ms" << std::endl; 
 	std::cout << std::setw(50) << std::left << "WITH A SPEED OF: " << std::right << 1.0e6/algorithm_time_elapsed.total_microseconds() << " Hz" << std::endl;
-	std::cout << "************************************************" << std::endl;
+	std::cout << "################################################" << std::endl;
 
 	std::cout << "NUMBER OF ITERATIONS: " << param.n_iters << std::endl;
 	std::cout << "NEW SUPPORT POINTS: " << S.rows - num_S_points_init << " / " << S.rows << std::endl;
@@ -298,10 +285,17 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	std::cout << "POINTS WITH DISPARITY: " << num_points;
 	std:: cout << ", " << float(num_points)/(I_l.rows*I_l.cols)*100 << "% of image" << std::endl;
 
-	//showGrid(I_l_c, S, E, "final Delaunay");
+	showGrid(I_l_c, S, E, "Final Delaunay");
 	//showSupportPts(I_l_c, S, "final Support Points");
-	showDisparity(I_l_c, D_f, "final Disparity");
-	computeAccuracy(D_f, filename_disp);
+	showDisparity(I_l_c, D_f, "Final Disparity");
+	// calculate accuracy if correct dataset is given
+	if(statistics.acc_calc) computeAccuracy(D_f, filename_disp, statistics);
+	
+
+	// fill stats struct as output to main
+	statistics.alg_time = algorithm_time_elapsed.total_microseconds()/1.0e3;
+	statistics.alg_freq = 1.0e6/algorithm_time_elapsed.total_microseconds();
+	statistics.it = param.n_iters;
 
 	//cv::waitKey(0); -> waitKey is executed in main.cpp
 }
@@ -433,7 +427,9 @@ void showSupportPts(cv::Mat I_l, cv::Mat S_it, std::string str){
 
 
 
-void computeAccuracy(cv::Mat D_f, cv::String filename_disp){
+void computeAccuracy(cv::Mat D_f, cv::String filename_disp, stats &statistics){
+
+	if (filename_disp == " ") return;
 
 	std::cout << "################################################" << std::endl;
 	std::cout << "ACCURACY (comparing with ground-truth disparity)" << std::endl;
@@ -486,8 +482,15 @@ void computeAccuracy(cv::Mat D_f, cv::String filename_disp){
 		}
 	}
 
-	std::cout << "less than 2 pixels: " << counter_2/n_loops * 100 << " %" << std::endl;
-	std::cout << "less than 3 pixels: " << counter_3/n_loops * 100 << " %" << std::endl;
-	std::cout << "less than 4 pixels: " << counter_4/n_loops * 100 << " %" << std::endl;
-	std::cout << "less than 5 pixels: " << counter_5/n_loops * 100 << " %" << std::endl;
+	statistics.acc2 = counter_2/n_loops * 100;
+	statistics.acc3 = counter_3/n_loops * 100;
+	statistics.acc4 = counter_4/n_loops * 100;
+	statistics.acc5 = counter_5/n_loops * 100;
+
+
+
+	std::cout << "less than 2 pixels: " << statistics.acc2 << " %" << std::endl;
+	std::cout << "less than 3 pixels: " << statistics.acc3 << " %" << std::endl;
+	std::cout << "less than 4 pixels: " << statistics.acc4 << " %" << std::endl;
+	std::cout << "less than 5 pixels: " << statistics.acc5 << " %" << std::endl;
 }

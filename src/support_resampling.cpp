@@ -5,6 +5,8 @@
 #include "sparsestereo/imageconversion.h"
 #include <iostream>
 
+void showMatch (cv::Mat &I_l, cv::Mat &I_r, cv::Mat &S_epi, int epiL);
+
 // support_resampling :
 // inputs:
 // - C_g   : Cost associated with regions of high confidence matches [H' x W' x (u, v, d, cost)]
@@ -35,7 +37,6 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 	// get number of points in C_b and C_g
 	int noBadPts = 0;
 	int noGoodPts = 0;
-
 	for (int it_u=0; it_u<param.W_bar; ++it_u){
 		for (int it_v=0; it_v<param.H_bar; ++it_v){
 			// if cost is higher than t_hi
@@ -43,7 +44,7 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 				noBadPts++;
 			}
 			// if cost is lower than t_lo	
-			if ((0 < C_g.at<float>(it_v, it_u, 3)) && (C_g.at<float>(it_v, it_u, 3) < param.t_lo)){
+			if (C_g.at<float>(it_v, it_u, 3) < param.t_lo){
 				noGoodPts++;
 			}	
 		}
@@ -79,7 +80,7 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 				X_length++;
 			}
 			// check if cost is low enough but not zero
-			if ((0 < C_g.at<float>(v_bar, u_bar, 3)) && (C_g.at<float>(v_bar, u_bar, 3) < param.t_lo)){
+			if (C_g.at<float>(v_bar, u_bar, 3) < param.t_lo){
 				// be sure that u and v are in range
 				assert(0 <= C_g.at<float>(v_bar, u_bar, 0) && C_g.at<float>(v_bar, u_bar, 0) <= 1242);
 				assert(0 <= C_g.at<float>(v_bar, u_bar, 1) && C_g.at<float>(v_bar, u_bar, 1) <= 375);
@@ -105,6 +106,8 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 
 	int epiLength = 0;
 
+	int pattern_sz = 7;
+
 	//loop over bad points
 	for (int i=0; i < noBadPts; ++i){
 
@@ -116,90 +119,83 @@ void support_resampling(cv::Mat &C_g, cv::Mat &C_b,
 		assert((0 <= currU) && ( currU <= 1242));
 		assert((0 <= currV) && ( currV <= 375));
 
-		// get current left census
-		unsigned int currCensusLeft = census_l.at<unsigned int>(currV, currU);
+		// check if pixels in pattern are within image
+		if ((currV - pattern_sz >= 0) && (currV + pattern_sz < param.H)
+			 && (currU - pattern_sz >= 0) && (currU + pattern_sz < param.W)){
+			
+			// get current left census pattern of four pixel: center, Up, Down, Left, Right
+			unsigned int currCensusLeft = census_l.at<unsigned int>(currV, currU);
+			unsigned int currCensusLeftU = census_l.at<unsigned int>(currV - pattern_sz, currU);
+			unsigned int currCensusLeftD = census_l.at<unsigned int>(currV + pattern_sz, currU);
+			unsigned int currCensusLeftL = census_l.at<unsigned int>(currV, currU - pattern_sz);
+			unsigned int currCensusLeftR = census_l.at<unsigned int>(currV, currU + pattern_sz);
 
-		// define best cost
-		float bestCost = 2.;
-		int u_best = 0;
-		int nuOfZeros = 0;
+			// define best cost
+			float bestCost = 6.;
+			int u_best = 0;
+			int nuOfZeros = 0;
 
-		// window on epipolar line
-		int win = 40;
+			// window on epipolar line
+			int win = param.epi_window;
 
-		// loop along each epipolar line
-		for (int u_ = std::max(0, currU - win); u_ <= currU; ++u_){
-			//extract each right census
-			unsigned int currCensusRight = census_r.at<unsigned int>(currV, u_);
+			// loop along each epipolar line
+			for (int u_ = std::max(pattern_sz, currU - win); u_ < std::min(currU, param.W - pattern_sz); ++u_){
 
-			// calculate Hamming distance
-			unsigned char hamming = mHamming.calculate(currCensusLeft, currCensusRight);
-			float currCost = hamming / 24.0f;
+				//extract each right census pattern
+				unsigned int currCensusRight = census_r.at<unsigned int>(currV, u_);
+				unsigned int currCensusRightU = census_r.at<unsigned int>(currV - pattern_sz, u_);
+				unsigned int currCensusRightD = census_r.at<unsigned int>(currV + pattern_sz, u_);
+				unsigned int currCensusRightL = census_r.at<unsigned int>(currV, u_ - pattern_sz);
+				unsigned int currCensusRightR = census_r.at<unsigned int>(currV, u_ + pattern_sz);
 
-			// store best match
-			if (currCost < bestCost){
-				bestCost = currCost;
-				u_best = u_;
+				// calculate Hamming distances
+				unsigned char hamming = mHamming.calculate(currCensusLeft, currCensusRight);
+				unsigned char hammingU = mHamming.calculate(currCensusLeftU, currCensusRightU);
+				unsigned char hammingD = mHamming.calculate(currCensusLeftD, currCensusRightD);
+				unsigned char hammingL = mHamming.calculate(currCensusLeftL, currCensusRightL);
+				unsigned char hammingR = mHamming.calculate(currCensusLeftR, currCensusRightR);
+
+				float currCost = hamming / 24.0f;
+				float currCostU = hammingU / 24.0f;
+				float currCostD = hammingD / 24.0f;
+				float currCostL = hammingL / 24.0f;
+				float currCostR = hammingR / 24.0f;
+
+				float totCost = currCost + currCostU + currCostD + currCostL + currCostR; 
+
+				
+
+				// store best match
+				if (totCost < bestCost){
+					bestCost = totCost;
+					u_best = u_;
+				}
+
+				// count how many zero-cost matches there are
+				if (totCost == 0)
+					nuOfZeros++;
+
 			}
 
-			// count how many zero-cost matches there are
-			if (hamming == 0)
-				nuOfZeros++;
 
+			// check if best match is good and unique
+			if (bestCost < param.t_epi){   // (bestCost == 0) && (nuOfZeros == 1)
+				// calculate disparity with u_left - u_right
+				int disp = currU - u_best;
+				assert(disp >= 0);
+
+				// save (u, v, d) to epi
+				S_epi.at<float>(epiLength, 0) = X.at<float>(i, 0);
+				S_epi.at<float>(epiLength, 1) = X.at<float>(i, 1);
+				S_epi.at<float>(epiLength, 2) = float(disp);
+
+				epiLength++;
+			}
 		}
 
-		// check if best match is good and unique
-		if ((bestCost == 0) && (nuOfZeros == 1)){
-			// calculate disparity with u_left - u_right
-			int disp = currU - u_best;
-			assert(disp >= 0);
-
-			// save (u, v, d) to epi
-			S_epi.at<float>(epiLength, 0) = X.at<float>(i, 0);
-			S_epi.at<float>(epiLength, 1) = X.at<float>(i, 1);
-			S_epi.at<float>(epiLength, 2) = float(disp);
-
-			epiLength++;
-		}
+		
 
 	}
-
-
-	/*
-
-	
-	// define container for epipolar search [noBadPts x (u, v, d)]
-	cv::Mat S_epi;
-	S_epi = cv::Mat(noBadPts, 3, CV_32F, 0.0);
-
-	// pad a frame around the images
-	int border = 2;
-	cv::Mat I_r_p = cv::Mat(I_r.rows + border*2, I_r.cols + border*2, I_r.depth());
-	cv::Mat I_l_p = cv::Mat(I_l.rows + border*2, I_l.cols + border*2, I_l.depth());
-	cv::copyMakeBorder(I_r, I_r_p, border, border, border, border, cv::BORDER_REPLICATE);
-	cv::copyMakeBorder(I_l, I_l_p, border, border, border, border, cv::BORDER_REPLICATE);
-
-
-	// loop over X
-	for (int i=0; i < noBadPts; ++i){
-		int d = -1;
-		// be sure that u and v are in range
-		assert(0 <= int(X.at<float>(i, 0)) && int(X.at<float>(i, 0)) <= 1242);
-		assert(0 <= int(X.at<float>(i, 1)) && int(X.at<float>(i, 1)) <= 375);
-
-		// perform epipolar to get best census match along the epipolar line
-		epipolar_search(I_l_p, I_r_p,
-						int(X.at<float>(i, 0)), int(X.at<float>(i, 1)), d, param);
-		// be sure d is > zero
-		assert(d >= 0);
-
-		// save (u, v, d) to epi
-		S_epi.at<float>(i, 0) = X.at<float>(i, 0);
-		S_epi.at<float>(i, 1) = X.at<float>(i, 1);
-		S_epi.at<float>(i, 2) = float(d);
-	}
-
-	*/
 
 
 	// combine S_it, S_add and S_epi
@@ -299,4 +295,47 @@ void epipolar_search(cv::Mat &I_l_p, cv::Mat &I_r_p,
 
 	// calculate disparity with u_left - u_right
 	d = u - u_best;
+}
+
+
+
+void showMatch (cv::Mat &I_l, cv::Mat &I_r, cv::Mat &S_epi, int epiL){
+	cv::Mat im1 = I_l.clone();
+	cv::Mat im2 = I_r.clone();
+
+	cv::Size sz1 = im1.size();
+	cv::Size sz2 = im2.size();
+
+	cv::Mat im3(sz1.height, sz1.width + sz2.width, CV_8UC1);
+	cv::Mat left(im3, cv::Rect(0, 0, sz1.width, sz1.height));
+	im1.copyTo(left);
+
+	cv::Mat right(im3, cv::Rect(sz1.width, 0, sz2.width, sz2.height));
+	im2.copyTo(right);
+
+	cv::cvtColor(im3, im3, CV_GRAY2RGB);
+
+	cv::RNG rng(424242);
+	for (int i = 0; i < epiL; ++i){
+		cv::Vec3b color;
+		color = cv::Vec3b(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
+		cv::Point ptL, ptR;
+		ptL.x = S_epi.at<float>(i, 0);
+		ptL.y = S_epi.at<float>(i, 1);
+		int d = S_epi.at<float>(i, 2);
+
+		ptR.x = ptL.x + sz1.width - d;
+		ptR.y = ptL.y;
+		cv::circle(im3, ptL, 5, (cv::Scalar) color, 2);
+		cv::circle(im3, ptR, 5, (cv::Scalar) color, 2);
+		cv::line(im3, ptL, ptR, (cv::Scalar) color);
+	}
+
+	std::ostringstream oss;
+	oss << "matches " << rng.uniform(0, 15);
+	std::string str = oss.str();
+
+	cv::imshow(str, im3);
+	//cv::waitKey(0);
+
 }

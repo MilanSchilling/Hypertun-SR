@@ -52,24 +52,28 @@ void disparity_refinement(cv::Mat &D_it, cv::Mat &C_it,
 		// If matching cost is lower than previous best valid cost
 		if ((C_it.at<float>(v,u) < param.t_lo) && (C_it.at<float>(v,u) < C_g.at<float>(v_bar,u_bar,3))){
 
-			assert(0 <= C_it.at<float>(v, u) && C_it.at<float>(v, u) <= 1);
+			if (!((0 <= C_it.at<float>(v, u)) && (C_it.at<float>(v, u) <= 1))){
+				std::cout << "something wrong with cost! c_it = " << C_it.at<float>(v, u) << " at u,v = " << u << "," << v << std::endl; 
+			}
+			//assert((0 <= C_it.at<float>(v, u)) && (C_it.at<float>(v, u) <= 1));
 			C_g.at<float>(v_bar,u_bar, 0) = u;
 			C_g.at<float>(v_bar,u_bar, 1) = v;
 			C_g.at<float>(v_bar,u_bar, 2) = D_it.at<float>(v,u);
 			C_g.at<float>(v_bar,u_bar, 3) = C_it.at<float>(v,u);
-			assert(0 <= C_g.at<float>(v_bar, u_bar, 3) && C_g.at<float>(v_bar, u_bar, 3) <= 1);
+			//assert(0 <= C_g.at<float>(v_bar, u_bar, 3) && C_g.at<float>(v_bar, u_bar, 3) <= 1);
 		}
 
 		// If matching cost is higher than previous worst invalid cost
-		float c_it_cur = C_it.at<float>(v,u);
-		float c_b_cur = C_b.at<float>(v_bar, u_bar, 2);
-		if ((c_it_cur > param.t_hi) && (c_it_cur > c_b_cur)){
+		if ((C_it.at<float>(v,u) > param.t_hi) && (C_it.at<float>(v,u) > C_b.at<float>(v_bar, u_bar, 2))){
 
-			assert(0 <= C_it.at<float>(v, u) && C_it.at<float>(v, u) <= 1);
+			if (!((0 <= C_it.at<float>(v, u)) && (C_it.at<float>(v, u) <= 1))){
+				std::cout << "something wrong with cost! c_it = " << C_it.at<float>(v, u) << " at u,v = " << u << "," << v << std::endl; 
+			}
+			//assert((0 <= C_it.at<float>(v, u)) && (C_it.at<float>(v, u) <= 1));
 			C_b.at<float>(v_bar,u_bar, 0) = u;
 			C_b.at<float>(v_bar,u_bar, 1) = v;
 			C_b.at<float>(v_bar,u_bar, 2) = C_it.at<float>(v,u);
-			assert(0 <= C_b.at<float>(v_bar, u_bar, 2) && C_b.at<float>(v_bar, u_bar, 2) <= 1);
+			//assert(0 <= C_b.at<float>(v_bar, u_bar, 2) && C_b.at<float>(v_bar, u_bar, 2) <= 1);
 		}
 
 	}
