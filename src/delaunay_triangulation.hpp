@@ -6,6 +6,6 @@
 #include <iostream>
 #include <cmath>
 
-void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv::Mat &E);
+void delaunay_triangulation(cv::Mat &S, cv::Mat &G, cv::Mat &T, cv::Mat &E);
 
 #endif // DELAUNAY_TRIANGULATION_HPP

@@ -4,7 +4,7 @@
  - OpenCV 2.4.13
  - boost (tested with 1.58.0.1)
 
-The pipeline also used the exFAST library, which is included in src/sparsestereo and the Triangle library, which is included in libs/triangulation.
+The pipeline also uses the exFAST library, which is included in src/sparsestereo and the Triangle library, which is included in libs/triangulation.
 
 ### Datasets
 Two KITTI datasets are used which should be contained in folders as:
