@@ -319,9 +319,12 @@ void showGrid(cv::Mat I_l, cv::Mat S, cv::Mat E, std::string str){
 	cv::Mat I_triangles = I_l.clone();
 	cv::cvtColor(I_triangles, I_triangles, CV_GRAY2RGB);
 
-	int k = 0;
-	int E_end = E.rows/2;
+	float maxDisp, minDisp = 0;
+	for (int i=0; i<S.rows; ++i) {
+		if (S.at<float>(i,2) > maxDisp) maxDisp = S.at<float>(i,2);
+	}
 
+	int k = 0;
 	for (int i = 0; i < E.rows/2; ++i) {
 		int i1 = E.at<int>(k++,0);
 		int i2 = E.at<int>(k++,0);
@@ -329,7 +332,7 @@ void showGrid(cv::Mat I_l, cv::Mat S, cv::Mat E, std::string str){
 		cv::Point p1(S.at<float>(i1,0), S.at<float>(i1,1));
 		cv::Point p2(S.at<float>(i2,0), S.at<float>(i2,1));
 
-		float maxDisp = 64.0; // staehlii: THIS IS ACTUALLY NOT A CONSTANT BUT I DON'T WANT TO SEARCH FOR THE CORRECT VALUE
+		 // staehlii: THIS IS ACTUALLY NOT A CONSTANT BUT I DON'T WANT TO SEARCH FOR THE CORRECT VALUE
 		float scaledDisp1 = S.at<float>(i1,2)/maxDisp;
 		float scaledDisp2 = S.at<float>(i2,2)/maxDisp;
 		cv::Vec3b color1;
@@ -382,10 +385,12 @@ void showG (cv::Mat I_l, cv::Mat G, parameters param, std::string str){
 void showDisparity(cv::Mat I_l, cv::Mat D_it, std::string str){
 		cv::Mat disparity = I_l.clone();
 		cv::cvtColor(disparity, disparity, CV_GRAY2RGB);
+		cv::Mat normalized;
+		normalize(D_it.clone(), normalized, 0, 256, CV_MINMAX, CV_32F);
 
 		for (int x = 0; x < I_l.rows; ++x){
 			for (int y = 0; y < I_l.cols; ++y){
-				float scaledDisp = D_it.at<float>(x,y)/64.0;
+				float scaledDisp = normalized.at<float>(x,y)/255.0;
 				cv::Vec3b color;
 				cv::Point point;
 				point.x = y;
