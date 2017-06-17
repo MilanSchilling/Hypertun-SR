@@ -56,7 +56,7 @@ cv::Point3f maxCoordinate(cv::Point3f a, cv::Point3f b, cv::Point3f c){
 // - E: 1x(2*num_edges) matrix with 2 points for each edge used to plot
 
 
-void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv::Mat &E){
+void delaunay_triangulation(cv::Mat &S, cv::Mat &G, cv::Mat &T, cv::Mat &E){
 
 	std::cout << "delaunay_triangulation.cpp" << std::endl;
 
@@ -107,8 +107,6 @@ void delaunay_triangulation(cv::Mat &S, int H, int W, cv::Mat &G, cv::Mat &T, cv
 	T = cv::Mat(4, out.numberoftriangles, CV_64F, 0.0);
 
 	// Assign each pixel to the corresponding triangle
-	G = cv::Mat(H, W, CV_32S, cv::Scalar(-1));
-
 	k = 0;
 	for (int i = 0; i < out.numberoftriangles; ++i) {
 		cv::Point3f line_12, line_13;

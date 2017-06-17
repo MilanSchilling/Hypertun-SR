@@ -149,6 +149,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 	cv::Mat census_l; // census transformed left image
 	cv::Mat census_r; // census transformed right image
 
+	G = cv::Mat(param.H, param.W, CV_32S, cv::Scalar(-1));
 
 	// execute 'sparse_stereo' with elapsed time estimation 
 	lastTime = boost::posix_time::microsec_clock::local_time();
@@ -159,7 +160,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 
 	// execute 'delaunay_triangulation' with elapsed time estimation
 	lastTime = boost::posix_time::microsec_clock::local_time();
-	delaunay_triangulation(S, param.H, param.W, G, T, E);
+	delaunay_triangulation(S, G, T, E);
 	elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
 	std::cout << std::setw(50) << std::left << "Elapsed Time for 'delaunay_triangulation': " << std::right << elapsed.total_microseconds()/1.0e3 << " ms" << std::endl;
 
@@ -237,7 +238,7 @@ void pipeline(cv::String filename_left, cv::String filename_right, cv::String fi
 		
 			// execute 'delaunay_triangulation' with elapsed time estimation
 			lastTime = boost::posix_time::microsec_clock::local_time();
-			delaunay_triangulation(S, param.H, param.W, G, T, E);
+			delaunay_triangulation(S, G, T, E);
 			elapsed = (boost::posix_time::microsec_clock::local_time() - lastTime);
 			std::cout << std::setw(50) << std::left << "Elapsed Time for 'delaunay_triangulation': " << std::right << elapsed.total_microseconds()/1.0e3 << " ms" << std::endl;
 
